@@ -1,2 +1,23 @@
 @import "tailwindcss";
 
+@theme {
+  --color-frappe-bg: #f8fafc;
+  --color-frappe-surface: #ffffff;
+  --color-frappe-border: #e2e8f0;
+  --color-frappe-hover: #f1f5f9;
+  --color-frappe-muted: #64748b;
+  --color-frappe-dark: #0f172a;
+  --text-2xs: 11px;
+  --text-2xs--line-height: 14px;
+}
+
+/* Keep compact Desk typography scoped to authenticated profile content. */
+.profile-desk {
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+}
+
