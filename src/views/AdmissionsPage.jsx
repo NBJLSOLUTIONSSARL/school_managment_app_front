@@ -39,34 +39,34 @@ export default function AdmissionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#1E293B] flex flex-col justify-between overflow-x-hidden">
-      <header className="w-full max-w-7xl mx-auto px-6 sm:px-10 pt-8 pb-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#FCF5EB] text-[#1E293B] flex flex-col justify-between overflow-x-hidden selection:bg-[#E8DFC9] selection:text-[#16222F]">
+      <header className="w-full max-w-7xl mx-auto px-6 sm:px-12 pt-7 pb-3 flex items-center justify-between">
         <div
           onClick={() => setActiveView('landing')}
           className="flex items-center gap-3 cursor-pointer select-none"
         >
-          <div className="w-9 h-9 flex items-center justify-center">
+          <div className="w-8 h-8 flex items-center justify-center">
             <img
               src="/logo.svg"
               alt="Académie Lumière"
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="font-brand text-lg tracking-wide text-[#16222F] font-bold">
+          <span className="font-serif-title text-base sm:text-lg tracking-wide text-[#16222F] font-semibold">
             Académie Lumière
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-xs sm:text-sm font-medium">
           <button
             onClick={() => setActiveView('landing')}
-            className="text-[#16222F] hover:text-[#C5A880] transition-colors"
+            className="text-[#16222F]/80 hover:text-[#C5A880] transition-colors"
           >
             Accueil
           </button>
           <button
             onClick={() => setActiveView('landing')}
-            className="text-[#78716C] hover:text-[#16222F] transition-colors"
+            className="text-[#16222F]/80 hover:text-[#16222F] transition-colors"
           >
             À propos
           </button>
@@ -78,7 +78,7 @@ export default function AdmissionsPage() {
               const el = document.getElementById('contact-footer');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="text-[#78716C] hover:text-[#16222F] transition-colors"
+            className="text-[#16222F]/80 hover:text-[#16222F] transition-colors"
           >
             Contact
           </button>
@@ -103,21 +103,21 @@ export default function AdmissionsPage() {
 
           <button
             onClick={() => setActiveView('login')}
-            className="hidden sm:inline-flex text-xs font-semibold px-4 py-2 rounded-full border border-[#D9CEBC] text-[#16222F] hover:bg-[#F4EDE2] transition-colors"
+            className="hidden sm:inline-flex text-xs font-semibold px-4 py-1.5 rounded-full border border-[#D9CEBC] text-[#16222F] hover:bg-[#FAF7F2] transition-colors"
           >
             Connexion
           </button>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-6 sm:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative min-h-[460px]">
-          <div className="lg:col-span-6 z-10 space-y-6 max-w-xl">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-12 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative min-h-[400px]">
+          <div className="lg:col-span-6 z-10 space-y-6 max-w-lg">
             <div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif-title font-bold text-[#16222F] tracking-tight leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif-title font-normal text-[#16222F] tracking-tight leading-tight">
                 Admissions
               </h1>
-              <p className="text-lg sm:text-xl font-serif-title text-[#16222F] mt-2 font-normal">
+              <p className="text-base sm:text-lg font-serif-title text-[#16222F] mt-2 font-normal">
                 Rejoignez notre communauté éducative
               </p>
             </div>
@@ -135,7 +135,7 @@ export default function AdmissionsPage() {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <div className="absolute left-64 -top-2 grid grid-cols-4 gap-2 opacity-35 pointer-events-none hidden sm:grid">
+              <div className="absolute left-64 -top-1 grid grid-cols-4 gap-2 opacity-35 pointer-events-none hidden sm:grid">
                 {Array.from({ length: 16 }).map((_, i) => (
                   <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#C5A880]" />
                 ))}
@@ -143,27 +143,18 @@ export default function AdmissionsPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-6 relative w-full h-[340px] sm:h-[420px] lg:h-[480px]">
-            <div
-              className="relative w-full h-full overflow-hidden shadow-2xl transition-all duration-300"
-              style={{
-                borderTopLeftRadius: '10rem',
-                borderBottomLeftRadius: '2rem',
-                borderTopRightRadius: '2rem',
-                borderBottomRightRadius: '2rem'
-              }}
-            >
+          <div className="lg:col-span-6 relative w-full h-[320px] sm:h-[380px] lg:h-[420px] flex items-center justify-end">
+            <div className="relative w-full h-full max-w-lg overflow-hidden rounded-3xl lg:rounded-none">
               <img
-                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1000&auto=format&fit=crop&q=80"
+                src="/assets/admissions-student-building.png"
                 alt="Admissions Académie Lumière"
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-contain object-right"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
 
-        <section id="candidature-form" className="mt-16 sm:mt-24 max-w-4xl mx-auto">
+        <section id="candidature-form" className="mt-14 sm:mt-20 max-w-4xl mx-auto">
           <div className="bg-white rounded-3xl border border-[#EFECE6] p-8 sm:p-12 shadow-sm">
             {isSubmitted ? (
               <div className="text-center py-10 space-y-4">
@@ -366,10 +357,10 @@ export default function AdmissionsPage() {
         </section>
       </main>
 
-      <footer id="contact-footer" className="w-full bg-[#16222F] text-white py-8 px-6 sm:px-10 mt-16">
+      <footer id="contact-footer" className="w-full bg-[#16222F] text-white py-8 px-6 sm:px-12 mt-16">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]">
           <div className="flex items-center gap-2">
-            <span className="font-brand font-bold text-white tracking-wide">Académie Lumière</span>
+            <span className="font-serif-title font-bold text-white tracking-wide">Académie Lumière</span>
             <span>•</span>
             <span>Casablanca, Maroc</span>
           </div>
