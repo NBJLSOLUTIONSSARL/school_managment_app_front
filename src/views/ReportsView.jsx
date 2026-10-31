@@ -4,9 +4,9 @@ import {
   GraduationCap,
   FileText,
   Download,
-  BarChart2
+  BarChart2,
+  ChevronDown
 } from 'lucide-react';
-import StatCard from '../components/common/StatCard';
 import LineChart from '../components/common/LineChart';
 import { PERFORMANCE_DATA } from '../data/mockData';
 
@@ -33,76 +33,105 @@ export default function ReportsView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Statistiques & Analyses
-            </span>
+      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-2 pb-4 overflow-hidden">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-0.5 bg-[#C5A880] rounded-full inline-block" />
+            <h1 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#16222F] tracking-tight">
+              Rapports
+            </h1>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Rapports
-          </h1>
-          <p className="text-sm text-[#78716C] mt-1">
+          <p className="text-xs sm:text-sm text-[#475569] mt-2">
             Consultez et téléchargez vos rapports en quelques clics
           </p>
         </div>
 
-        <div className="w-16 h-16 rounded-2xl bg-[#F4EDE2] flex items-center justify-center text-[#C5A880] shrink-0 hidden sm:flex">
-          <BarChart2 className="w-8 h-8 stroke-[1.5]" />
+        <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 h-36 w-96 pointer-events-none">
+          <img
+            src="/assets/reports-illustration.png"
+            alt=""
+            className="w-full h-full object-contain object-right"
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <StatCard
-          icon={Users}
-          title="Total Élèves"
-          value="1 248"
-          badgeText="↑ +5%"
-          badgeType="positive"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
-        <StatCard
-          icon={GraduationCap}
-          title="Taux de Réussite"
-          value="92%"
-          badgeText="↑ +2%"
-          badgeType="positive"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
-        <StatCard
-          icon={FileText}
-          title="Rapports Disponibles"
-          value="12"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+              <Users className="w-6 h-6 stroke-[1.8]" />
+            </div>
+            <div>
+              <p className="text-xs text-[#526071] font-medium">Total Élèves</p>
+              <p className="text-3xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                1 248
+              </p>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-[#059669] shrink-0">
+            ↑ +5%
+          </div>
+          <div className="absolute right-0 bottom-0 w-24 h-8 bg-gradient-to-t from-[#F8F3EA]/60 to-transparent pointer-events-none rounded-tl-full" />
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+              <GraduationCap className="w-6 h-6 stroke-[1.8]" />
+            </div>
+            <div>
+              <p className="text-xs text-[#526071] font-medium">Taux de Réussite</p>
+              <p className="text-3xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                92%
+              </p>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-[#059669] shrink-0">
+            ↑ +2%
+          </div>
+          <div className="absolute right-0 bottom-0 w-24 h-8 bg-gradient-to-t from-[#F8F3EA]/60 to-transparent pointer-events-none rounded-tl-full" />
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+              <FileText className="w-6 h-6 stroke-[1.8]" />
+            </div>
+            <div>
+              <p className="text-xs text-[#526071] font-medium">Rapports Disponibles</p>
+              <p className="text-3xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                12
+              </p>
+            </div>
+          </div>
+          <div className="absolute right-0 bottom-0 w-24 h-8 bg-gradient-to-t from-[#F8F3EA]/60 to-transparent pointer-events-none rounded-tl-full" />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 academy-card p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <BarChart2 className="w-5 h-5 text-[#C5A880]" />
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+              <h2 className="text-base sm:text-lg font-bold font-serif-title text-[#16222F]">
                 Aperçu des performances
               </h2>
             </div>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="bg-white border border-[#EFECE6] rounded-full px-4 py-1.5 text-xs font-semibold text-[#16222F] shadow-sm focus:outline-none cursor-pointer"
-            >
-              <option value="Cette année">Cette année</option>
-              <option value="Trimestre 1">Trimestre 1</option>
-              <option value="Année précédente">Année précédente</option>
-            </select>
+            <div className="relative">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="appearance-none bg-white border border-[#E5DFD5] rounded-full pl-4 pr-8 py-1.5 text-xs font-medium text-[#16222F] shadow-2xs focus:outline-none cursor-pointer"
+              >
+                <option value="Cette année">Cette année</option>
+                <option value="Trimestre 1">Trimestre 1</option>
+                <option value="Année précédente">Année précédente</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#16222F] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-2">
             <LineChart
               data={PERFORMANCE_DATA}
               dataKey="rate"
@@ -116,30 +145,27 @@ export default function ReportsView() {
           </div>
         </div>
 
-        <div className="academy-card p-6 flex flex-col justify-between">
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 pb-4 border-b border-[#F4EDE2]">
-              <Download className="w-4 h-4 text-[#C5A880]" />
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+            <div className="flex items-center gap-2.5 mb-6">
+              <Download className="w-5 h-5 text-[#C5A880]" />
+              <h2 className="text-base sm:text-lg font-bold font-serif-title text-[#16222F]">
                 Action rapide
               </h2>
             </div>
 
-            <div className="mt-5 space-y-3.5">
+            <div className="space-y-4">
               <button
                 onClick={handleDownloadPdf}
                 disabled={isDownloadingPdf}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] hover:bg-[#F4EDE2] transition-all cursor-pointer group text-left"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-[#FAF5EB] border border-[#EADBCA] hover:bg-[#F3ECE0] transition-colors cursor-pointer text-left"
               >
-                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-lg bg-[#C93B2B] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                   PDF
                 </div>
-                <div>
-                  <span className="text-sm font-bold text-[#16222F] block">
+                <div className="flex-1">
+                  <span className="text-xs sm:text-sm font-semibold text-[#16222F] block">
                     {isDownloadingPdf ? 'Téléchargement...' : 'Télécharger un rapport PDF'}
-                  </span>
-                  <span className="text-xs text-[#78716C]">
-                    Bilan complet officiel
                   </span>
                 </div>
               </button>
@@ -147,27 +173,18 @@ export default function ReportsView() {
               <button
                 onClick={handleExportExcel}
                 disabled={isExportingExcel}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] hover:bg-[#F4EDE2] transition-all cursor-pointer group text-left"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-[#FAF5EB] border border-[#EADBCA] hover:bg-[#F3ECE0] transition-colors cursor-pointer text-left"
               >
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
-                  XLS
+                <div className="w-10 h-10 rounded-lg bg-[#1E7145] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                  X
                 </div>
-                <div>
-                  <span className="text-sm font-bold text-[#16222F] block">
+                <div className="flex-1">
+                  <span className="text-xs sm:text-sm font-semibold text-[#16222F] block">
                     {isExportingExcel ? 'Exportation...' : 'Exporter vers Excel'}
-                  </span>
-                  <span className="text-xs text-[#78716C]">
-                    Données brutes tabulaires
                   </span>
                 </div>
               </button>
             </div>
-          </div>
-
-          <div className="pt-4 border-t border-[#F4EDE2] text-center">
-            <p className="text-[11px] text-[#A8A29E]">
-              Dernière mise à jour des statistiques : il y a 30 min
-            </p>
           </div>
         </div>
       </div>
