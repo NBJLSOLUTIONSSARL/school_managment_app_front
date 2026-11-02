@@ -42,38 +42,19 @@ export function StudentListPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Fetch students
-  const loadStudents = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const res = await exampleService.getStudentsSpringPage({
-        page,
-        size: pageSize,
-        search: debouncedSearch,
-      })
+  // Fetch students (single source of truth, cancelled on filter change)
+  const loadStudents = useCallback(
+    async ({ signal } = {}) => {
+      setIsLoading(true)
+      try {
+        const res = await exampleService.getStudentsSpringPage({
+          page,
+          size: pageSize,
+          search: debouncedSearch,
+        })
 
-      if (res.success && res.data) {
-        setStudents(res.data.items)
-        setTotalItems(res.data.totalItems)
-        setTotalPages(res.data.totalPages)
-      } else {
-        toastError(res.error?.message || 'Erreur lors du chargement des élèves.')
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [page, pageSize, debouncedSearch, toastError])
+        if (signal?.aborted) return
 
-  useEffect(() => {
-    let ignore = false
-    exampleService
-      .getStudentsSpringPage({
-        page,
-        size: pageSize,
-        search: debouncedSearch,
-      })
-      .then((res) => {
-        if (ignore) return
         if (res.success && res.data) {
           setStudents(res.data.items)
           setTotalItems(res.data.totalItems)
@@ -81,17 +62,25 @@ export function StudentListPage() {
         } else {
           toastError(res.error?.message || 'Erreur lors du chargement des élèves.')
         }
-      })
-      .finally(() => {
-        if (!ignore) {
+      } finally {
+        if (!signal?.aborted) {
           setIsLoading(false)
         }
-      })
+      }
+    },
+    [page, pageSize, debouncedSearch, toastError]
+  )
 
+  useEffect(() => {
+    const controller = new AbortController()
+    const pending = Promise.resolve().then(() =>
+      loadStudents({ signal: controller.signal })
+    )
     return () => {
-      ignore = true
+      controller.abort()
+      pending.catch(() => {})
     }
-  }, [page, pageSize, debouncedSearch, toastError])
+  }, [loadStudents])
 
   // Handle Form Change
   const handleInputChange = (field, value) => {
@@ -107,37 +96,41 @@ export function StudentListPage() {
 
   // Handle Create Student
   const handleCreateSubmit = async (e) => {
-    e.preventDefault()
+    e?.preventDefault?.()
+    if (isSubmitting) return
+
     setIsSubmitting(true)
     setFieldErrors({})
 
-    const res = await exampleService.createStudentWithValidation(formData)
+    try {
+      const res = await exampleService.createStudentWithValidation(formData)
 
-    setIsSubmitting(false)
-    if (res.success) {
-      success(`Élève ${res.data.firstName} ${res.data.lastName} créé avec succès.`)
-      setIsCreateModalOpen(false)
-      loadStudents()
-      // Reset form
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        matricule: 'STU-2026-9999',
-        className: 'Terminale S1',
-        birthDate: '2008-05-14',
-      })
-    } else {
-      toastError(res.error?.message || 'Erreur lors de la validation du formulaire.')
-      if (res.error?.fieldErrors) {
-        setFieldErrors(res.error.fieldErrors)
+      if (res.success) {
+        success(`Élève ${res.data.firstName} ${res.data.lastName} créé avec succès.`)
+        setIsCreateModalOpen(false)
+        loadStudents()
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          matricule: 'STU-2026-9999',
+          className: 'Terminale S1',
+          birthDate: '2008-05-14',
+        })
+      } else {
+        toastError(res.error?.message || 'Erreur lors de la validation du formulaire.')
+        if (res.error?.fieldErrors) {
+          setFieldErrors(res.error.fieldErrors)
+        }
       }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   // Handle Delete
   const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return
+    if (!deleteTarget || isDeleting) return
     setIsDeleting(true)
     setTimeout(() => {
       setStudents((prev) => prev.filter((s) => s.id !== deleteTarget.id))
@@ -287,7 +280,7 @@ export function StudentListPage() {
         }
       >
         <form onSubmit={handleCreateSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Prénom"
               value={formData.firstName}
@@ -317,7 +310,7 @@ export function StudentListPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Numéro de Matricule"
               value={formData.matricule}

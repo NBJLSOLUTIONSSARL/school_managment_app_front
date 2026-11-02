@@ -36,6 +36,75 @@ npm run build
 npm run preview
 ```
 
+### Tests
+Run the Vitest suite (unit + accessibility checks):
+```bash
+npm test
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Copy `.env.example` to `.env` (or `.env.local`) and adjust the values:
+
+| Variable | Default | Purpose |
+| :--- | :--- | :--- |
+| `VITE_API_BASE_URL` | `/api` | Backend API base URL. Use the same-origin `/api` proxy in production when available. |
+| `VITE_BASE_PATH` | `/` | Vite `base` path. Set to `/school/` when the app is hosted in a sub-directory. |
+| `VITE_DEV_PORT` | `3000` | Local Vite dev server port. |
+| `VITE_BUILD_SOURCEMAP` | `false` | Emit production sourcemaps (`true`/`false`). |
+
+Only variables prefixed with `VITE_` are exposed to the browser. Never put secrets in them.
+
+---
+
+## 🌍 Internationalization (FR / AR + RTL)
+
+The app ships with a dependency-free i18n layer:
+
+- **Languages**: French (default) and Arabic.
+- **Persistence**: the selected language is stored in `localStorage` (`school_app_language`).
+- **Direction**: switching to Arabic sets `dir="rtl"` and `lang="ar"` on `<html>`; the shell uses logical Tailwind utilities (`ps-*`, `pe-*`, `start-*`, `end-*`, `border-e`, `text-start`).
+- **Formatting**: `formatDate` / `formatCurrency` follow the active locale.
+- **Usage**: `const { t, language, setLanguage, isRTL } = useI18n()`.
+- **Switcher**: `LanguageSwitcher` is available in the public and private headers.
+
+Translation keys live in `src/i18n/translations.js`. Missing keys fall back to French.
+
+---
+
+## ♿ Accessibility & Robustness
+
+- Skip-to-content link in both layouts, keyboard-visible focus rings, and `aria-current` navigation.
+- Labelled form controls with `aria-invalid` / `aria-describedby` error wiring.
+- Modals trap focus, restore focus on close, support `Escape`, and expose `aria-labelledby`.
+- Sortable table headers use `aria-sort`; clickable rows support `Enter` / `Space`.
+- A top-level `ErrorBoundary` replaces blank screens with a recoverable fallback.
+- List fetches are cancelled on filter changes; create/grade/submit actions guard against duplicate submissions.
+
+---
+
+## 🚀 Deployment
+
+The application is a client-side SPA. The host must rewrite unknown paths to `index.html`:
+
+- **Netlify**: `public/_redirects` already contains `/* /index.html 200`.
+- **Vercel**: `vercel.json` rewrites all paths to `/index.html`.
+- **Nginx**: `try_files $uri $uri/ /index.html;`
+- **Apache**: enable `mod_rewrite` and fall back to `index.html`.
+
+Build once per environment:
+
+```bash
+# .env.production
+VITE_API_BASE_URL=https://api.example.com/api
+VITE_BASE_PATH=/
+npm run build
+```
+
+If the backend is served by a reverse proxy, keep `VITE_API_BASE_URL=/api` to avoid CORS.
+
 ---
 
 ## 🤖 Antigravity (`agy`) Skills for Developers

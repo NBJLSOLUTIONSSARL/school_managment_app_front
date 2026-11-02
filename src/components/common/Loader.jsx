@@ -1,4 +1,5 @@
 import { cn } from '@/utils/classNames'
+import { useI18n } from '@/hooks/useI18n'
 
 const spinnerSizes = {
   xs: 'h-3.5 w-3.5 border',
@@ -8,10 +9,12 @@ const spinnerSizes = {
 }
 
 export function Spinner({ size = 'md', className = '', color = 'text-slate-800' }) {
+  const { t } = useI18n()
+
   return (
     <div
       role="status"
-      aria-label="Chargement"
+      aria-label={t('common.loading')}
       className={cn(
         'inline-block animate-spin rounded-full border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]',
         spinnerSizes[size] || spinnerSizes.md,
@@ -19,7 +22,7 @@ export function Spinner({ size = 'md', className = '', color = 'text-slate-800' 
         className
       )}
     >
-      <span className="sr-only">Chargement...</span>
+      <span className="sr-only">{t('common.loading')}</span>
     </div>
   )
 }
@@ -39,14 +42,16 @@ export function Loader({ size = 'md', text, className = '' }) {
 }
 
 export function Skeleton({ className = '' }) {
-  return <div className={cn('animate-pulse rounded bg-slate-200/80', className)} />
+  return <div aria-hidden="true" className={cn('animate-pulse rounded bg-slate-200/80', className)} />
 }
 
-export function PageLoader({ message = 'Chargement en cours...' }) {
+export function PageLoader({ message }) {
+  const { t } = useI18n()
+
   return (
-    <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8">
+    <div className="flex min-h-[400px] w-full flex-col items-center justify-center p-8">
       <Spinner size="lg" />
-      <p className="mt-3 text-xs font-medium text-slate-600">{message}</p>
+      <p className="mt-3 text-xs font-medium text-slate-600">{message || t('common.loading')}</p>
     </div>
   )
 }

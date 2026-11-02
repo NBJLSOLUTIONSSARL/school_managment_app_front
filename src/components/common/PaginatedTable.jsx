@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { cn } from '@/utils/classNames'
+import { useI18n } from '@/hooks/useI18n'
 import { Pagination } from './Pagination'
 import { Loader } from './Loader'
 import { EmptyState } from './EmptyState'
@@ -18,13 +19,13 @@ export function PaginatedTable({
   onSort,
   onRowClick,
   isLoading = false,
-  emptyTitle = 'Aucune donnée trouvée',
-  emptyDescription = 'Aucun enregistrement ne correspond aux critères actuels.',
+  emptyTitle,
+  emptyDescription,
   toolbar,
   className = '',
   rowKey = 'id',
 }) {
-  // Local sorting if no external onSort handler is provided
+  const { t } = useI18n()
   const [internalSortBy, setInternalSortBy] = useState(sortBy)
   const [internalSortDir, setInternalSortDir] = useState(sortDirection)
 
@@ -46,13 +47,12 @@ export function PaginatedTable({
     }
   }
 
-  // If external pagination is not provided, slice locally
   const displayRows = useMemo(() => {
     if (onPageChange) {
       return data
     }
-    // Local pagination
-    let sorted = [...data]
+
+    const sorted = [...data]
     if (activeSortBy) {
       sorted.sort((a, b) => {
         const valA = a[activeSortBy]
@@ -69,29 +69,32 @@ export function PaginatedTable({
   }, [data, onPageChange, page, pageSize, activeSortBy, activeSortDir])
 
   const calculatedTotal = totalItems || data.length
+  const resolvedEmptyTitle = emptyTitle ?? t('common.emptyTitle')
+  const resolvedEmptyDescription = emptyDescription ?? t('common.emptyDescription')
 
   return (
     <div
       className={cn(
-        'w-full rounded border border-slate-200 bg-white shadow-2xs overflow-hidden',
+        'w-full overflow-hidden rounded border border-slate-200 bg-white shadow-2xs',
         className
       )}
     >
-      {/* Optional Toolbar */}
       {toolbar && <div className="border-b border-slate-100 bg-slate-50/50 p-3">{toolbar}</div>}
 
-      {/* Table Content */}
-      <div className="overflow-x-auto relative min-h-[160px]">
+      <div className="relative min-h-[160px] overflow-x-auto">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/70 backdrop-blur-2xs z-10 flex items-center justify-center">
-            <Loader text="Chargement des données..." />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-2xs">
+            <Loader text={t('common.loadingData')} />
           </div>
         )}
 
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-full border-collapse text-start text-xs">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
-              <th className="w-10 px-3 py-2.5 text-center text-slate-400 text-2xs font-normal">
+            <tr className="border-b border-slate-200 bg-slate-50 font-medium text-slate-600">
+              <th
+                scope="col"
+                className="w-10 px-3 py-2.5 text-center text-2xs font-normal text-slate-400"
+              >
                 #
               </th>
               {columns.map((col) => {
@@ -100,33 +103,54 @@ export function PaginatedTable({
                   col.align === 'center'
                     ? 'text-center'
                     : col.align === 'right'
-                      ? 'text-right'
-                      : 'text-left'
+                      ? 'text-end'
+                      : 'text-start'
 
                 return (
                   <th
                     key={col.key}
-                    onClick={() => handleHeaderClick(col)}
+                    scope="col"
+                    aria-sort={
+                      col.sortable
+                        ? isSorted
+                          ? activeSortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
+                        : undefined
+                    }
                     style={{ width: col.width || 'auto' }}
                     className={cn(
                       'px-3.5 py-2.5 font-medium tracking-tight text-slate-700',
-                      alignClass,
-                      col.sortable && 'cursor-pointer hover:bg-slate-100/70 select-none'
+                      alignClass
                     )}
                   >
-                    <div
-                      className={cn(
-                        'inline-flex items-center gap-1.5',
-                        alignClass === 'text-right' && 'justify-end'
-                      )}
-                    >
-                      <span>{col.label}</span>
-                      {col.sortable && (
-                        <span className="text-2xs text-slate-400">
+                    {col.sortable ? (
+                      <button
+                        type="button"
+                        onClick={() => handleHeaderClick(col)}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1',
+                          alignClass === 'text-end' && 'justify-end',
+                          alignClass === 'text-center' && 'justify-center'
+                        )}
+                      >
+                        <span>{col.label}</span>
+                        <span className="text-2xs text-slate-400" aria-hidden="true">
                           {isSorted ? (activeSortDir === 'asc' ? '▲' : '▼') : '↕'}
                         </span>
-                      )}
-                    </div>
+                      </button>
+                    ) : (
+                      <div
+                        className={cn(
+                          'inline-flex items-center gap-1.5',
+                          alignClass === 'text-end' && 'justify-end',
+                          alignClass === 'text-center' && 'justify-center'
+                        )}
+                      >
+                        <span>{col.label}</span>
+                      </div>
+                    )}
                   </th>
                 )
               })}
@@ -141,12 +165,23 @@ export function PaginatedTable({
                   <tr
                     key={key}
                     onClick={() => onRowClick?.(row, index)}
+                    onKeyDown={
+                      onRowClick
+                        ? (event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              onRowClick(row, index)
+                            }
+                          }
+                        : undefined
+                    }
+                    tabIndex={onRowClick ? 0 : undefined}
                     className={cn(
-                      'hover:bg-slate-50/80 transition-colors',
+                      'transition-colors hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400',
                       onRowClick && 'cursor-pointer'
                     )}
                   >
-                    <td className="px-3 py-2 text-center text-slate-400 text-2xs font-mono">
+                    <td className="px-3 py-2 text-center font-mono text-2xs text-slate-400">
                       {rowNumber}
                     </td>
                     {columns.map((col) => {
@@ -154,8 +189,8 @@ export function PaginatedTable({
                         col.align === 'center'
                           ? 'text-center'
                           : col.align === 'right'
-                            ? 'text-right'
-                            : 'text-left'
+                            ? 'text-end'
+                            : 'text-start'
 
                       return (
                         <td key={col.key} className={cn('px-3.5 py-2 text-slate-800', alignClass)}>
@@ -173,7 +208,7 @@ export function PaginatedTable({
             ) : !isLoading ? (
               <tr>
                 <td colSpan={columns.length + 1} className="py-10">
-                  <EmptyState title={emptyTitle} description={emptyDescription} />
+                  <EmptyState title={resolvedEmptyTitle} description={resolvedEmptyDescription} />
                 </td>
               </tr>
             ) : null}
@@ -181,7 +216,6 @@ export function PaginatedTable({
         </table>
       </div>
 
-      {/* Pagination Footer */}
       <Pagination
         page={page}
         pageSize={pageSize}

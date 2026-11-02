@@ -4,7 +4,16 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'node_modules', '.agents'] },
+  {
+    ignores: [
+      'dist',
+      'coverage',
+      'node_modules',
+      '.agents',
+      'landing-page',
+      '**/.next/**',
+    ],
+  },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -26,6 +35,11 @@ export default [
         clearInterval: 'readonly',
         CustomEvent: 'readonly',
         URL: 'readonly',
+        URLSearchParams: 'readonly',
+        AbortController: 'readonly',
+        FormData: 'readonly',
+        fetch: 'readonly',
+        process: 'readonly',
         encodeURIComponent: 'readonly',
       },
     },

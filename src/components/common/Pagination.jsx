@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '@/utils/classNames'
+import { useI18n } from '@/hooks/useI18n'
 
 export function Pagination({
   page = 1,
@@ -13,13 +14,14 @@ export function Pagination({
   showSummary = true,
   className = '',
 }) {
+  const { t } = useI18n()
+
   const totalPages =
     propTotalPages !== undefined ? propTotalPages : Math.max(1, Math.ceil(totalItems / pageSize))
 
   const startItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
   const endItem = Math.min(page * pageSize, totalItems)
 
-  // Generate pagination buttons with smart ellipsis
   const pagesList = useMemo(() => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -48,26 +50,22 @@ export function Pagination({
   return (
     <div
       className={cn(
-        'flex flex-col sm:flex-row items-center justify-between gap-3 px-3 py-2.5 text-xs text-slate-600 border-t border-slate-200 bg-white select-none',
+        'flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 select-none sm:flex-row',
         className
       )}
     >
-      {/* Left: Summary */}
       {showSummary && (
-        <div className="text-2xs text-slate-500">
-          Affichage de <span className="font-medium text-slate-800">{startItem}</span> à{' '}
-          <span className="font-medium text-slate-800">{endItem}</span> sur{' '}
-          <span className="font-medium text-slate-800">{totalItems}</span> résultats
+        <div className="text-2xs text-slate-500" aria-live="polite">
+          {t('pagination.summary', { start: startItem, end: endItem, total: totalItems })}
         </div>
       )}
 
-      {/* Center/Right: Navigation & Page Size */}
       <div className="flex items-center gap-3">
-        {/* Page size selector */}
         {showPageSize && onPageSizeChange && (
           <div className="flex items-center gap-1.5 text-2xs">
-            <span className="text-slate-500">Lignes :</span>
+            <span className="text-slate-500">{t('pagination.rows')}</span>
             <select
+              aria-label={t('pagination.rows')}
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
               className="h-7 rounded border border-slate-300 bg-white px-2 text-2xs text-slate-700 hover:border-slate-400 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
@@ -81,24 +79,24 @@ export function Pagination({
           </div>
         )}
 
-        {/* Buttons list */}
-        <div className="flex items-center gap-1">
-          {/* Previous */}
+        <nav aria-label={t('pagination.label')} className="flex items-center gap-1">
           <button
             type="button"
             disabled={page <= 1}
             onClick={() => onPageChange?.(page - 1)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition-colors"
-            title="Page précédente"
+            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            title={t('pagination.previousPage')}
+            aria-label={t('pagination.previousPage')}
           >
-            ‹
+            <span aria-hidden="true" className="inline-block rtl:rotate-180">
+              ‹
+            </span>
           </button>
 
-          {/* Numbered buttons */}
           {pagesList.map((p, idx) => {
             if (p === '...') {
               return (
-                <span key={`dots-${idx}`} className="px-1 text-slate-400 text-2xs">
+                <span key={`dots-${idx}`} className="px-1 text-2xs text-slate-400">
                   …
                 </span>
               )
@@ -110,11 +108,13 @@ export function Pagination({
                 key={p}
                 type="button"
                 onClick={() => onPageChange?.(p)}
+                aria-current={isCurrent ? 'page' : undefined}
+                aria-label={t('pagination.page', { page: p })}
                 className={cn(
-                  'inline-flex h-7 min-w-[28px] px-1.5 items-center justify-center rounded text-2xs font-medium transition-colors',
+                  'inline-flex h-7 min-w-[28px] items-center justify-center rounded px-1.5 text-2xs font-medium transition-colors',
                   isCurrent
                     ? 'bg-slate-900 text-white'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 )}
               >
                 {p}
@@ -122,17 +122,19 @@ export function Pagination({
             )
           })}
 
-          {/* Next */}
           <button
             type="button"
             disabled={page >= totalPages || totalPages === 0}
             onClick={() => onPageChange?.(page + 1)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition-colors"
-            title="Page suivante"
+            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            title={t('pagination.nextPage')}
+            aria-label={t('pagination.nextPage')}
           >
-            ›
+            <span aria-hidden="true" className="inline-block rtl:rotate-180">
+              ›
+            </span>
           </button>
-        </div>
+        </nav>
       </div>
     </div>
   )

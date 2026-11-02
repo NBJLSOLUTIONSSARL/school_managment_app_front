@@ -1,30 +1,39 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/common/Button'
+import { useI18n } from '@/hooks/useI18n'
 
 export function NotFoundPage() {
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center select-none">
-      <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 text-slate-500 font-mono text-2xl font-bold mb-4 shadow-2xs">
+    <div className="flex min-h-[70vh] select-none flex-col items-center justify-center p-6 text-center">
+      <div
+        aria-hidden="true"
+        className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 font-mono text-2xl font-bold text-slate-500 shadow-2xs"
+      >
         404
       </div>
 
-      <h1 className="text-xl font-semibold text-slate-900 tracking-tight mb-2">Page Non Trouvée</h1>
+      <h1 className="mb-2 text-xl font-semibold tracking-tight text-slate-900">
+        {t('errors.notFoundTitle')}
+      </h1>
 
-      <p className="max-w-md text-xs text-slate-500 leading-relaxed mb-6">
-        L'adresse demandée est introuvable ou a été déplacée. Vérifiez l'URL ou revenez à la page
-        d'accueil de l'application scolaire.
+      <p className="mb-6 max-w-md text-xs leading-relaxed text-slate-500">
+        {t('errors.notFoundMessage')}
       </p>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
-          ← Revenir en arrière
+          <span aria-hidden="true" className="me-1 inline-block rtl:rotate-180">
+            ←
+          </span>
+          {t('errors.back')}
         </Button>
 
         <Link to="/dashboard">
           <Button variant="primary" size="sm">
-            Tableau de bord
+            {t('errors.dashboard')}
           </Button>
         </Link>
       </div>

@@ -267,7 +267,7 @@ export function HomeworkPage() {
   }
 
   const handleGradeSubmit = async () => {
-    if (!gradeTarget) return
+    if (!gradeTarget || isGrading) return
 
     const errors = {}
     const rawScore = String(gradeForm.score).trim().replace(',', '.')
@@ -324,6 +324,8 @@ export function HomeworkPage() {
   }
 
   const handleSubmitHomework = async () => {
+    if (isSubmitting) return
+
     const errors = {}
     const homeworkValue = submitForm.homeworkId.trim()
 
@@ -562,7 +564,7 @@ export function HomeworkPage() {
         </div>
 
         {hasSearched && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded border border-slate-200 bg-white px-4 py-3 shadow-2xs">
               <div className="text-2xs uppercase tracking-wider text-slate-500">Soumissions</div>
               <div className="mt-1 text-base font-semibold text-slate-900">{stats.total}</div>
