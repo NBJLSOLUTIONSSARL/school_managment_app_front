@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../components/common/StatusBadge';
 import Modal from '../components/common/Modal';
+import DocumentViewerModal from '../components/documents/DocumentViewerModal';
 import { useAuth } from '../context/AuthContext';
 import { documentService } from '../services/documentService';
 
@@ -36,6 +37,10 @@ export default function DocumentsView() {
 
   const [verifyStatus, setVerifyStatus] = useState('APPROVED');
   const [rejectionReason, setRejectionReason] = useState('');
+
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerDocId, setViewerDocId] = useState(null);
+  const [viewerInitialDoc, setViewerInitialDoc] = useState(null);
 
   const canVerify = hasAnyRole(['ROLE_ADMIN', 'ROLE_STAFF']);
 
@@ -123,6 +128,24 @@ export default function DocumentsView() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleOpenPreview = (doc) => {
+    setViewerDocId(doc.id);
+    setViewerInitialDoc(doc);
+    setViewerOpen(true);
+  };
+
+  const handleDocumentUpdated = (updatedDoc) => {
+    setDocuments((prev) =>
+      prev.map((d) => (d.id === updatedDoc.id ? { ...d, ...updatedDoc } : d))
+    );
+    setSuccessMessage(
+      `Document #${updatedDoc.id} mis à jour : statut ${
+        updatedDoc.status === 'APPROVED' ? 'Approuvé' : 'Rejeté'
+      }.`
+    );
+    setTimeout(() => setSuccessMessage(''), 4000);
   };
 
   const q = (localSearch || searchQuery).toLowerCase().trim();
@@ -279,25 +302,26 @@ export default function DocumentsView() {
                         <span>{doc.status === 'APPROVED' ? 'Approuvé' : doc.status === 'REJECTED' ? 'Rejeté' : 'En attente'}</span>
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      {canVerify && doc.status === 'PENDING' && (
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleOpenVerify(doc)}
-                          className="px-3 py-1 bg-[#16222F] text-white rounded-lg text-xs font-semibold hover:bg-[#203144] transition-colors cursor-pointer"
+                          type="button"
+                          onClick={() => handleOpenPreview(doc)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#16222F] text-[#16222F] hover:text-white border border-[#EFECE6] hover:border-[#16222F] rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
                         >
-                          Vérifier
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Voir le document</span>
                         </button>
-                      )}
-                      {doc.fileUrl && (
-                        <a
-                          href={doc.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </a>
-                      )}
+                        {canVerify && doc.status === 'PENDING' && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenVerify(doc)}
+                            className="px-3 py-1.5 bg-[#16222F] hover:bg-[#203144] text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+                          >
+                            Vérifier
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -430,6 +454,15 @@ export default function DocumentsView() {
           </div>
         </form>
       </Modal>
+
+      <DocumentViewerModal
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        documentId={viewerDocId}
+        initialDoc={viewerInitialDoc}
+        canVerify={canVerify}
+        onDocumentUpdated={handleDocumentUpdated}
+      />
     </div>
   );
 }
