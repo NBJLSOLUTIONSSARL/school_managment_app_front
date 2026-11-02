@@ -1,28 +1,69 @@
-import React from 'react';
-import {
-  CheckSquare,
-  Clock,
-  FileText,
-  ArrowRight,
-  Award
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckSquare, Clock, FileText, ArrowRight, Award, AlertCircle, Loader2, Folder, ExternalLink } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import { useAuth } from '../context/AuthContext';
+import { evaluationService } from '../services/evaluationService';
+import { homeworkService } from '../services/homeworkService';
+import { documentService } from '../services/documentService';
+import { communicationService } from '../services/communicationService';
 
 export default function StudentPortalView() {
   const { currentUser, setActiveView } = useAuth();
+  const [reportCards, setReportCards] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const studentScheduleToday = [
-    { time: '08:00 - 09:30', subject: 'Mathématiques', room: 'Salle 204', color: 'border-l-4 border-l-sky-500' },
-    { time: '10:00 - 11:30', subject: 'Français', room: 'Salle 101', color: 'border-l-4 border-l-rose-500' },
-    { time: '14:00 - 15:30', subject: 'Physique', room: 'Salle 205', color: 'border-l-4 border-l-blue-500' },
-  ];
+  const studentId = currentUser?.id;
 
-  const recentGrades = [
-    { subject: 'Mathématiques', grade: '16/20', icon: '📐' },
-    { subject: 'Français', grade: '15/20', icon: '📖' },
-    { subject: 'Physique', grade: '17/20', icon: '🔬' },
-  ];
+  const fetchStudentData = async () => {
+    if (!studentId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [cardsRes, hwRes, docsRes, eventsRes] = await Promise.allSettled([
+        evaluationService.getReportCards({ studentId }),
+        homeworkService.getSubmissionsByStudent(studentId),
+        documentService.getMyDocuments(),
+        communicationService.getEvents({ page: 0, size: 4 }),
+      ]);
+
+      if (cardsRes.status === 'fulfilled') {
+        const cards = Array.isArray(cardsRes.value) ? cardsRes.value : [];
+        setReportCards(cards);
+      }
+
+      if (hwRes.status === 'fulfilled') {
+        const hwList = Array.isArray(hwRes.value) ? hwRes.value : [];
+        setSubmissions(hwList);
+      }
+
+      if (docsRes.status === 'fulfilled') {
+        const docsList = Array.isArray(docsRes.value) ? docsRes.value : [];
+        setDocuments(docsList);
+      }
+
+      if (eventsRes.status === 'fulfilled') {
+        const evts = eventsRes.value?.content || (Array.isArray(eventsRes.value) ? eventsRes.value : []);
+        setEvents(evts);
+      }
+    } catch (err) {
+      setError(err.message || 'Erreur lors du chargement des données étudiantes.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudentData();
+  }, [studentId]);
+
+  const latestReportCard = reportCards.length > 0 ? reportCards[0] : null;
+  const displayName = currentUser
+    ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
+    : 'Élève';
 
   return (
     <div className="space-y-6 pb-12">
@@ -38,7 +79,7 @@ export default function StudentPortalView() {
             Mon espace étudiant
           </h1>
           <p className="text-sm text-[#78716C] mt-1">
-            Bienvenue Inès !
+            Bienvenue {displayName} ! Retrouvez vos résultats académiques officiels.
           </p>
         </div>
 
@@ -52,141 +93,176 @@ export default function StudentPortalView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="academy-card p-5 flex items-center gap-4 bg-white border border-[#EFECE6]">
-          <img
-            src={currentUser?.avatar || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"}
-            alt="Inès Belkacem"
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#C5A880] shadow-sm shrink-0"
-          />
-          <div>
-            <h3 className="text-lg font-bold text-[#16222F]">
-              {currentUser?.fullName || 'Inès Belkacem'}
-            </h3>
-            <p className="text-xs font-semibold text-[#78716C] mt-0.5">
-              Élève • {currentUser?.class || '1ère A'}
-            </p>
-            <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-              Année 2026/2027
-            </span>
+      {error && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <span>{error}</span>
           </div>
+          <button
+            onClick={fetchStudentData}
+            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+          >
+            Réessayer
+          </button>
         </div>
+      )}
 
-        <StatCard
-          icon={CheckSquare}
-          title="Moyenne générale"
-          value="16.5"
-          subtitle="Trimestre 1"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
-        <StatCard
-          icon={Clock}
-          title="Assiduité"
-          value="92%"
-          subtitle="Taux de présence"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
-        <StatCard
-          icon={FileText}
-          title="Devoirs à rendre"
-          value="3"
-          subtitle="Cette semaine"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="academy-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-[#F4EDE2]">
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
-                Mon emploi du temps
-              </h2>
-              <span className="text-xs font-semibold text-[#16222F] bg-[#FAF7F2] border border-[#EFECE6] px-3 py-1.5 rounded-full">
-                Aujourd'hui
-              </span>
+      {loading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+          <span className="text-sm font-medium">Chargement de votre dossier scolaire...</span>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="academy-card p-5 flex items-center gap-4 bg-white border border-[#EFECE6]">
+              <img
+                src={currentUser?.photoUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80"}
+                alt={displayName}
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#C5A880] shadow-sm shrink-0"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80";
+                }}
+              />
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-[#16222F] truncate">
+                  {displayName}
+                </h3>
+                <p className="text-xs font-semibold text-[#78716C] mt-0.5 truncate">
+                  {currentUser?.email}
+                </p>
+                <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Année 2026/2027
+                </span>
+              </div>
             </div>
 
-            <div className="mt-5 space-y-3.5">
-              {studentScheduleToday.map((slot, idx) => (
-                <div
-                  key={idx}
-                  className={`p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between ${slot.color}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-[#78716C] w-28">
-                      {slot.time}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-[#16222F]">
-                        {slot.subject}
-                      </p>
-                      <p className="text-xs text-[#A8A29E]">
-                        {slot.room}
-                      </p>
+            <StatCard
+              icon={CheckSquare}
+              title="Moyenne générale"
+              value={latestReportCard ? `${latestReportCard.average}/20` : 'En attente'}
+              subtitle={latestReportCard ? latestReportCard.term : 'Trimestre en cours'}
+              iconBg="bg-[#F4EDE2]"
+              iconColor="text-[#16222F]"
+            />
+            <StatCard
+              icon={Award}
+              title="Mention obtenue"
+              value={latestReportCard?.mention || 'Non attribuée'}
+              subtitle={latestReportCard ? `Rang : ${latestReportCard.rankPosition || 1}` : 'Résultat officiel'}
+              iconBg="bg-[#F4EDE2]"
+              iconColor="text-[#16222F]"
+            />
+            <StatCard
+              icon={FileText}
+              title="Devoirs rendus"
+              value={submissions.length.toString()}
+              subtitle="Travaux enregistrés"
+              iconBg="bg-[#F4EDE2]"
+              iconColor="text-[#16222F]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="academy-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                  Derniers travaux & Devoirs
+                </h2>
+                <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#EFECE6]">
+                  {submissions.length} travaux
+                </span>
+              </div>
+
+              {submissions.length === 0 ? (
+                <div className="py-12 text-center text-xs text-[#78716C]">
+                  Aucun devoir soumis pour le moment.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {submissions.map((sub) => (
+                    <div
+                      key={sub.id}
+                      className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-[#16222F]">{sub.title}</p>
+                        <p className="text-xs text-[#78716C] mt-0.5">
+                          Soumis le {sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString('fr-FR') : 'Date non spécifiée'}
+                        </p>
+                        {sub.feedback && (
+                          <p className="text-xs text-[#C5A880] mt-1 italic">
+                            « {sub.feedback} »
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                          {sub.score !== undefined ? `${sub.score} / 20` : 'Corrigé'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-xs font-semibold text-[#C5A880] bg-white px-2.5 py-1 rounded-lg border border-[#EFECE6]">
-                    En présentiel
-                  </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-[#F4EDE2] mt-4 text-center">
-            <button
-              onClick={() => setActiveView('timetable')}
-              className="text-xs font-bold text-[#16222F] hover:text-[#C5A880] transition-colors"
-            >
-              Consulter l'emploi du temps complet →
-            </button>
-          </div>
-        </div>
-
-        <div className="academy-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-[#F4EDE2]">
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
-                Mes dernières notes
-              </h2>
-              <Award className="w-4 h-4 text-[#C5A880]" />
+              )}
             </div>
 
-            <div className="mt-5 space-y-3.5">
-              {recentGrades.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] hover:bg-[#F4EDE2]/50 transition-colors"
+            <div className="academy-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                  Documents justificatifs & GED
+                </h2>
+                <button
+                  onClick={() => setActiveView('documents')}
+                  className="text-xs text-[#C5A880] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-sm font-bold text-[#16222F]">
-                      {item.subject}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-[#16222F] bg-white px-3 py-1 rounded-xl border border-[#EFECE6] shadow-sm">
-                    {item.grade}
-                  </span>
+                  <span>Gérer</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              </div>
+
+              {documents.length === 0 ? (
+                <div className="py-12 text-center text-xs text-[#78716C]">
+                  Aucun document déposé pour le moment.
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Folder className="w-4 h-4 text-[#C5A880]" />
+                        <div>
+                          <p className="text-xs font-bold text-[#16222F]">
+                            {doc.documentTypeName || 'Document officiel'}
+                          </p>
+                          <span className="text-[10px] text-[#78716C]">
+                            Déposé le {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString('fr-FR') : 'Récemment'}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          doc.status === 'APPROVED'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : doc.status === 'REJECTED'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}
+                      >
+                        {doc.status === 'APPROVED' ? 'Validé' : doc.status === 'REJECTED' ? 'Refusé' : 'En attente'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          <div className="pt-4 border-t border-[#F4EDE2] mt-4 text-center">
-            <button
-              onClick={() => setActiveView('grades')}
-              className="text-xs font-bold text-[#16222F] hover:text-[#C5A880] transition-colors flex items-center justify-center gap-1.5 mx-auto"
-            >
-              <span>Voir toutes mes notes</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
