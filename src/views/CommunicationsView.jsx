@@ -1,254 +1,413 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Inbox,
   Send,
-  FileEdit,
+  Bell,
   Trash2,
-  Plus
+  Plus,
+  Mail,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
+  Eye,
+  Megaphone,
+  User
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
-import { INITIAL_MESSAGES } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
+import { communicationService } from '../services/communicationService';
+import { teacherService } from '../services/teacherService';
 
 export default function CommunicationsView() {
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const { currentUser } = useAuth();
   const [activeFolder, setActiveFolder] = useState('inbox');
-  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [inboxMessages, setInboxMessages] = useState([]);
+  const [sentMessages, setSentMessages] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+
   const [isComposeOpen, setIsComposeOpen] = useState(false);
-  const [composeData, setComposeData] = useState({
-    recipient: 'Tous les enseignants',
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [messageForm, setMessageForm] = useState({
+    recipientId: '1',
     subject: '',
-    content: ''
+    content: '',
   });
 
-  const folders = [
-    { id: 'inbox', label: 'Boîte de réception', icon: Inbox, count: 12 },
-    { id: 'sent', label: 'Messages envoyés', icon: Send, count: 0 },
-    { id: 'drafts', label: 'Brouillons', icon: FileEdit, count: 0 },
-    { id: 'trash', label: 'Corbeille', icon: Trash2, count: 0 },
-  ];
+  const userId = currentUser?.id;
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!composeData.subject) return;
+  const loadCommunications = async () => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [inboxRes, sentRes, annRes, teachersRes] = await Promise.allSettled([
+        communicationService.getInbox(userId, { page: 0, size: 50 }),
+        communicationService.getSent(userId, { page: 0, size: 50 }),
+        communicationService.getAnnouncements({ page: 0, size: 20 }),
+        teacherService.getTeachers()
+      ]);
 
-    const newMsg = {
-      id: Date.now(),
-      subject: composeData.subject,
-      sender: 'Direction',
-      senderRole: 'Direction',
-      date: '31/10/2026',
-      status: 'Non lu',
-      preview: composeData.content.slice(0, 80) + '...',
-      content: composeData.content,
-      folder: 'sent'
-    };
+      const inboxList = inboxRes.status === 'fulfilled' ? (inboxRes.value?.content || (Array.isArray(inboxRes.value) ? inboxRes.value : [])) : [];
+      const sentList = sentRes.status === 'fulfilled' ? (sentRes.value?.content || (Array.isArray(sentRes.value) ? sentRes.value : [])) : [];
+      const annList = annRes.status === 'fulfilled' ? (annRes.value?.content || (Array.isArray(annRes.value) ? annRes.value : [])) : [];
+      const teachersList = teachersRes.status === 'fulfilled' && Array.isArray(teachersRes.value) ? teachersRes.value : [];
 
-    setMessages([newMsg, ...messages]);
-    setIsComposeOpen(false);
-    setComposeData({ recipient: 'Tous les enseignants', subject: '', content: '' });
+      setInboxMessages(inboxList);
+      setSentMessages(sentList);
+      setAnnouncements(annList);
+      setContacts(teachersList);
+    } catch (err) {
+      setError(err.message || 'Impossible de charger la messagerie.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadCommunications();
+  }, [userId]);
+
+  const handleOpenCompose = () => {
+    setMessageForm({
+      recipientId: contacts.length > 0 ? (contacts[0].user?.id || '1') : '1',
+      subject: '',
+      content: '',
+    });
+    setIsComposeOpen(true);
+  };
+
+  const handleOpenView = async (msg) => {
+    setSelectedMessage(msg);
+    setIsViewOpen(true);
+    if (!msg.isRead && activeFolder === 'inbox') {
+      try {
+        await communicationService.markMessageRead(msg.id);
+        setInboxMessages(inboxMessages.map((m) => m.id === msg.id ? { ...m, isRead: true } : m));
+      } catch {
+      }
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await communicationService.sendMessage({
+        senderId: userId,
+        recipientId: Number(messageForm.recipientId),
+        subject: messageForm.subject,
+        content: messageForm.content,
+      });
+      setIsComposeOpen(false);
+      setSuccessMessage('Message envoyé avec succès.');
+      setTimeout(() => setSuccessMessage(''), 4000);
+      await loadCommunications();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de l\'envoi du message.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const unreadInboxCount = inboxMessages.filter((m) => !m.isRead).length;
 
   return (
     <div className="space-y-6 pb-12">
       <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 pb-2 overflow-hidden">
         <div>
           <h1 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#16222F] tracking-tight">
-            Communications
+            Communications & Messagerie
           </h1>
           <p className="text-xs sm:text-sm text-[#475569] mt-2">
-            Envoyez et gérez vos messages
+            Envoyez et consultez les messages internes et les annonces scolaires
           </p>
         </div>
 
-        <div className="hidden lg:block absolute right-48 top-1/2 -translate-y-1/2 h-28 w-44 pointer-events-none">
-          <img
-            src="/assets/communications-illustration.png"
-            alt=""
-            className="w-full h-full object-contain"
-          />
-        </div>
-
         <button
-          onClick={() => setIsComposeOpen(true)}
-          className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+          onClick={handleOpenCompose}
+          className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Nouveau message</span>
+          <span>+ Nouveau message</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          <div className="md:col-span-3 space-y-1">
-            {folders.map((folder) => {
-              const Icon = folder.icon;
-              const isActive = activeFolder === folder.id;
+      {successMessage && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
 
-              return (
-                <button
-                  key={folder.id}
-                  onClick={() => setActiveFolder(folder.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors text-left ${
-                    isActive
-                      ? 'bg-[#FAF5EB] text-[#16222F] font-semibold'
-                      : 'text-[#475569] hover:bg-[#FAF7F2] hover:text-[#16222F]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-4 h-4 stroke-[1.8]" />
-                    <span>{folder.label}</span>
-                  </div>
-                  {folder.count > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#E5DFD5] text-[#16222F]">
-                      {folder.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+      {error && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <span>{error}</span>
           </div>
+          <button
+            onClick={loadCommunications}
+            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
 
-          <div className="md:col-span-9 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#F0EBE1] text-xs font-bold text-[#16222F]">
-                  <th className="py-3 px-4 font-bold">Objet</th>
-                  <th className="py-3 px-4 font-bold">Expéditeur</th>
-                  <th className="py-3 px-4 font-bold">Date</th>
-                  <th className="py-3 px-4 text-right font-bold">Statut</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F8F5EE] text-xs sm:text-sm">
-                {messages.map((msg) => (
-                  <tr
-                    key={msg.id}
-                    onClick={() => setSelectedMessage(msg)}
-                    className="hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-                  >
-                    <td className="py-3.5 px-4 font-medium text-[#16222F]">
-                      {msg.subject}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#475569]">
-                      {msg.sender}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#475569]">
-                      {msg.date}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {msg.status === 'Non lu' ? (
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#E0EEFF] text-[#2563EB]">
-                          Non lu
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="academy-card p-4 h-fit space-y-1.5">
+          <button
+            onClick={() => setActiveFolder('inbox')}
+            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
+              activeFolder === 'inbox'
+                ? 'bg-[#16222F] text-white shadow-xs'
+                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Inbox className="w-4 h-4" />
+              <span>Boîte de réception</span>
+            </div>
+            {unreadInboxCount > 0 && (
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                activeFolder === 'inbox' ? 'bg-white/20 text-white' : 'bg-[#EF4444] text-white'
+              }`}>
+                {unreadInboxCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveFolder('sent')}
+            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
+              activeFolder === 'sent'
+                ? 'bg-[#16222F] text-white shadow-xs'
+                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Send className="w-4 h-4" />
+              <span>Messages envoyés</span>
+            </div>
+            <span className="text-[10px] opacity-70">
+              {sentMessages.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveFolder('announcements')}
+            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
+              activeFolder === 'announcements'
+                ? 'bg-[#16222F] text-white shadow-xs'
+                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Megaphone className="w-4 h-4" />
+              <span>Annonces officielles</span>
+            </div>
+            <span className="text-[10px] opacity-70">
+              {announcements.length}
+            </span>
+          </button>
+        </div>
+
+        <div className="lg:col-span-3 academy-card overflow-hidden">
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
+              <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+              <span className="text-sm font-medium">Chargement des messages depuis MySQL...</span>
+            </div>
+          ) : activeFolder === 'announcements' ? (
+            <div className="p-6 space-y-4">
+              <h3 className="font-serif-title font-bold text-lg text-[#16222F]">
+                Annonces de l'Académie Lumière
+              </h3>
+              {announcements.length === 0 ? (
+                <div className="py-12 text-center text-xs text-[#78716C]">
+                  Aucune annonce publiée pour le moment.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {announcements.map((ann) => (
+                    <div
+                      key={ann.id}
+                      className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#16222F]">{ann.title}</span>
+                        <span className="text-[10px] text-[#78716C]">
+                          {ann.publishedAt ? new Date(ann.publishedAt).toLocaleDateString('fr-FR') : '-'}
                         </span>
-                      ) : (
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-[#DCFCE7] text-[#15803D]">
-                          Lu
-                        </span>
-                      )}
-                    </td>
+                      </div>
+                      <p className="text-xs text-[#64748B] leading-relaxed">{ann.content}</p>
+                      <span className="inline-block text-[9px] font-bold uppercase bg-[#E8DFC9] text-[#16222F] px-2 py-0.5 rounded-full">
+                        Cible : {ann.targetRole || 'Tous'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2]/50 text-xs font-bold text-[#78716C] uppercase tracking-wider">
+                    <th className="py-4 px-6">Objet du message</th>
+                    <th className="py-4 px-6">{activeFolder === 'inbox' ? 'Expéditeur' : 'Destinataire'}</th>
+                    <th className="py-4 px-6">Date</th>
+                    <th className="py-4 px-6">Statut</th>
+                    <th className="py-4 px-6 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#F4EDE2] text-sm">
+                  {(activeFolder === 'inbox' ? inboxMessages : sentMessages).length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-16 text-center text-xs text-[#78716C]">
+                        {activeFolder === 'inbox' ? 'Aucun message dans votre boîte de réception.' : 'Aucun message envoyé.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    (activeFolder === 'inbox' ? inboxMessages : sentMessages).map((msg) => (
+                      <tr key={msg.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                        <td className="py-4 px-6 font-semibold text-[#16222F]">
+                          <div className="flex items-center gap-2.5">
+                            <Mail className={`w-4 h-4 ${!msg.isRead && activeFolder === 'inbox' ? 'text-[#C5A880]' : 'text-[#94A3B8]'}`} />
+                            <span className={!msg.isRead && activeFolder === 'inbox' ? 'font-bold' : 'font-normal'}>
+                              {msg.subject}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-xs text-[#78716C]">
+                          Utilisateur #{activeFolder === 'inbox' ? msg.senderId : msg.recipientId}
+                        </td>
+                        <td className="py-4 px-6 text-xs text-[#78716C]">
+                          {msg.sentAt ? new Date(msg.sentAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '-'}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                              msg.isRead
+                                ? 'bg-slate-100 text-slate-700'
+                                : 'bg-sky-50 text-sky-700 border border-sky-200 font-bold'
+                            }`}
+                          >
+                            {msg.isRead ? 'Lu' : 'Non lu'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <button
+                            onClick={() => handleOpenView(msg)}
+                            className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
-
-      {selectedMessage && (
-        <Modal
-          isOpen={!!selectedMessage}
-          onClose={() => setSelectedMessage(null)}
-          title={selectedMessage.subject}
-          subtitle={`De: ${selectedMessage.sender} • ${selectedMessage.date}`}
-        >
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] text-sm leading-relaxed text-[#16222F]">
-              {selectedMessage.content}
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={() => {
-                  setMessages(messages.map(m => m.id === selectedMessage.id ? { ...m, status: 'Lu' } : m));
-                  setSelectedMessage(null);
-                }}
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] shadow-xs"
-              >
-                Fermer & marquer comme lu
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
 
       <Modal
         isOpen={isComposeOpen}
         onClose={() => setIsComposeOpen(false)}
-        title="Rédiger un message"
-        subtitle="Communiquez avec les équipes pédagogiques, élèves ou parents"
+        title="Nouveau message interne"
       >
         <form onSubmit={handleSendMessage} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#16222F] uppercase mb-1">
-              Destinataire *
-            </label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Destinataire (Enseignant / Direction) *</label>
             <select
-              value={composeData.recipient}
-              onChange={(e) => setComposeData({ ...composeData, recipient: e.target.value })}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm focus:outline-none"
+              value={messageForm.recipientId}
+              onChange={(e) => setMessageForm({ ...messageForm, recipientId: e.target.value })}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
             >
-              <option value="Tous les enseignants">Tous les enseignants</option>
-              <option value="Toute la classe 1ère A">Toute la classe 1ère A</option>
-              <option value="Toute la classe 1ère B">Toute la classe 1ère B</option>
-              <option value="Association des parents">Association des parents</option>
-              <option value="Administration générale">Administration générale</option>
+              <option value="1">Direction - Marc Dupont (admin@school.com)</option>
+              {contacts.map((t) => (
+                <option key={t.id} value={t.user?.id || t.id}>
+                  {t.user?.firstName} {t.user?.lastName} - {t.specialization}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] uppercase mb-1">
-              Objet du message *
-            </label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Objet *</label>
             <input
               type="text"
               required
-              value={composeData.subject}
-              onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
-              placeholder="Ex. Réunion pédagogique"
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm focus:outline-none"
+              value={messageForm.subject}
+              onChange={(e) => setMessageForm({ ...messageForm, subject: e.target.value })}
+              placeholder="Ex: Suivi pédagogique trimestriel"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] uppercase mb-1">
-              Message *
-            </label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Message *</label>
             <textarea
-              rows="5"
               required
-              value={composeData.content}
-              onChange={(e) => setComposeData({ ...composeData, content: e.target.value })}
-              placeholder="Écrivez votre message ici..."
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl p-3 text-sm focus:outline-none"
+              rows={4}
+              value={messageForm.content}
+              onChange={(e) => setMessageForm({ ...messageForm, content: e.target.value })}
+              placeholder="Rédigez votre message ici..."
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl p-3 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#F4EDE2]">
+          <div className="flex items-center justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={() => setIsComposeOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2]"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] shadow-xs flex items-center gap-2"
+              disabled={submitting}
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
-              <Send className="w-3.5 h-3.5" />
+              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Envoyer le message</span>
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        title="Lecture du message"
+      >
+        {selectedMessage && (
+          <div className="space-y-4 text-xs">
+            <div className="pb-3 border-b border-[#F4EDE2]">
+              <span className="text-[10px] text-[#A8A29E] block">
+                Envoyé le {selectedMessage.sentAt ? new Date(selectedMessage.sentAt).toLocaleString('fr-FR') : '-'}
+              </span>
+              <h3 className="text-base font-bold text-[#16222F] mt-1">
+                {selectedMessage.subject}
+              </h3>
+            </div>
+            <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] whitespace-pre-wrap text-[#1E293B] leading-relaxed">
+              {selectedMessage.content}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
