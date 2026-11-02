@@ -1,110 +1,122 @@
-import React, { useState } from 'react';
-import { Calendar, ChevronDown, Printer } from 'lucide-react';
-import { TIMETABLE_SCHEDULE, INITIAL_CLASSES } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, MapPin, AlertCircle, Loader2 } from 'lucide-react';
+import { communicationService } from '../services/communicationService';
 
 export default function TimetableView() {
-  const [selectedWeek] = useState('Semaine actuelle');
-  const [selectedClass, setSelectedClass] = useState('1ère A');
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const res = await communicationService.getEvents({ page: 0, size: 20 });
+        const list = res.content || (Array.isArray(res) ? res : []);
+        setEvents(list);
+      } catch {
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   return (
     <div className="space-y-6 pb-12">
-      
       <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
         <div className="z-10">
           <div className="flex items-center gap-2 mb-1">
             <span className="w-6 h-0.5 bg-[#C5A880]"></span>
             <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Planning Académique
+              Planning & Calendrier
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Emplois du Temps
+            Emploi du Temps & Échéances
           </h1>
           <p className="text-sm text-[#78716C] mt-1">
-            Consultez l'emploi du temps scolaire
+            Consultez les événements officiels et créneaux académiques
           </p>
         </div>
 
-        <div className="flex items-center gap-3 z-10 w-full md:w-auto justify-end">
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="bg-white border border-[#EFECE6] rounded-full px-4 py-2 text-xs font-semibold text-[#16222F] shadow-sm focus:outline-none cursor-pointer"
-          >
-            {INITIAL_CLASSES.map((c) => (
-              <option key={c.id} value={c.name}>
-                Classe : {c.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="relative">
-            <button className="flex items-center gap-2 bg-white border border-[#EFECE6] rounded-full px-4 py-2 text-xs font-semibold text-[#16222F] shadow-sm">
-              <Calendar className="w-3.5 h-3.5 text-[#C5A880]" />
-              <span>{selectedWeek}</span>
-              <ChevronDown className="w-3 h-3 text-[#78716C]" />
-            </button>
-          </div>
-
-          <button
-            onClick={() => window.print()}
-            className="p-2 bg-white border border-[#EFECE6] rounded-full text-[#78716C] hover:text-[#16222F] shadow-sm transition-colors"
-            title="Imprimer le planning"
-          >
-            <Printer className="w-4 h-4" />
-          </button>
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none hidden md:block overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80"
+            alt="Emploi du temps"
+            className="w-full h-full object-cover rounded-l-full"
+          />
         </div>
       </div>
 
-      <div className="academy-card overflow-hidden p-4 sm:p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-[#F4EDE2] text-xs font-bold text-[#78716C] uppercase tracking-wider">
-                <th className="py-4 px-4 text-left w-36">Heure</th>
-                <th className="py-4 px-4 text-center">Lundi</th>
-                <th className="py-4 px-4 text-center">Mardi</th>
-                <th className="py-4 px-4 text-center">Mercredi</th>
-                <th className="py-4 px-4 text-center">Jeudi</th>
-                <th className="py-4 px-4 text-center">Vendredi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#F4EDE2]/80">
-              {TIMETABLE_SCHEDULE.map((row, idx) => (
-                <tr key={idx} className="hover:bg-[#FAF7F2]/40 transition-colors">
-                  <td className="py-4 px-4 text-xs font-semibold text-[#78716C] whitespace-nowrap">
-                    {row.time}
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-block w-full max-w-[140px] py-2 px-3 rounded-xl text-xs font-semibold border ${row.lundi.color}`}>
-                      {row.lundi.subject}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-block w-full max-w-[140px] py-2 px-3 rounded-xl text-xs font-semibold border ${row.mardi.color}`}>
-                      {row.mardi.subject}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-block w-full max-w-[140px] py-2 px-3 rounded-xl text-xs font-semibold border ${row.mercredi.color}`}>
-                      {row.mercredi.subject}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-block w-full max-w-[140px] py-2 px-3 rounded-xl text-xs font-semibold border ${row.jeudi.color}`}>
-                      {row.jeudi.subject}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-block w-full max-w-[140px] py-2 px-3 rounded-xl text-xs font-semibold border ${row.vendredi.color}`}>
-                      {row.vendredi.subject}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-bold block mb-0.5">Note d'intégration Backend :</span>
+          <span>
+            Le modèle de données du backend Spring Boot ne comporte pas encore d'entité pour les grilles d'emplois du temps par classe et heure de cours.
+            Les créneaux et réunions affichés ci-dessous sont extraits des événements réels enregistrés dans la table MySQL <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">events</code>.
+          </span>
         </div>
+      </div>
+
+      <div className="academy-card p-6">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#F4EDE2]">
+          <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+            Événements et créneaux planifiés dans MySQL
+          </h2>
+          <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1.5 rounded-full border border-[#EFECE6]">
+            {events.length} créneaux
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
+            <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+            <span className="text-sm font-medium">Chargement des événements...</span>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="py-16 text-center text-xs text-[#78716C]">
+            Aucun événement ou cours planifié dans la base de données.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {events.map((evt) => (
+              <div
+                key={evt.id}
+                className="p-5 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex flex-col justify-between space-y-3 hover:border-[#C5A880] transition-colors"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-bold text-[#16222F]">{evt.title}</h3>
+                    <span className="text-[10px] font-bold uppercase bg-[#16222F] text-white px-2.5 py-0.5 rounded-full shrink-0">
+                      Événement
+                    </span>
+                  </div>
+                  {evt.description && (
+                    <p className="text-xs text-[#64748B] mt-2 leading-relaxed">{evt.description}</p>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-[#EFECE6] flex items-center justify-between text-xs text-[#78716C]">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-[#C5A880]" />
+                    <span>
+                      {evt.startAt ? new Date(evt.startAt).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Horaire à confirmer'}
+                    </span>
+                  </div>
+                  {evt.location && (
+                    <div className="flex items-center gap-1.5 font-medium text-[#16222F]">
+                      <MapPin className="w-3.5 h-3.5 text-[#C5A880]" />
+                      <span>{evt.location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
