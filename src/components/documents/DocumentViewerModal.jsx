@@ -29,6 +29,10 @@ export default function DocumentViewerModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [blobUrl, setBlobUrl] = useState(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileError, setFileError] = useState(null);
+
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -75,8 +79,6 @@ export default function DocumentViewerModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const rawUrl = doc?.downloadUrl || (doc?.fileKey ? `/api/v1/documents/files/${doc.fileKey}` : '');
   const fileUrl = rawUrl;
 
@@ -89,6 +91,64 @@ export default function DocumentViewerModal({
 
   const isPdf = extension === 'pdf';
   const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(extension);
+
+  useEffect(() => {
+    let isCurrent = true;
+    let createdUrl = null;
+
+    if (!isOpen || !fileUrl) {
+      setBlobUrl(null);
+      setFileLoading(false);
+      setFileError(null);
+      return;
+    }
+
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      if (!fileUrl.includes('localhost') && !fileUrl.includes('127.0.0.1')) {
+        setBlobUrl(fileUrl);
+        setFileLoading(false);
+        return;
+      }
+    }
+
+    setFileLoading(true);
+    setFileError(null);
+
+    fetch(fileUrl)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}: Impossible de récupérer le flux du document.`);
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!isCurrent) return;
+        const mime = isPdf ? 'application/pdf' : (blob.type || 'application/octet-stream');
+        const typedBlob = new Blob([blob], { type: mime });
+        createdUrl = URL.createObjectURL(typedBlob);
+        setBlobUrl(createdUrl);
+      })
+      .catch((err) => {
+        if (!isCurrent) return;
+        setFileError(err.message || 'Impossible de charger le fichier dans le visualiseur.');
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setFileLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
+    };
+  }, [isOpen, fileUrl, isPdf]);
+
+  if (!isOpen) return null;
+
+  const activePreviewUrl = blobUrl || fileUrl;
 
   const handleZoomIn = () => setZoom((prev) => Math.min(Number((prev + 0.25).toFixed(2)), 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(Number((prev - 0.25).toFixed(2)), 0.5));
@@ -158,12 +218,12 @@ export default function DocumentViewerModal({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {fileUrl && (
+            {activePreviewUrl && (
               <a
-                href={fileUrl}
+                href={activePreviewUrl}
                 target="_blank"
                 rel="noreferrer"
-                download
+                download={doc?.fileKey || 'document'}
                 className="p-2 text-[#78716C] hover:text-[#16222F] hover:bg-white rounded-xl transition-colors border border-transparent hover:border-[#EFECE6]"
                 title="Ouvrir dans un nouvel onglet"
               >
@@ -257,36 +317,42 @@ export default function DocumentViewerModal({
               </div>
 
               <div className="relative flex-1 min-h-[460px] lg:min-h-[580px] bg-[#FAF7F2]/50 border border-[#EFECE6] rounded-2xl overflow-hidden flex items-center justify-center">
-                {loading && (
-                  <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2 text-[#78716C]">
+                {(loading || fileLoading) && (
+                  <div className="absolute inset-0 z-20 bg-white/85 backdrop-blur-xs flex flex-col items-center justify-center gap-2 text-[#78716C]">
                     <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
                     <span className="text-xs font-medium">Chargement du fichier sécurisé...</span>
                   </div>
                 )}
 
-                {error ? (
+                {error || fileError ? (
                   <div className="p-6 text-center space-y-3 max-w-md">
                     <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
                     <h4 className="font-bold text-sm text-[#16222F]">Erreur de visualisation</h4>
-                    <p className="text-xs text-[#78716C]">{error}</p>
+                    <p className="text-xs text-[#78716C]">{error || fileError}</p>
                     <button
                       type="button"
                       onClick={() => fetchDocument(doc?.id || documentId)}
-                      className="px-4 py-2 bg-[#16222F] text-white rounded-xl text-xs font-semibold hover:bg-[#203144] transition-colors"
+                      className="px-4 py-2 bg-[#16222F] text-white rounded-xl text-xs font-semibold hover:bg-[#203144] transition-colors cursor-pointer"
                     >
                       Réessayer
                     </button>
                   </div>
-                ) : isPdf && fileUrl ? (
-                  <iframe
-                    src={fileUrl}
-                    title={doc?.documentTypeName || 'Aperçu du PDF'}
+                ) : isPdf && activePreviewUrl ? (
+                  <object
+                    data={activePreviewUrl}
+                    type="application/pdf"
                     className="w-full h-full min-h-[560px] border-0 bg-white"
-                  />
-                ) : isImage && fileUrl ? (
+                  >
+                    <iframe
+                      src={activePreviewUrl}
+                      title={doc?.documentTypeName || 'Aperçu du PDF'}
+                      className="w-full h-full min-h-[560px] border-0 bg-white"
+                    />
+                  </object>
+                ) : isImage && activePreviewUrl ? (
                   <div className="w-full h-full min-h-[560px] overflow-auto flex items-center justify-center p-4">
                     <img
-                      src={fileUrl}
+                      src={activePreviewUrl}
                       alt={doc?.documentTypeName || 'Justificatif'}
                       style={{
                         transform: `scale(${zoom}) rotate(${rotation}deg)`,
@@ -309,12 +375,12 @@ export default function DocumentViewerModal({
                         Le format de ce fichier ne permet pas un affichage direct dans le navigateur. Vous pouvez le télécharger pour le consulter en toute sécurité.
                       </p>
                     </div>
-                    {fileUrl && (
+                    {activePreviewUrl && (
                       <a
-                        href={fileUrl}
+                        href={activePreviewUrl}
                         target="_blank"
                         rel="noreferrer"
-                        download
+                        download={doc?.fileKey || 'document'}
                         className="inline-flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
                       >
                         <Download className="w-4 h-4" />
@@ -431,12 +497,12 @@ export default function DocumentViewerModal({
                 <div className="text-xs text-[#78716C]">
                   Besoin d'enregistrer le document ?
                 </div>
-                {fileUrl && (
+                {activePreviewUrl && (
                   <a
-                    href={fileUrl}
+                    href={activePreviewUrl}
                     target="_blank"
                     rel="noreferrer"
-                    download
+                    download={doc?.fileKey || 'document'}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#16222F] text-white rounded-xl text-xs font-semibold hover:bg-[#203144] transition-colors shadow-xs"
                   >
                     <Download className="w-3.5 h-3.5" />
