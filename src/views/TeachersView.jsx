@@ -35,11 +35,13 @@ export default function TeachersView() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    password: 'Teacher@123',
     phone: '',
     specialization: '',
     contractType: 'CDI',
@@ -76,21 +78,24 @@ export default function TeachersView() {
   }, [selectedDepartment]);
 
   const handleOpenAdd = () => {
+    setModalError(null);
     setFormData({
       firstName: '',
       lastName: '',
       email: '',
+      password: 'Teacher@123',
       phone: '',
       specialization: '',
       contractType: 'CDI',
       hireDate: new Date().toISOString().split('T')[0],
-      departmentId: departments.length > 0 ? departments[0].id : '',
+      departmentId: departments.length > 0 ? departments[0].id : 1,
     });
     setIsAddModalOpen(true);
   };
 
   const handleOpenEdit = (teacher) => {
     setSelectedTeacher(teacher);
+    setModalError(null);
     setFormData({
       firstName: teacher.user?.firstName || '',
       lastName: teacher.user?.lastName || '',
@@ -99,7 +104,7 @@ export default function TeachersView() {
       specialization: teacher.specialization || '',
       contractType: teacher.contractType || 'CDI',
       hireDate: teacher.hireDate || '',
-      departmentId: teacher.department?.id || '',
+      departmentId: teacher.department?.id || (departments.length > 0 ? departments[0].id : 1),
     });
     setIsEditModalOpen(true);
   };
@@ -112,6 +117,7 @@ export default function TeachersView() {
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await teacherService.createTeacher(formData);
@@ -120,7 +126,7 @@ export default function TeachersView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadData();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la création de l\'enseignant.');
+      setModalError(err.message || 'Erreur lors de la création de l\'enseignant.');
     } finally {
       setSubmitting(false);
     }
@@ -130,6 +136,7 @@ export default function TeachersView() {
     e.preventDefault();
     if (!selectedTeacher) return;
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await teacherService.updateTeacher(selectedTeacher.id, formData);
@@ -138,7 +145,7 @@ export default function TeachersView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadData();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour.');
+      setModalError(err.message || 'Erreur lors de la mise à jour.');
     } finally {
       setSubmitting(false);
     }
@@ -403,6 +410,12 @@ export default function TeachersView() {
         title="Ajouter un enseignant dans MySQL"
       >
         <form onSubmit={handleSubmitAdd} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
@@ -438,6 +451,19 @@ export default function TeachersView() {
               />
             </div>
             <div>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Mot de passe *</label>
+              <input
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Téléphone</label>
               <input
                 type="text"
@@ -446,9 +472,6 @@ export default function TeachersView() {
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Spécialité *</label>
               <input
@@ -460,6 +483,9 @@ export default function TeachersView() {
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Type de contrat</label>
               <select
@@ -472,17 +498,14 @@ export default function TeachersView() {
                 <option value="VACATAIRE">Vacataire</option>
               </select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Département académique</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Département académique *</label>
               <select
+                required
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
               >
-                <option value="">Aucun département</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -490,15 +513,16 @@ export default function TeachersView() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Date d'embauche</label>
-              <input
-                type="date"
-                value={formData.hireDate}
-                onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Date d'embauche</label>
+            <input
+              type="date"
+              value={formData.hireDate}
+              onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-3">
@@ -527,6 +551,12 @@ export default function TeachersView() {
         title="Modifier l'enseignant"
       >
         <form onSubmit={handleSubmitEdit} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>

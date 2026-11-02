@@ -12,12 +12,32 @@ export const studentService = {
   },
 
   async createStudent(data) {
-    const res = await apiClient.post('/students', data);
+    const payload = {
+      ...data,
+      birthDate: data.birthDate ? data.birthDate : null,
+      phone: data.phone || null,
+      address: data.address || null,
+      previousSchool: data.previousSchool || null,
+    };
+    const res = await apiClient.post('/students', payload);
     return res.data;
   },
 
   async updateStudent(id, data) {
-    const res = await apiClient.put(`/students/${id}`, data);
+    const payload = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      photoUrl: data.photoUrl || null,
+      language: data.language || 'fr',
+      active: data.active !== undefined ? data.active : true,
+      birthDate: data.birthDate ? data.birthDate : null,
+      gender: data.gender || 'MALE',
+      address: data.address || null,
+      previousSchool: data.previousSchool || null,
+      status: data.status || 'ACTIVE',
+    };
+    const res = await apiClient.put(`/students/${id}`, payload);
     return res.data;
   },
 

@@ -37,6 +37,7 @@ export default function StudentsView() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -60,11 +61,24 @@ export default function StudentsView() {
         page,
         size: 20,
       };
-      if (q) params.name = q;
+      if (q) {
+        if (/STU|\d/i.test(q)) {
+          params.studentNumber = q;
+        } else {
+          params.name = q;
+        }
+      }
       if (selectedStatus !== 'ALL') params.status = selectedStatus;
 
       const data = await studentService.getStudents(params);
-      const list = data.content || (Array.isArray(data) ? data : []);
+      let list = data.content || (Array.isArray(data) ? data : []);
+      if (q && !/STU|\d/i.test(q) && q.includes(' ')) {
+        const words = q.toLowerCase().split(/\s+/);
+        list = list.filter((s) => {
+          const full = `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.toLowerCase();
+          return words.every((w) => full.includes(w));
+        });
+      }
       setStudents(list);
       setTotalElements(data.totalElements !== undefined ? data.totalElements : list.length);
     } catch (err) {
@@ -81,11 +95,12 @@ export default function StudentsView() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchStudents();
-    }, 400);
+    }, 350);
     return () => clearTimeout(timer);
   }, [localSearch, searchQuery]);
 
   const handleOpenAdd = () => {
+    setModalError(null);
     setFormData({
       firstName: '',
       lastName: '',
@@ -101,6 +116,7 @@ export default function StudentsView() {
 
   const handleOpenEdit = (student) => {
     setSelectedStudent(student);
+    setModalError(null);
     setFormData({
       firstName: student.user?.firstName || '',
       lastName: student.user?.lastName || '',
@@ -122,6 +138,7 @@ export default function StudentsView() {
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await studentService.createStudent(formData);
@@ -130,7 +147,7 @@ export default function StudentsView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await fetchStudents();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la création de l\'élève.');
+      setModalError(err.message || 'Erreur lors de la création de l\'élève.');
     } finally {
       setSubmitting(false);
     }
@@ -140,6 +157,7 @@ export default function StudentsView() {
     e.preventDefault();
     if (!selectedStudent) return;
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await studentService.updateStudent(selectedStudent.id, formData);
@@ -148,7 +166,7 @@ export default function StudentsView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await fetchStudents();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour.');
+      setModalError(err.message || 'Erreur lors de la mise à jour.');
     } finally {
       setSubmitting(false);
     }
@@ -410,6 +428,12 @@ export default function StudentsView() {
         title="Ajouter un nouvel élève dans MySQL"
       >
         <form onSubmit={handleSubmitAdd} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
@@ -525,6 +549,12 @@ export default function StudentsView() {
         title="Modifier l'élève"
       >
         <form onSubmit={handleSubmitEdit} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>

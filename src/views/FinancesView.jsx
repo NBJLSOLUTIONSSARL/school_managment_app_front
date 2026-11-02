@@ -28,9 +28,11 @@ export default function FinancesView() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [localSearch, setLocalSearch] = useState('');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState(null);
 
   const [paymentForm, setPaymentForm] = useState({
     invoiceId: '',
@@ -83,6 +85,7 @@ export default function FinancesView() {
   };
 
   const handleOpenPayment = (invoice) => {
+    setModalError(null);
     setPaymentForm({
       invoiceId: invoice.id,
       amount: invoice.totalAmount || '',
@@ -92,6 +95,7 @@ export default function FinancesView() {
   };
 
   const handleOpenAddInvoice = () => {
+    setModalError(null);
     setInvoiceForm({
       studentId: students.length > 0 ? students[0].id : '',
       number: `FAC-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -105,6 +109,7 @@ export default function FinancesView() {
   const handleSubmitPayment = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await financeService.createPayment({
@@ -117,7 +122,7 @@ export default function FinancesView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadFinances();
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'enregistrement du paiement.');
+      setModalError(err.message || 'Erreur lors de l\'enregistrement du paiement.');
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +131,7 @@ export default function FinancesView() {
   const handleSubmitInvoice = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await financeService.createInvoice({
@@ -141,7 +147,7 @@ export default function FinancesView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadFinances();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la création de la facture.');
+      setModalError(err.message || 'Erreur lors de la création de la facture.');
     } finally {
       setSubmitting(false);
     }
@@ -162,9 +168,14 @@ export default function FinancesView() {
     }
   };
 
+  const q = (localSearch || searchQuery).toLowerCase().trim();
   const filteredInvoices = invoices.filter((inv) => {
-    if (selectedStatus === 'ALL') return true;
-    return inv.status === selectedStatus;
+    if (selectedStatus !== 'ALL' && inv.status !== selectedStatus) return false;
+    if (!q) return true;
+    const num = (inv.number || '').toLowerCase();
+    const stId = (inv.studentId || '').toString();
+    const period = (inv.billingPeriod || '').toLowerCase();
+    return num.includes(q) || stId.includes(q) || period.includes(q);
   });
 
   const chartData = [
@@ -316,6 +327,20 @@ export default function FinancesView() {
 
             <div className="space-y-3">
               <div>
+                <label className="block text-xs font-semibold text-[#78716C] mb-1">Recherche</label>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
+                    placeholder="N° facture, élève ID..."
+                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold text-[#78716C] mb-1">Statut de facture</label>
                 <select
                   value={selectedStatus}
@@ -447,6 +472,12 @@ export default function FinancesView() {
         title="Enregistrer un encaissement dans MySQL"
       >
         <form onSubmit={handleSubmitPayment} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-[#16222F] mb-1">Montant perçu (MAD) *</label>
             <input
@@ -497,6 +528,12 @@ export default function FinancesView() {
         title="Créer une nouvelle facture"
       >
         <form onSubmit={handleSubmitInvoice} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-[#16222F] mb-1">Élève bénéficiaire *</label>
             <select

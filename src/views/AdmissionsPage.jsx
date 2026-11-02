@@ -12,6 +12,7 @@ export default function AdmissionsPage() {
   const [applications, setApplications] = useState([]);
   const [loadingApps, setLoadingApps] = useState(false);
   const [successAction, setSuccessAction] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
 
   const [formData, setFormData] = useState({
     studentFirstName: '',
@@ -47,6 +48,15 @@ export default function AdmissionsPage() {
     loadApplications();
   }, [canManage]);
 
+  const filteredApplications = applications.filter((app) => {
+    if (!localSearch.trim()) return true;
+    const term = localSearch.toLowerCase().trim();
+    const name = (app.candidateName || '').toLowerCase();
+    const guard = (app.guardianFullName || '').toLowerCase();
+    const st = (app.status || '').toLowerCase();
+    return name.includes(term) || guard.includes(term) || st.includes(term);
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -79,7 +89,7 @@ export default function AdmissionsPage() {
   const handleRecordDecision = async (appId, decision) => {
     try {
       await applicationService.recordDecision(appId, {
-        decision,
+        status: decision,
         decisionNote: `Dossier ${decision === 'ACCEPTED' ? 'accepté' : 'ajourné'} lors de la commission d'admission.`,
       });
       setSuccessAction('Décision enregistrée avec succès.');
@@ -191,7 +201,7 @@ export default function AdmissionsPage() {
 
         {canManage && applications.length > 0 && (
           <div className="academy-card p-6 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-serif-title font-bold text-lg text-[#16222F]">
                   Candidatures enregistrées dans MySQL ({applications.length})
@@ -200,11 +210,20 @@ export default function AdmissionsPage() {
                   Administration des dossiers d'admission reçus en ligne
                 </p>
               </div>
-              {successAction && (
-                <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full font-bold">
-                  {successAction}
-                </span>
-              )}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <input
+                  type="text"
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  placeholder="Filtrer candidat, statut..."
+                  className="bg-[#FAF7F2] border border-[#EFECE6] rounded-full px-3.5 py-1.5 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                />
+                {successAction && (
+                  <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full font-bold shrink-0">
+                    {successAction}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -220,7 +239,7 @@ export default function AdmissionsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F4EDE2]">
-                  {applications.map((app) => (
+                  {filteredApplications.map((app) => (
                     <tr key={app.id} className="hover:bg-[#FAF7F2]/60">
                       <td className="py-3 px-4 font-bold text-[#16222F]">{app.candidateName}</td>
                       <td className="py-3 px-4 text-[#78716C]">{app.candidateBirthDate || '-'}</td>

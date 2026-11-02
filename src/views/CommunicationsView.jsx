@@ -11,7 +11,8 @@ import {
   AlertCircle,
   Eye,
   Megaphone,
-  User
+  User,
+  Search
 } from 'lucide-react';
 import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +20,7 @@ import { communicationService } from '../services/communicationService';
 import { teacherService } from '../services/teacherService';
 
 export default function CommunicationsView() {
-  const { currentUser } = useAuth();
+  const { currentUser, searchQuery } = useAuth();
   const [activeFolder, setActiveFolder] = useState('inbox');
   const [inboxMessages, setInboxMessages] = useState([]);
   const [sentMessages, setSentMessages] = useState([]);
@@ -28,6 +29,8 @@ export default function CommunicationsView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [modalError, setModalError] = useState(null);
+  const [localSearch, setLocalSearch] = useState('');
 
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -75,6 +78,7 @@ export default function CommunicationsView() {
   }, [userId]);
 
   const handleOpenCompose = () => {
+    setModalError(null);
     setMessageForm({
       recipientId: contacts.length > 0 ? (contacts[0].user?.id || '1') : '1',
       subject: '',
@@ -98,6 +102,7 @@ export default function CommunicationsView() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       await communicationService.sendMessage({
@@ -111,11 +116,28 @@ export default function CommunicationsView() {
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadCommunications();
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'envoi du message.');
+      setModalError(err.message || 'Erreur lors de l\'envoi du message.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const q = (localSearch || searchQuery).toLowerCase().trim();
+  const filterMessages = (list) => {
+    if (!q) return list;
+    return list.filter((m) => {
+      const subj = (m.subject || '').toLowerCase();
+      const cont = (m.content || '').toLowerCase();
+      return subj.includes(q) || cont.includes(q);
+    });
+  };
+
+  const filteredAnnouncements = announcements.filter((ann) => {
+    if (!q) return true;
+    const title = (ann.title || '').toLowerCase();
+    const cont = (ann.content || '').toLowerCase();
+    return title.includes(q) || cont.includes(q);
+  });
 
   const unreadInboxCount = inboxMessages.filter((m) => !m.isRead).length;
 
@@ -131,13 +153,25 @@ export default function CommunicationsView() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCompose}
-          className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Nouveau message</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="relative min-w-[220px]">
+            <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Rechercher message ou annonce..."
+              className="w-full bg-white border border-[#EFECE6] rounded-full pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            />
+          </div>
+          <button
+            onClick={handleOpenCompose}
+            className="flex items-center justify-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Nouveau message</span>
+          </button>
+        </div>
       </div>
 
       {successMessage && (
@@ -231,13 +265,13 @@ export default function CommunicationsView() {
               <h3 className="font-serif-title font-bold text-lg text-[#16222F]">
                 Annonces de l'Académie Lumière
               </h3>
-              {announcements.length === 0 ? (
+              {filteredAnnouncements.length === 0 ? (
                 <div className="py-12 text-center text-xs text-[#78716C]">
-                  Aucune annonce publiée pour le moment.
+                  Aucune annonce ne correspond à votre recherche.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {announcements.map((ann) => (
+                  {filteredAnnouncements.map((ann) => (
                     <div
                       key={ann.id}
                       className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] space-y-1.5"
@@ -270,14 +304,14 @@ export default function CommunicationsView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F4EDE2] text-sm">
-                  {(activeFolder === 'inbox' ? inboxMessages : sentMessages).length === 0 ? (
+                  {filterMessages(activeFolder === 'inbox' ? inboxMessages : sentMessages).length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-16 text-center text-xs text-[#78716C]">
                         {activeFolder === 'inbox' ? 'Aucun message dans votre boîte de réception.' : 'Aucun message envoyé.'}
                       </td>
                     </tr>
                   ) : (
-                    (activeFolder === 'inbox' ? inboxMessages : sentMessages).map((msg) => (
+                    filterMessages(activeFolder === 'inbox' ? inboxMessages : sentMessages).map((msg) => (
                       <tr key={msg.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
                         <td className="py-4 px-6 font-semibold text-[#16222F]">
                           <div className="flex items-center gap-2.5">
@@ -328,6 +362,12 @@ export default function CommunicationsView() {
         title="Nouveau message interne"
       >
         <form onSubmit={handleSendMessage} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-[#16222F] mb-1">Destinataire (Enseignant / Direction) *</label>
             <select

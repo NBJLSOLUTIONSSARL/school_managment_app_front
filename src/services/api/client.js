@@ -39,7 +39,15 @@ const attachAuthInterceptor = (instance) => {
       }
 
       const problem = error.response?.data;
-      const message = problem?.detail || problem?.message || error.message || 'Une erreur est survenue';
+      let message = problem?.detail || problem?.message || error.message || 'Une erreur est survenue';
+      if (problem?.invalidParams && typeof problem.invalidParams === 'object') {
+        const fieldErrors = Object.entries(problem.invalidParams)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(', ');
+        if (fieldErrors) {
+          message = `${message} (${fieldErrors})`;
+        }
+      }
       const customError = new Error(message);
       customError.status = error.response?.status;
       customError.invalidParams = problem?.invalidParams || null;

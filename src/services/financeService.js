@@ -17,7 +17,22 @@ export const financeService = {
   },
 
   async createInvoice(data) {
-    const res = await apiClient.post('/finances/invoices', data);
+    const lines = (data.lines && data.lines.length > 0)
+      ? data.lines
+      : [
+          {
+            feeTypeId: Number(data.feeTypeId || 1),
+            quantity: 1,
+            unitAmount: Number(data.totalAmount || data.amount || 1000),
+          },
+        ];
+    const payload = {
+      studentId: Number(data.studentId),
+      dueDate: data.dueDate,
+      discount: data.discount !== undefined ? Number(data.discount) : 0,
+      lines,
+    };
+    const res = await apiClient.post('/finances/invoices', payload);
     return res.data;
   },
 
@@ -42,7 +57,13 @@ export const financeService = {
   },
 
   async createPayment(data) {
-    const res = await apiClient.post('/finances/payments', data);
+    const payload = {
+      invoiceId: Number(data.invoiceId),
+      amount: Number(data.amount),
+      method: data.method || 'BANK_TRANSFER',
+      paidAt: data.paidAt || null,
+    };
+    const res = await apiClient.post('/finances/payments', payload);
     return res.data;
   },
 

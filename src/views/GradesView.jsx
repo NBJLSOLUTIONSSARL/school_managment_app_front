@@ -18,6 +18,7 @@ import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { evaluationService } from '../services/evaluationService';
 import { studentService } from '../services/studentService';
+import { teacherService } from '../services/teacherService';
 
 export default function GradesView() {
   const { searchQuery, hasAnyRole, currentUser } = useAuth();
@@ -25,11 +26,14 @@ export default function GradesView() {
   const [selectedExamId, setSelectedExamId] = useState('');
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [reportCards, setReportCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [gradesLoading, setGradesLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [modalError, setModalError] = useState(null);
+  const [localSearch, setLocalSearch] = useState('');
 
   const [isAddExamOpen, setIsAddExamOpen] = useState(false);
   const [isBatchGradeOpen, setIsBatchGradeOpen] = useState(false);
@@ -53,19 +57,26 @@ export default function GradesView() {
     setLoading(true);
     setError(null);
     try {
-      const [examsRes, stuRes, rcRes] = await Promise.allSettled([
+      const [examsRes, stuRes, rcRes, teachRes] = await Promise.allSettled([
         evaluationService.getExams(),
         studentService.getStudents({ page: 0, size: 50 }),
-        evaluationService.getReportCards()
+        evaluationService.getReportCards(),
+        teacherService.getTeachers()
       ]);
 
       const examsList = examsRes.status === 'fulfilled' && Array.isArray(examsRes.value) ? examsRes.value : [];
       const stuList = stuRes.status === 'fulfilled' ? (stuRes.value?.content || (Array.isArray(stuRes.value) ? stuRes.value : [])) : [];
       const rcList = rcRes.status === 'fulfilled' && Array.isArray(rcRes.value) ? rcRes.value : [];
+      const teachList = teachRes.status === 'fulfilled' && Array.isArray(teachRes.value) ? teachRes.value : [];
 
       setExams(examsList);
       setStudents(stuList);
       setReportCards(rcList);
+      setTeachers(teachList);
+
+      if (teachList.length > 0) {
+        setExamForm((prev) => ({ ...prev, teacherId: teachList[0].id }));
+      }
 
       if (examsList.length > 0) {
         setSelectedExamId(examsList[0].id.toString());
@@ -103,7 +114,22 @@ export default function GradesView() {
 
   const selectedExam = exams.find((e) => e.id.toString() === selectedExamId);
 
+  const handleOpenAddExam = () => {
+    setModalError(null);
+    setExamForm({
+      title: '',
+      type: 'EXAM',
+      date: new Date().toISOString().split('T')[0],
+      maxScore: 20,
+      coefficient: 2.0,
+      locked: false,
+      teacherId: teachers.length > 0 ? teachers[0].id : 2,
+    });
+    setIsAddExamOpen(true);
+  };
+
   const handleOpenBatchGrade = () => {
+    setModalError(null);
     const initial = {};
     students.forEach((s) => {
       const existing = grades.find((g) => g.studentId === s.id);
@@ -116,13 +142,16 @@ export default function GradesView() {
   const handleSubmitExam = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       const created = await evaluationService.createExam({
-        ...examForm,
-        teacherId: currentUser?.id || 2,
+        title: examForm.title,
+        type: examForm.type,
+        date: examForm.date,
         maxScore: Number(examForm.maxScore),
         coefficient: Number(examForm.coefficient),
+        teacherId: Number(examForm.teacherId || (teachers.length > 0 ? teachers[0].id : 2)),
       });
       setIsAddExamOpen(false);
       setSuccessMessage('Examen créé avec succès.');
@@ -131,7 +160,7 @@ export default function GradesView() {
       setExams(Array.isArray(updated) ? updated : []);
       if (created?.id) setSelectedExamId(created.id.toString());
     } catch (err) {
-      setError(err.message || 'Erreur lors de la création de l\'examen.');
+      setModalError(err.message || 'Erreur lors de la création de l\'examen.');
     } finally {
       setSubmitting(false);
     }
@@ -141,6 +170,7 @@ export default function GradesView() {
     e.preventDefault();
     if (!selectedExamId) return;
     setSubmitting(true);
+    setModalError(null);
     setError(null);
     try {
       const entries = Object.entries(batchScores)
@@ -151,13 +181,17 @@ export default function GradesView() {
           comment: 'Saisie officielle de note',
         }));
 
+      if (entries.length === 0) {
+        throw new Error('Veuillez renseigner au moins une note pour enregistrer.');
+      }
+
       await evaluationService.batchGrade(Number(selectedExamId), { grades: entries });
       setIsBatchGradeOpen(false);
       setSuccessMessage('Notes enregistrées avec succès dans MySQL.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadGradesForExam(selectedExamId);
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'enregistrement des notes.');
+      setModalError(err.message || 'Erreur lors de l\'enregistrement des notes.');
     } finally {
       setSubmitting(false);
     }
@@ -195,6 +229,15 @@ export default function GradesView() {
   const averageGrade = grades.length > 0
     ? (grades.reduce((sum, g) => sum + Number(g.score), 0) / grades.length).toFixed(1)
     : 'N/A';
+
+  const q = (localSearch || searchQuery).toLowerCase().trim();
+  const filteredGrades = grades.filter((grade) => {
+    if (!q) return true;
+    const student = students.find((s) => s.id === grade.studentId);
+    const studentName = `${student?.user?.firstName || ''} ${student?.user?.lastName || ''}`.toLowerCase();
+    const studentMat = (student?.studentNumber || '').toLowerCase();
+    return studentName.includes(q) || studentMat.includes(q) || grade.studentId.toString().includes(q);
+  });
 
   return (
     <div className="space-y-6 pb-12">
@@ -309,6 +352,17 @@ export default function GradesView() {
           </select>
         </div>
 
+        <div className="relative flex-1 max-w-xs">
+          <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder="Filtrer élève ou matricule..."
+            className="w-full bg-white border border-[#EFECE6] rounded-full pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+          />
+        </div>
+
         {canManage && selectedExam && (
           <div className="flex items-center gap-2">
             <button
@@ -340,14 +394,14 @@ export default function GradesView() {
             <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
             <span className="text-sm font-medium">Chargement des notes enregistrées...</span>
           </div>
-        ) : grades.length === 0 ? (
+        ) : filteredGrades.length === 0 ? (
           <div className="py-20 text-center space-y-3">
             <CheckSquare className="w-12 h-12 text-[#C5A880] mx-auto opacity-60" />
             <h3 className="text-base font-bold text-[#16222F]">
-              Aucune note saisie pour cette épreuve
+              Aucune note trouvée
             </h3>
             <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-              Utilisez le bouton de saisie en masse pour renseigner les notes des élèves.
+              Aucune note ne correspond à la recherche ou aucune saisie n'a été effectuée.
             </p>
             {canManage && !selectedExam?.locked && (
               <button
@@ -372,7 +426,7 @@ export default function GradesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F4EDE2] text-sm">
-                {grades.map((grade) => {
+                {filteredGrades.map((grade) => {
                   const student = students.find((s) => s.id === grade.studentId);
                   const studentName = student
                     ? `${student.user?.firstName || ''} ${student.user?.lastName || ''}`.trim()
@@ -420,6 +474,12 @@ export default function GradesView() {
         title="Créer un examen dans MySQL"
       >
         <form onSubmit={handleSubmitExam} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-[#16222F] mb-1">Intitulé de l'évaluation *</label>
             <input
@@ -430,6 +490,22 @@ export default function GradesView() {
               placeholder="Ex: Devoir Surveillé 2 - Algèbre"
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Enseignant responsable *</label>
+            <select
+              required
+              value={examForm.teacherId}
+              onChange={(e) => setExamForm({ ...examForm, teacherId: e.target.value })}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
+            >
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.user?.firstName} {t.user?.lastName} ({t.specialization || 'Enseignant'})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -507,6 +583,12 @@ export default function GradesView() {
         title={`Saisie des notes : ${selectedExam?.title || ''}`}
       >
         <form onSubmit={handleSubmitBatchGrade} className="space-y-4">
+          {modalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <p className="text-xs text-[#78716C]">
             Renseignez la note sur {selectedExam?.maxScore || 20} pour chaque élève inscrit.
           </p>
