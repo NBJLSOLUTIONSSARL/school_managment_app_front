@@ -63,12 +63,14 @@ export default function DocumentViewerModal({
         onClose();
       }
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
+    if (isOpen && typeof window !== 'undefined' && window.document?.body) {
+      window.document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = 'auto';
+      if (typeof window !== 'undefined' && window.document?.body) {
+        window.document.body.style.overflow = 'auto';
+      }
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);

@@ -16,7 +16,7 @@ import { documentService } from '../../services/documentService';
 export default function VerifyDocumentModal({
   isOpen,
   onClose,
-  document,
+  doc,
   onVerified,
   onOpenPreview
 }) {
@@ -31,7 +31,7 @@ export default function VerifyDocumentModal({
       setRejectionReason('');
       setError(null);
     }
-  }, [isOpen, document]);
+  }, [isOpen, doc]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -39,17 +39,19 @@ export default function VerifyDocumentModal({
         onClose();
       }
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
+    if (isOpen && typeof window !== 'undefined' && window.document?.body) {
+      window.document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = 'auto';
+      if (typeof window !== 'undefined' && window.document?.body) {
+        window.document.body.style.overflow = 'auto';
+      }
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !document) return null;
+  if (!isOpen || !doc) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,7 +69,7 @@ export default function VerifyDocumentModal({
         rejectionReason: decision === 'REJECTED' ? rejectionReason.trim() : null
       };
 
-      const res = await documentService.verifyDocument(document.id, payload);
+      const res = await documentService.verifyDocument(doc.id, payload);
       const updated = res?.data || res;
 
       if (onVerified) {
@@ -124,7 +126,7 @@ export default function VerifyDocumentModal({
           <div className="bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl p-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#16222F]">
-                {document.documentTypeName || `Document #${document.id}`}
+                {doc.documentTypeName || `Document #${doc.id}`}
               </span>
               <span className="px-2 py-0.5 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
                 En attente d'instruction
@@ -132,16 +134,16 @@ export default function VerifyDocumentModal({
             </div>
 
             <div className="text-xs text-[#78716C] flex flex-wrap gap-x-4 gap-y-1 pt-1">
-              {document.userEmail && (
+              {doc.userEmail && (
                 <span className="flex items-center gap-1">
                   <User className="w-3.5 h-3.5 text-[#A8A29E]" />
-                  <span>{document.userEmail}</span>
+                  <span>{doc.userEmail}</span>
                 </span>
               )}
-              {document.uploadedAt && (
+              {doc.uploadedAt && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-[#A8A29E]" />
-                  <span>Déposé le {new Date(document.uploadedAt).toLocaleDateString('fr-FR')}</span>
+                  <span>Déposé le {new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}</span>
                 </span>
               )}
             </div>
@@ -152,7 +154,7 @@ export default function VerifyDocumentModal({
                   type="button"
                   onClick={() => {
                     onClose();
-                    onOpenPreview(document);
+                    onOpenPreview(doc);
                   }}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#16222F] hover:text-[#C5A880] transition-colors cursor-pointer"
                 >

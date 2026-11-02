@@ -373,7 +373,7 @@ export default function DocumentsView() {
       <VerifyDocumentModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
-        document={selectedDoc}
+        doc={selectedDoc}
         onVerified={handleDocumentUpdated}
         onOpenPreview={handleOpenPreview}
       />
