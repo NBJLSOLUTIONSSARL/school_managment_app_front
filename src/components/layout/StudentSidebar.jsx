@@ -16,17 +16,16 @@ export default function StudentSidebar() {
 
   const menuItems = [
     { id: 'student-portal', label: 'Mon tableau de bord', icon: LayoutDashboard },
-    { id: 'timetable', label: 'Mon emploi du temps', icon: Clock },
-    { id: 'grades', label: 'Mes notes', icon: CheckSquare },
-    { id: 'calendar', label: 'Calendrier scolaire', icon: Calendar },
+    { id: 'grades', label: 'Mes notes & Bulletins', icon: CheckSquare },
     { id: 'documents', label: 'Mes ressources & docs', icon: Folder },
     { id: 'communications', label: 'Mes messages', icon: MessageSquare },
+    { id: 'calendar', label: 'Calendrier scolaire', icon: Calendar },
+    { id: 'timetable', label: 'Emploi du temps', icon: Clock },
     { id: 'settings', label: 'Mon profil', icon: User },
   ];
 
   return (
     <aside className="w-64 bg-[#16222F] text-white flex flex-col shrink-0 h-screen sticky top-0 select-none shadow-xl border-r border-[#1F2D3D] z-30">
-      
       <div
         onClick={() => setActiveView('student-portal')}
         className="px-6 py-6 flex items-center gap-3.5 cursor-pointer border-b border-white/5 group"
@@ -56,7 +55,7 @@ export default function StudentSidebar() {
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 text-left ${
+              className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 text-left cursor-pointer ${
                 isActive
                   ? 'bg-[#E8DFC9] text-[#16222F] font-semibold shadow-sm'
                   : 'text-[#94A3B8] hover:text-white hover:bg-[#203144]'
@@ -72,7 +71,7 @@ export default function StudentSidebar() {
       <div className="p-3 border-t border-white/5">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-[#F87171] hover:bg-rose-500/10 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-[#F87171] hover:bg-rose-500/10 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Déconnexion</span>

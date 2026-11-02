@@ -36,7 +36,7 @@ export default function AppLayout() {
     return <LoginPage />;
   }
 
-  const isStudent = currentUser?.role === 'STUDENT';
+  const isStudent = currentUser?.roles?.includes('ROLE_STUDENT');
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -75,7 +75,6 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#FAF7F2] text-[#1E293B]">
-      
       {isStudent ? <StudentSidebar /> : <Sidebar />}
 
       <div className="flex-1 flex flex-col min-w-0">
