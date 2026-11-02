@@ -14,6 +14,7 @@ import {
 import StatusBadge from '../components/common/StatusBadge';
 import Modal from '../components/common/Modal';
 import DocumentViewerModal from '../components/documents/DocumentViewerModal';
+import VerifyDocumentModal from '../components/documents/VerifyDocumentModal';
 import { useAuth } from '../context/AuthContext';
 import { documentService } from '../services/documentService';
 
@@ -34,9 +35,6 @@ export default function DocumentsView() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [documentTypeId, setDocumentTypeId] = useState('1');
   const [expiresAt, setExpiresAt] = useState('');
-
-  const [verifyStatus, setVerifyStatus] = useState('APPROVED');
-  const [rejectionReason, setRejectionReason] = useState('');
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerDocId, setViewerDocId] = useState(null);
@@ -102,32 +100,7 @@ export default function DocumentsView() {
 
   const handleOpenVerify = (doc) => {
     setSelectedDoc(doc);
-    setVerifyStatus('APPROVED');
-    setRejectionReason('');
-    setModalError(null);
     setIsVerifyModalOpen(true);
-  };
-
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    if (!selectedDoc) return;
-    setSubmitting(true);
-    setModalError(null);
-    setError(null);
-    try {
-      await documentService.verifyDocument(selectedDoc.id, {
-        status: verifyStatus,
-        rejectionReason: verifyStatus === 'REJECTED' ? rejectionReason : null,
-      });
-      setIsVerifyModalOpen(false);
-      setSuccessMessage(`Document ${verifyStatus === 'APPROVED' ? 'validé' : 'rejeté'} avec succès.`);
-      setTimeout(() => setSuccessMessage(''), 4000);
-      await loadDocuments();
-    } catch (err) {
-      setModalError(err.message || 'Erreur lors de la validation.');
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleOpenPreview = (doc) => {
@@ -397,71 +370,19 @@ export default function DocumentsView() {
         </form>
       </Modal>
 
-      <Modal
+      <VerifyDocumentModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
-        title="Vérification administrative du document"
-      >
-        <form onSubmit={handleVerify} className="space-y-4">
-          {modalError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{modalError}</span>
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Décision *</label>
-            <select
-              value={verifyStatus}
-              onChange={(e) => setVerifyStatus(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
-            >
-              <option value="APPROVED">Approuver (Validé)</option>
-              <option value="REJECTED">Rejeter (Refusé)</option>
-            </select>
-          </div>
-
-          {verifyStatus === 'REJECTED' && (
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Motif de rejet *</label>
-              <textarea
-                required
-                rows={3}
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Ex: Document illisible ou périmé."
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl p-3 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-          )}
-
-          <div className="flex items-center justify-end gap-3 pt-3">
-            <button
-              type="button"
-              onClick={() => setIsVerifyModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
-            >
-              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Enregistrer la décision</span>
-            </button>
-          </div>
-        </form>
-      </Modal>
+        document={selectedDoc}
+        onVerified={handleDocumentUpdated}
+        onOpenPreview={handleOpenPreview}
+      />
 
       <DocumentViewerModal
         isOpen={viewerOpen}
         onClose={() => setViewerOpen(false)}
         documentId={viewerDocId}
         initialDoc={viewerInitialDoc}
-        canVerify={canVerify}
-        onDocumentUpdated={handleDocumentUpdated}
       />
     </div>
   );
