@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Etablissement scolaire">
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <path d="M32 13 53 23 32 33 11 23l21-10Z" fill="#fff"/>
+  <path d="M18 29v12c0 4 6.3 8 14 8s14-4 14-8V29l-14 7-14-7Z" fill="#cbd5e1"/>
+  <path d="M49 25v14" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="49" cy="42" r="3" fill="#fff"/>
+</svg>
