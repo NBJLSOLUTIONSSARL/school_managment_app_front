@@ -383,6 +383,7 @@ export default function DocumentsView() {
         onClose={() => setViewerOpen(false)}
         documentId={viewerDocId}
         initialDoc={viewerInitialDoc}
+        onVerified={handleDocumentUpdated}
       />
     </div>
   );
