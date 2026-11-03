@@ -55,7 +55,7 @@ export const evaluationService = {
 
   async generateReportCards(data) {
     const res = await apiClient.post('/report-cards/generate', data);
-    return res.data;
+    return res.data || res;
   },
 
   async downloadReportCardPdf(id) {

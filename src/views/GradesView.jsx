@@ -12,12 +12,7 @@ import {
   AlertCircle,
   CheckCircle2,
   FileSpreadsheet,
-  GraduationCap,
-  User,
-  Calendar,
-  X,
-  FileText,
-  Check
+  FileText
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Modal from '../components/common/Modal';
@@ -48,11 +43,9 @@ export default function GradesView() {
   const [exportLoading, setExportLoading] = useState(false);
   const [exportModalError, setExportModalError] = useState(null);
 
-  const [selectedStudentForExport, setSelectedStudentForExport] = useState(null);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [studentSearchInModal, setStudentSearchInModal] = useState('');
-  const [exportTerm, setExportTerm] = useState('Trimestre 1');
-  const [exportYear, setExportYear] = useState('2026-2027');
-  const [exportTeacherId, setExportTeacherId] = useState('');
+  const [exportPeriod, setExportPeriod] = useState('Semestre 1');
 
   const [examForm, setExamForm] = useState({
     title: '',
@@ -91,13 +84,10 @@ export default function GradesView() {
 
       if (teachList.length > 0) {
         setExamForm((prev) => ({ ...prev, teacherId: teachList[0].id }));
-        if (!exportTeacherId) {
-          setExportTeacherId(teachList[0].id.toString());
-        }
       }
 
-      if (stuList.length > 0 && !selectedStudentForExport) {
-        setSelectedStudentForExport(stuList[0]);
+      if (stuList.length > 0 && !selectedStudentId) {
+        setSelectedStudentId(stuList[0].id.toString());
       }
 
       if (examsList.length > 0) {
@@ -165,12 +155,9 @@ export default function GradesView() {
     setExportModalError(null);
     setStudentSearchInModal('');
     if (preselectedStudent) {
-      setSelectedStudentForExport(preselectedStudent);
-    } else if (!selectedStudentForExport && students.length > 0) {
-      setSelectedStudentForExport(students[0]);
-    }
-    if (teachers.length > 0 && !exportTeacherId) {
-      setExportTeacherId(teachers[0].id.toString());
+      setSelectedStudentId(preselectedStudent.id.toString());
+    } else if (students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].id.toString());
     }
     setIsExportModalOpen(true);
   };
@@ -249,21 +236,22 @@ export default function GradesView() {
 
   const handleGenerateBulletinPdf = async (e) => {
     e.preventDefault();
-    if (!selectedStudentForExport) {
+    if (!selectedStudentId) {
       setExportModalError('Veuillez sélectionner un élève.');
       return;
     }
     setExportLoading(true);
     setExportModalError(null);
     try {
+      const studentObj = students.find((s) => s.id.toString() === selectedStudentId.toString());
       const res = await evaluationService.generateReportCards({
-        studentId: selectedStudentForExport.id,
-        term: exportTerm,
-        academicYear: exportYear,
-        teacherId: exportTeacherId ? Number(exportTeacherId) : undefined,
+        studentId: Number(selectedStudentId),
+        term: exportPeriod,
+        academicYear: '2026-2027',
       });
 
-      const generatedCard = res?.data?.reportCards?.[0];
+      const cards = res?.reportCards || res?.data?.reportCards || (Array.isArray(res) ? res : []);
+      const generatedCard = cards[0];
       const cardId = generatedCard?.id;
 
       if (!cardId) {
@@ -271,20 +259,22 @@ export default function GradesView() {
       }
 
       const response = await evaluationService.downloadReportCardPdf(cardId);
-      const studentName = `${selectedStudentForExport.user?.firstName || ''}_${selectedStudentForExport.user?.lastName || ''}`.trim() || 'Eleve';
-      const cleanTerm = exportTerm.replace(/\s+/g, '_');
+      const studentName = studentObj
+        ? `${studentObj.user?.firstName || ''}_${studentObj.user?.lastName || ''}`.trim()
+        : `Eleve_${selectedStudentId}`;
+      const cleanPeriod = exportPeriod.replace(/\s+/g, '_');
       const blob = response instanceof Blob ? response : new Blob([response.data || response], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `bulletin_officiel_${studentName}_${cleanTerm}.pdf`);
+      link.setAttribute('download', `bulletin_officiel_${studentName}_${cleanPeriod}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
 
       setIsExportModalOpen(false);
-      setSuccessMessage(`Bulletin PDF officiel de ${selectedStudentForExport.user?.firstName} ${selectedStudentForExport.user?.lastName} (${exportTerm}) généré et téléchargé.`);
+      setSuccessMessage(`Bulletin PDF de ${studentObj?.user?.firstName || ''} ${studentObj?.user?.lastName || ''} (${exportPeriod}) généré avec succès.`);
       setTimeout(() => setSuccessMessage(''), 5000);
       await loadInitialData();
     } catch (err) {
@@ -547,175 +537,82 @@ export default function GradesView() {
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        title="Générer un bulletin scolaire officiel"
+        title="Générer un bulletin"
       >
-        <form onSubmit={handleGenerateBulletinPdf} className="space-y-4">
+        <form onSubmit={handleGenerateBulletinPdf} className="space-y-6 py-1">
           {exportModalError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 animate-in fade-in">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{exportModalError}</span>
+              <span className="font-medium">{exportModalError}</span>
             </div>
           )}
 
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold text-[#16222F]">
-                1. Sélectionner l'élève *
-              </label>
-              <span className="text-[11px] font-semibold text-[#78716C]">
-                {students.length} élève(s) inscrit(s)
-              </span>
-            </div>
-
-            <div className="border border-[#EFECE6] rounded-xl overflow-hidden bg-white mb-2">
-              <div className="relative border-b border-[#EFECE6] bg-[#FAF7F2]">
-                <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={studentSearchInModal}
-                  onChange={(e) => setStudentSearchInModal(e.target.value)}
-                  placeholder="Rechercher par nom, prénom ou matricule..."
-                  className="w-full bg-transparent pl-8 pr-3 py-2 text-xs text-[#16222F] placeholder:text-[#A8A29E] focus:outline-none"
-                />
-              </div>
-              <div className="max-h-40 overflow-y-auto divide-y divide-[#F4EDE2]">
-                {filteredStudentsForModal.map((s) => {
-                  const isSelected = selectedStudentForExport?.id === s.id;
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => setSelectedStudentForExport(s)}
-                      className={`flex items-center justify-between p-2.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer ${
-                        isSelected ? 'bg-[#FAF7F2]' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                        <div className="w-7 h-7 rounded-lg bg-[#16222F] text-[#C5A880] flex items-center justify-center font-bold text-xs shrink-0">
-                          {s.user?.firstName ? s.user.firstName.charAt(0) : 'E'}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-[#16222F] truncate">
-                            {s.user?.firstName} {s.user?.lastName}
-                          </p>
-                          <p className="text-[11px] font-mono text-[#78716C]">
-                            Matricule : {s.studentNumber || 'STU-' + s.id}
-                          </p>
-                        </div>
-                      </div>
-                      {isSelected ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                          <Check className="w-3 h-3" />
-                          <span>Sélectionné</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-[#A8A29E] shrink-0">
-                          Choisir
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-                {filteredStudentsForModal.length === 0 && (
-                  <div className="p-4 text-center text-xs text-[#78716C]">
-                    Aucun élève trouvé.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {selectedStudentForExport && (
-              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2.5">
-                  <GraduationCap className="w-4 h-4 text-[#C5A880]" />
-                  <div>
-                    <span className="font-bold text-[#16222F] block">
-                      {selectedStudentForExport.user?.firstName} {selectedStudentForExport.user?.lastName}
-                    </span>
-                    <span className="text-[11px] font-mono text-[#78716C]">
-                      {selectedStudentForExport.studentNumber} — {selectedStudentForExport.user?.email}
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-md bg-white border border-[#EFECE6] text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                  Actif
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">
-                2. Période académique *
-              </label>
-              <select
-                value={exportTerm}
-                onChange={(e) => setExportTerm(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              >
-                <option value="Trimestre 1">Trimestre 1</option>
-                <option value="Trimestre 2">Trimestre 2</option>
-                <option value="Trimestre 3">Trimestre 3</option>
-                <option value="Semestre 1">Semestre 1</option>
-                <option value="Semestre 2">Semestre 2</option>
-                <option value="Année Complète">Année Complète</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">
-                3. Année scolaire *
-              </label>
-              <select
-                value={exportYear}
-                onChange={(e) => setExportYear(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              >
-                <option value="2026-2027">2026-2027</option>
-                <option value="2025-2026">2025-2026</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">
-              4. Professeur Principal (Signataire)
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-[#16222F] uppercase tracking-wider">
+              Élève *
             </label>
+            <div className="relative mb-2">
+              <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={studentSearchInModal}
+                onChange={(e) => setStudentSearchInModal(e.target.value)}
+                placeholder="Rechercher par nom ou matricule..."
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              />
+            </div>
             <select
-              value={exportTeacherId}
-              onChange={(e) => setExportTeacherId(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             >
-              {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.user?.firstName} {t.user?.lastName} {t.specialization ? `(${t.specialization})` : ''}
+              <option value="">-- Sélectionner un élève --</option>
+              {filteredStudentsForModal.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.user?.firstName} {s.user?.lastName} — {s.studentNumber || 'STU-' + s.id}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F4EDE2]">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-[#16222F] uppercase tracking-wider">
+              Période pédagogique *
+            </label>
+            <select
+              value={exportPeriod}
+              onChange={(e) => setExportPeriod(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            >
+              <option value="Semestre 1">Semestre 1</option>
+              <option value="Semestre 2">Semestre 2</option>
+              <option value="Année complète">Année complète</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-5 border-t border-[#F4EDE2]">
             <button
               type="button"
               onClick={() => setIsExportModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
+              className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#78716C] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
-              disabled={!selectedStudentForExport || exportLoading}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2 shadow-sm"
+              disabled={!selectedStudentId || exportLoading}
+              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2 shadow-sm transition-all"
             >
               {exportLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-[#C5A880]" />
-                  <span>Génération du PDF en cours...</span>
+                  <span>Génération du PDF...</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 text-[#C5A880]" />
-                  <span>Générer et télécharger le bulletin PDF</span>
+                  <span>Générer le PDF</span>
                 </>
               )}
             </button>
