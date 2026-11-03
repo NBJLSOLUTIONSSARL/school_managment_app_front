@@ -11,7 +11,13 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  GraduationCap,
+  User,
+  Calendar,
+  X,
+  FileText,
+  Check
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Modal from '../components/common/Modal';
@@ -37,7 +43,16 @@ export default function GradesView() {
 
   const [isAddExamOpen, setIsAddExamOpen] = useState(false);
   const [isBatchGradeOpen, setIsBatchGradeOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportModalError, setExportModalError] = useState(null);
+
+  const [selectedStudentForExport, setSelectedStudentForExport] = useState(null);
+  const [studentSearchInModal, setStudentSearchInModal] = useState('');
+  const [exportTerm, setExportTerm] = useState('Trimestre 1');
+  const [exportYear, setExportYear] = useState('2026-2027');
+  const [exportTeacherId, setExportTeacherId] = useState('');
 
   const [examForm, setExamForm] = useState({
     title: '',
@@ -76,6 +91,13 @@ export default function GradesView() {
 
       if (teachList.length > 0) {
         setExamForm((prev) => ({ ...prev, teacherId: teachList[0].id }));
+        if (!exportTeacherId) {
+          setExportTeacherId(teachList[0].id.toString());
+        }
+      }
+
+      if (stuList.length > 0 && !selectedStudentForExport) {
+        setSelectedStudentForExport(stuList[0]);
       }
 
       if (examsList.length > 0) {
@@ -137,6 +159,20 @@ export default function GradesView() {
     });
     setBatchScores(initial);
     setIsBatchGradeOpen(true);
+  };
+
+  const handleOpenExportModal = (preselectedStudent = null) => {
+    setExportModalError(null);
+    setStudentSearchInModal('');
+    if (preselectedStudent) {
+      setSelectedStudentForExport(preselectedStudent);
+    } else if (!selectedStudentForExport && students.length > 0) {
+      setSelectedStudentForExport(students[0]);
+    }
+    if (teachers.length > 0 && !exportTeacherId) {
+      setExportTeacherId(teachers[0].id.toString());
+    }
+    setIsExportModalOpen(true);
   };
 
   const handleSubmitExam = async (e) => {
@@ -211,18 +247,50 @@ export default function GradesView() {
     }
   };
 
-  const handleDownloadReportCard = async (reportCardId) => {
+  const handleGenerateBulletinPdf = async (e) => {
+    e.preventDefault();
+    if (!selectedStudentForExport) {
+      setExportModalError('Veuillez sélectionner un élève.');
+      return;
+    }
+    setExportLoading(true);
+    setExportModalError(null);
     try {
-      const blob = await evaluationService.downloadReportCardPdf(reportCardId);
-      const url = window.URL.createObjectURL(new Blob([blob]));
+      const res = await evaluationService.generateReportCards({
+        studentId: selectedStudentForExport.id,
+        term: exportTerm,
+        academicYear: exportYear,
+        teacherId: exportTeacherId ? Number(exportTeacherId) : undefined,
+      });
+
+      const generatedCard = res?.data?.reportCards?.[0];
+      const cardId = generatedCard?.id;
+
+      if (!cardId) {
+        throw new Error('Impossible de générer le bulletin pour cet élève.');
+      }
+
+      const response = await evaluationService.downloadReportCardPdf(cardId);
+      const studentName = `${selectedStudentForExport.user?.firstName || ''}_${selectedStudentForExport.user?.lastName || ''}`.trim() || 'Eleve';
+      const cleanTerm = exportTerm.replace(/\s+/g, '_');
+      const blob = response instanceof Blob ? response : new Blob([response.data || response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `bulletin_officiel_${reportCardId}.pdf`);
+      link.setAttribute('download', `bulletin_officiel_${studentName}_${cleanTerm}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
-    } catch {
-      alert("Le bulletin PDF officiel est en cours de consolidation.");
+      window.URL.revokeObjectURL(url);
+
+      setIsExportModalOpen(false);
+      setSuccessMessage(`Bulletin PDF officiel de ${selectedStudentForExport.user?.firstName} ${selectedStudentForExport.user?.lastName} (${exportTerm}) généré et téléchargé.`);
+      setTimeout(() => setSuccessMessage(''), 5000);
+      await loadInitialData();
+    } catch (err) {
+      setExportModalError(err.message || 'Erreur lors de la génération du bulletin PDF.');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -237,6 +305,14 @@ export default function GradesView() {
     const studentName = `${student?.user?.firstName || ''} ${student?.user?.lastName || ''}`.toLowerCase();
     const studentMat = (student?.studentNumber || '').toLowerCase();
     return studentName.includes(q) || studentMat.includes(q) || grade.studentId.toString().includes(q);
+  });
+
+  const filteredStudentsForModal = students.filter((s) => {
+    if (!studentSearchInModal) return true;
+    const sq = studentSearchInModal.toLowerCase().trim();
+    const fullName = `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.toLowerCase();
+    const mat = (s.studentNumber || '').toLowerCase();
+    return fullName.includes(sq) || mat.includes(sq);
   });
 
   return (
@@ -260,21 +336,19 @@ export default function GradesView() {
         {canManage && (
           <div className="flex items-center gap-3 z-10 w-full md:w-auto justify-end">
             <button
-              onClick={() => setIsAddExamOpen(true)}
+              onClick={handleOpenAddExam}
               className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>+ Créer un examen</span>
             </button>
-            {reportCards.length > 0 && (
-              <button
-                onClick={() => handleDownloadReportCard(reportCards[0].id)}
-                className="flex items-center gap-2 border border-[#D9CEBC] text-[#16222F] hover:bg-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-xs transition-all cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Exporter Bulletin PDF</span>
-              </button>
-            )}
+            <button
+              onClick={() => handleOpenExportModal()}
+              className="flex items-center gap-2 border border-[#D9CEBC] bg-[#FAF7F2] text-[#16222F] hover:bg-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-xs transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-[#C5A880]" />
+              <span>Exporter Bulletin PDF</span>
+            </button>
           </div>
         )}
       </div>
@@ -303,175 +377,356 @@ export default function GradesView() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
-          icon={CheckSquare}
-          title="Examens organisés"
+          icon={FileSpreadsheet}
+          title="Examens & Épreuves"
           value={exams.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Évaluations créées"
+          subtitle="Épreuves configurées"
+        />
+        <StatCard
+          icon={Award}
+          title="Notes saisies"
+          value={grades.length.toString()}
+          iconBg="bg-[#F4EDE2]"
+          iconColor="text-[#16222F]"
+          subtitle="Pour l'examen sélectionné"
         />
         <StatCard
           icon={TrendingUp}
           title="Moyenne de l'épreuve"
-          value={averageGrade !== 'N/A' ? `${averageGrade} / 20` : 'En attente'}
+          value={averageGrade !== 'N/A' ? `${averageGrade} / 20` : '—'}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle={selectedExam ? selectedExam.title : 'Sélectionnez un examen'}
+          subtitle="Toutes notes confondues"
         />
         <StatCard
-          icon={Award}
-          title="Copies notées"
-          value={grades.length.toString()}
+          icon={CheckSquare}
+          title="Élèves inscrits"
+          value={students.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Saisies dans MySQL"
-        />
-        <StatCard
-          icon={FileSpreadsheet}
-          title="Bulletins officiels"
-          value={reportCards.length.toString()}
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-          subtitle="Générés en PDF"
+          subtitle="Effectif total promotion"
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-1">
-          <label className="text-xs font-bold text-[#16222F] shrink-0">Épreuve active :</label>
-          <select
-            value={selectedExamId}
-            onChange={(e) => setSelectedExamId(e.target.value)}
-            className="bg-white border border-[#EFECE6] rounded-full px-4 py-2.5 text-xs font-semibold text-[#16222F] shadow-xs focus:outline-none cursor-pointer flex-1 max-w-md"
-          >
-            {exams.map((exam) => (
-              <option key={exam.id} value={exam.id}>
-                {exam.title} ({exam.type} - Coeff {exam.coefficient})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="relative flex-1 max-w-xs">
-          <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Filtrer élève ou matricule..."
-            className="w-full bg-white border border-[#EFECE6] rounded-full pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-          />
-        </div>
-
-        {canManage && selectedExam && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleToggleLock}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-                selectedExam.locked
-                  ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-              }`}
+      <div className="academy-card p-6 space-y-6">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div className="flex-1 max-w-md">
+            <label className="block text-xs font-bold text-[#16222F] mb-1.5 uppercase tracking-wider">
+              Sélectionner l'examen / épreuve :
+            </label>
+            <select
+              value={selectedExamId}
+              onChange={(e) => setSelectedExamId(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#16222F] font-semibold focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             >
-              {selectedExam.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-              <span>{selectedExam.locked ? 'Épreuve verrouillée' : 'Verrouiller l\'épreuve'}</span>
-            </button>
-            {!selectedExam.locked && (
-              <button
-                onClick={handleOpenBatchGrade}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] transition-colors cursor-pointer"
-              >
-                <span>Saisie en masse des notes</span>
-              </button>
-            )}
+              {exams.map((exam) => (
+                <option key={exam.id} value={exam.id}>
+                  {exam.title} ({exam.type}) — {exam.date} (Coeff {exam.coefficient})
+                </option>
+              ))}
+            </select>
           </div>
-        )}
-      </div>
 
-      <div className="academy-card overflow-hidden">
-        {loading || gradesLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
-            <span className="text-sm font-medium">Chargement des notes enregistrées...</span>
-          </div>
-        ) : filteredGrades.length === 0 ? (
-          <div className="py-20 text-center space-y-3">
-            <CheckSquare className="w-12 h-12 text-[#C5A880] mx-auto opacity-60" />
-            <h3 className="text-base font-bold text-[#16222F]">
-              Aucune note trouvée
-            </h3>
-            <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-              Aucune note ne correspond à la recherche ou aucune saisie n'a été effectuée.
-            </p>
-            {canManage && !selectedExam?.locked && (
+          {selectedExam && canManage && (
+            <div className="flex items-center gap-3 self-end md:self-auto">
+              <button
+                onClick={handleToggleLock}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  selectedExam.locked
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                    : 'bg-[#FAF7F2] text-[#78716C] border-[#EFECE6] hover:bg-white'
+                }`}
+              >
+                {selectedExam.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                <span>{selectedExam.locked ? 'Épreuve Verrouillée' : 'Verrouiller'}</span>
+              </button>
+
               <button
                 onClick={handleOpenBatchGrade}
-                className="mt-2 inline-flex items-center gap-2 bg-[#16222F] text-white text-xs font-semibold px-4 py-2 rounded-full cursor-pointer hover:bg-[#203144]"
+                disabled={selectedExam.locked}
+                className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Saisir les premières notes</span>
+                <span>Saisir les notes</span>
               </button>
-            )}
+            </div>
+          )}
+        </div>
+
+        <div className="pt-2 border-t border-[#F4EDE2] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Rechercher par élève ou matricule..."
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-full pl-10 pr-4 py-2 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            />
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-[#EFECE6]">
+          {gradesLoading ? (
+            <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#78716C]">
+              <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+              <span className="text-sm font-medium">Chargement des notes MySQL...</span>
+            </div>
+          ) : filteredGrades.length === 0 ? (
+            <div className="py-16 text-center text-xs text-[#78716C]">
+              Aucune note enregistrée pour cette épreuve.
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2]/50 text-xs font-bold text-[#78716C] uppercase tracking-wider">
-                  <th className="py-4 px-6">Élève</th>
-                  <th className="py-4 px-6">Identifiant Élève</th>
-                  <th className="py-4 px-6">Note obtenue</th>
-                  <th className="py-4 px-6">Appréciation</th>
-                  <th className="py-4 px-6 text-right">Barème</th>
+                <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2] font-bold text-[#78716C] uppercase">
+                  <th className="py-3 px-4">Élève</th>
+                  <th className="py-3 px-4">Matricule</th>
+                  <th className="py-3 px-4 text-center">Note / {selectedExam?.maxScore || 20}</th>
+                  <th className="py-3 px-4 text-center">Pondération (/20)</th>
+                  <th className="py-3 px-4">Commentaire officiel</th>
+                  <th className="py-3 px-4 text-right">Bulletin</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F4EDE2] text-sm">
+              <tbody className="divide-y divide-[#F4EDE2]">
                 {filteredGrades.map((grade) => {
                   const student = students.find((s) => s.id === grade.studentId);
-                  const studentName = student
-                    ? `${student.user?.firstName || ''} ${student.user?.lastName || ''}`.trim()
-                    : `Élève #${grade.studentId}`;
-
+                  const maxScore = selectedExam?.maxScore || 20;
+                  const normalized = (Number(grade.score) / maxScore) * 20;
                   return (
-                    <tr key={grade.id || grade.studentId} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                      <td className="py-4 px-6 font-semibold text-[#16222F]">
-                        {studentName}
+                    <tr key={grade.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-[#16222F]">
+                        {student?.user?.firstName} {student?.user?.lastName}
                       </td>
-                      <td className="py-4 px-6 text-xs text-[#78716C] font-mono">
-                        {student?.studentNumber || `#${grade.studentId}`}
+                      <td className="py-3.5 px-4 font-mono text-[#78716C]">
+                        {student?.studentNumber || '—'}
                       </td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                            Number(grade.score) >= 15
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : Number(grade.score) >= 10
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-rose-100 text-rose-800'
-                          }`}
-                        >
-                          {grade.score} / {selectedExam?.maxScore || 20}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="font-bold text-sm text-[#16222F]">
+                          {Number(grade.score).toFixed(2)}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-xs text-[#78716C]">
-                        {grade.comment || 'Aucune observation particulière.'}
+                      <td className="py-3.5 px-4 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            normalized >= 14
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : normalized >= 10
+                              ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                              : 'bg-rose-50 text-rose-800 border border-rose-200'
+                          }`}
+                        >
+                          {normalized.toFixed(2)} / 20
+                        </span>
                       </td>
-                      <td className="py-4 px-6 text-right text-xs font-bold text-[#16222F]">
-                        Coeff. {selectedExam?.coefficient || 1.0}
+                      <td className="py-3.5 px-4 text-[#78716C] italic">
+                        {grade.comment || 'Saisie officielle'}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenExportModal(student)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-[#EFECE6] bg-[#FAF7F2] hover:bg-white text-xs font-semibold text-[#16222F] transition-colors cursor-pointer"
+                          title="Générer le bulletin pour cet élève"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-[#C5A880]" />
+                          <span>Bulletin</span>
+                        </button>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Générer un bulletin scolaire officiel"
+      >
+        <form onSubmit={handleGenerateBulletinPdf} className="space-y-4">
+          {exportModalError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{exportModalError}</span>
+            </div>
+          )}
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-[#16222F]">
+                1. Sélectionner l'élève *
+              </label>
+              <span className="text-[11px] font-semibold text-[#78716C]">
+                {students.length} élève(s) inscrit(s)
+              </span>
+            </div>
+
+            <div className="border border-[#EFECE6] rounded-xl overflow-hidden bg-white mb-2">
+              <div className="relative border-b border-[#EFECE6] bg-[#FAF7F2]">
+                <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={studentSearchInModal}
+                  onChange={(e) => setStudentSearchInModal(e.target.value)}
+                  placeholder="Rechercher par nom, prénom ou matricule..."
+                  className="w-full bg-transparent pl-8 pr-3 py-2 text-xs text-[#16222F] placeholder:text-[#A8A29E] focus:outline-none"
+                />
+              </div>
+              <div className="max-h-40 overflow-y-auto divide-y divide-[#F4EDE2]">
+                {filteredStudentsForModal.map((s) => {
+                  const isSelected = selectedStudentForExport?.id === s.id;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => setSelectedStudentForExport(s)}
+                      className={`flex items-center justify-between p-2.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer ${
+                        isSelected ? 'bg-[#FAF7F2]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <div className="w-7 h-7 rounded-lg bg-[#16222F] text-[#C5A880] flex items-center justify-center font-bold text-xs shrink-0">
+                          {s.user?.firstName ? s.user.firstName.charAt(0) : 'E'}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#16222F] truncate">
+                            {s.user?.firstName} {s.user?.lastName}
+                          </p>
+                          <p className="text-[11px] font-mono text-[#78716C]">
+                            Matricule : {s.studentNumber || 'STU-' + s.id}
+                          </p>
+                        </div>
+                      </div>
+                      {isSelected ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                          <Check className="w-3 h-3" />
+                          <span>Sélectionné</span>
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-[#A8A29E] shrink-0">
+                          Choisir
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                {filteredStudentsForModal.length === 0 && (
+                  <div className="p-4 text-center text-xs text-[#78716C]">
+                    Aucun élève trouvé.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedStudentForExport && (
+              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2.5">
+                  <GraduationCap className="w-4 h-4 text-[#C5A880]" />
+                  <div>
+                    <span className="font-bold text-[#16222F] block">
+                      {selectedStudentForExport.user?.firstName} {selectedStudentForExport.user?.lastName}
+                    </span>
+                    <span className="text-[11px] font-mono text-[#78716C]">
+                      {selectedStudentForExport.studentNumber} — {selectedStudentForExport.user?.email}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-[#EFECE6] text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                  Actif
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">
+                2. Période académique *
+              </label>
+              <select
+                value={exportTerm}
+                onChange={(e) => setExportTerm(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              >
+                <option value="Trimestre 1">Trimestre 1</option>
+                <option value="Trimestre 2">Trimestre 2</option>
+                <option value="Trimestre 3">Trimestre 3</option>
+                <option value="Semestre 1">Semestre 1</option>
+                <option value="Semestre 2">Semestre 2</option>
+                <option value="Année Complète">Année Complète</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">
+                3. Année scolaire *
+              </label>
+              <select
+                value={exportYear}
+                onChange={(e) => setExportYear(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              >
+                <option value="2026-2027">2026-2027</option>
+                <option value="2025-2026">2025-2026</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">
+              4. Professeur Principal (Signataire)
+            </label>
+            <select
+              value={exportTeacherId}
+              onChange={(e) => setExportTeacherId(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            >
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.user?.firstName} {t.user?.lastName} {t.specialization ? `(${t.specialization})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F4EDE2]">
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={!selectedStudentForExport || exportLoading}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2 shadow-sm"
+            >
+              {exportLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-[#C5A880]" />
+                  <span>Génération du PDF en cours...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-[#C5A880]" />
+                  <span>Générer et télécharger le bulletin PDF</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       <Modal
         isOpen={isAddExamOpen}
         onClose={() => setIsAddExamOpen(false)}
-        title="Créer un examen dans MySQL"
+        title="Créer un nouvel examen / épreuve"
       >
         <form onSubmit={handleSubmitExam} className="space-y-4">
           {modalError && (
@@ -480,64 +735,51 @@ export default function GradesView() {
               <span>{modalError}</span>
             </div>
           )}
+
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Intitulé de l'évaluation *</label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Titre de l'épreuve *</label>
             <input
               type="text"
               required
               value={examForm.title}
               onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
-              placeholder="Ex: Devoir Surveillé 2 - Algèbre"
+              placeholder="Ex: Devoir Surveillé 1 - Algèbre"
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Enseignant responsable *</label>
-            <select
-              required
-              value={examForm.teacherId}
-              onChange={(e) => setExamForm({ ...examForm, teacherId: e.target.value })}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
-            >
-              {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.user?.firstName} {t.user?.lastName} ({t.specialization || 'Enseignant'})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Type d'épreuve *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Type d'évaluation</label>
               <select
                 value={examForm.type}
                 onChange={(e) => setExamForm({ ...examForm, type: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
               >
-                <option value="EXAM">Examen surveillé (DS)</option>
-                <option value="TEST">Contrôle continu (CC)</option>
+                <option value="EXAM">Examen partiel</option>
+                <option value="FINAL">Examen final</option>
+                <option value="HOMEWORK">Devoir maison</option>
                 <option value="PROJECT">Projet pratique</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Date de l'épreuve *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Date de l'épreuve</label>
               <input
                 type="date"
                 required
                 value={examForm.date}
                 onChange={(e) => setExamForm({ ...examForm, date: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Note maximale *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Barème max</label>
               <input
                 type="number"
+                min="1"
                 required
                 value={examForm.maxScore}
                 onChange={(e) => setExamForm({ ...examForm, maxScore: e.target.value })}
@@ -545,7 +787,7 @@ export default function GradesView() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Coefficient *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Coefficient</label>
               <input
                 type="number"
                 step="0.5"
