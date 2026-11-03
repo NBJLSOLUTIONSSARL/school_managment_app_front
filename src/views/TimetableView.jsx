@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Loader2 } from 'lucide-react';
 import { communicationService } from '../services/communicationService';
 
 export default function TimetableView() {
@@ -47,17 +47,6 @@ export default function TimetableView() {
             alt="Emploi du temps"
             className="w-full h-full object-cover rounded-l-full"
           />
-        </div>
-      </div>
-
-      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
-        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-        <div>
-          <span className="font-bold block mb-0.5">Note d'intégration Backend :</span>
-          <span>
-            Le modèle de données du backend Spring Boot ne comporte pas encore d'entité pour les grilles d'emplois du temps par classe et heure de cours.
-            Les créneaux et réunions affichés ci-dessous sont extraits des événements réels enregistrés dans la table MySQL <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">events</code>.
-          </span>
         </div>
       </div>
 
