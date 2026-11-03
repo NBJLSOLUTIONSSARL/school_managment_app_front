@@ -12,9 +12,9 @@ import {
   Trash2,
   GraduationCap,
   Mail,
-  Phone,
   Calendar,
-  Briefcase
+  X,
+  Check
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Modal from '../components/common/Modal';
@@ -38,6 +38,8 @@ export default function ClassesView() {
   const [selectedDept, setSelectedDept] = useState(null);
   const [viewingDept, setViewingDept] = useState(null);
   const [deptName, setDeptName] = useState('');
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
+  const [teacherSearch, setTeacherSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const canManage = hasAnyRole(['ROLE_ADMIN', 'ROLE_STAFF']);
@@ -67,7 +69,10 @@ export default function ClassesView() {
 
   const handleOpenAdd = () => {
     setModalError(null);
+    setSelectedDept(null);
     setDeptName('');
+    setSelectedTeacherIds([]);
+    setTeacherSearch('');
     setIsAddModalOpen(true);
   };
 
@@ -75,12 +80,23 @@ export default function ClassesView() {
     setModalError(null);
     setSelectedDept(dept);
     setDeptName(dept.name || '');
+    const currentTeacherIds = teachers.filter((t) => t.department?.id === dept.id).map((t) => t.id);
+    setSelectedTeacherIds(currentTeacherIds);
+    setTeacherSearch('');
     setIsEditModalOpen(true);
   };
 
   const handleOpenViewTeachers = (dept) => {
     setViewingDept(dept);
     setIsViewTeachersModalOpen(true);
+  };
+
+  const toggleTeacherSelection = (teacherId) => {
+    setSelectedTeacherIds((prev) =>
+      prev.includes(teacherId)
+        ? prev.filter((id) => id !== teacherId)
+        : [...prev, teacherId]
+    );
   };
 
   const handleSubmitAdd = async (e) => {
@@ -92,7 +108,10 @@ export default function ClassesView() {
     setSubmitting(true);
     setModalError(null);
     try {
-      await departmentService.createDepartment({ name: deptName.trim() });
+      await departmentService.createDepartment({
+        name: deptName.trim(),
+        teacherIds: selectedTeacherIds
+      });
       setIsAddModalOpen(false);
       setSuccessMessage('Département créé avec succès.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -114,7 +133,10 @@ export default function ClassesView() {
     setSubmitting(true);
     setModalError(null);
     try {
-      await departmentService.updateDepartment(selectedDept.id, { name: deptName.trim() });
+      await departmentService.updateDepartment(selectedDept.id, {
+        name: deptName.trim(),
+        teacherIds: selectedTeacherIds
+      });
       setIsEditModalOpen(false);
       setSuccessMessage('Département mis à jour avec succès.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -160,6 +182,123 @@ export default function ClassesView() {
   const activeDeptsCount = departments.filter((d) => teachers.some((t) => t.department?.id === d.id)).length;
   const emptyDeptsCount = departments.filter((d) => !teachers.some((t) => t.department?.id === d.id)).length;
   const viewingTeachers = viewingDept ? teachers.filter((t) => t.department?.id === viewingDept.id) : [];
+
+  const filteredTeachersForModal = teachers.filter((t) => {
+    if (!teacherSearch) return true;
+    const searchLower = teacherSearch.toLowerCase();
+    const fullName = `${t.user?.firstName || ''} ${t.user?.lastName || ''}`.toLowerCase();
+    const spec = (t.specialization || '').toLowerCase();
+    return fullName.includes(searchLower) || spec.includes(searchLower);
+  });
+
+  const renderTeacherSelectionSection = () => (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-bold text-[#16222F]">
+          Enseignant(s) rattaché(s) au département
+        </label>
+        <span className="text-[11px] font-semibold text-[#78716C]">
+          {selectedTeacherIds.length} sélectionné{selectedTeacherIds.length > 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {selectedTeacherIds.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 p-2.5 rounded-xl bg-white border border-[#EFECE6] max-h-28 overflow-y-auto">
+          {selectedTeacherIds.map((id) => {
+            const teacher = teachers.find((t) => t.id === id);
+            if (!teacher) return null;
+            return (
+              <span
+                key={id}
+                className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg bg-[#FAF7F2] border border-[#EFECE6] text-xs text-[#16222F]"
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-[#C5A880] shrink-0" />
+                <span className="font-semibold">
+                  {teacher.user?.firstName} {teacher.user?.lastName}
+                </span>
+                {teacher.specialization && (
+                  <span className="text-[11px] text-[#78716C]">({teacher.specialization})</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => toggleTeacherSelection(id)}
+                  className="p-0.5 hover:bg-[#EFECE6] text-[#78716C] hover:text-[#16222F] rounded transition-colors cursor-pointer"
+                  title="Retirer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="border border-[#EFECE6] rounded-xl overflow-hidden bg-white">
+        <div className="relative border-b border-[#EFECE6] bg-[#FAF7F2]">
+          <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={teacherSearch}
+            onChange={(e) => setTeacherSearch(e.target.value)}
+            placeholder="Rechercher par nom ou spécialité..."
+            className="w-full bg-transparent pl-8 pr-3 py-2 text-xs text-[#16222F] placeholder:text-[#A8A29E] focus:outline-hidden"
+          />
+        </div>
+        <div className="max-h-48 overflow-y-auto divide-y divide-[#F4EDE2]">
+          {filteredTeachersForModal.map((t) => {
+            const isSelected = selectedTeacherIds.includes(t.id);
+            const currentDeptName = t.department?.name;
+            const isOtherDept = t.department && (!selectedDept || t.department.id !== selectedDept.id);
+            return (
+              <label
+                key={t.id}
+                className={`flex items-center justify-between p-2.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer ${
+                  isSelected ? 'bg-[#FAF7F2]/60' : ''
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleTeacherSelection(t.id)}
+                    className="w-4 h-4 rounded-md border-[#EFECE6] text-[#16222F] focus:ring-[#C5A880] cursor-pointer"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-[#16222F] truncate">
+                        {t.user?.firstName} {t.user?.lastName}
+                      </span>
+                      {t.specialization && (
+                        <span className="text-[11px] text-[#78716C] truncate">
+                          — {t.specialization}
+                        </span>
+                      )}
+                    </div>
+                    {isOtherDept && (
+                      <span className="text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block mt-0.5 font-medium">
+                        Actuellement : {currentDeptName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {isSelected && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                    <Check className="w-3 h-3" />
+                    <span>Rattaché</span>
+                  </span>
+                )}
+              </label>
+            );
+          })}
+          {filteredTeachersForModal.length === 0 && (
+            <div className="p-4 text-center text-xs text-[#78716C]">
+              Aucun enseignant correspondant.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-12">
@@ -362,7 +501,7 @@ export default function ClassesView() {
                                 type="button"
                                 onClick={() => handleOpenEdit(dept)}
                                 className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
-                                title="Modifier le nom du département"
+                                title="Modifier le département"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -408,7 +547,7 @@ export default function ClassesView() {
               <GraduationCap className="w-10 h-10 text-[#C5A880]/50 mx-auto" />
               <p className="text-sm font-semibold text-[#16222F]">Aucun enseignant rattaché</p>
               <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-                Ce département ne compte actuellement aucun enseignant. Vous pouvez lui affecter des enseignants depuis la section Enseignants.
+                Ce département ne compte actuellement aucun enseignant. Vous pouvez lui affecter des enseignants en le modifiant.
               </p>
             </div>
           ) : (
@@ -493,6 +632,9 @@ export default function ClassesView() {
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
+
+          {renderTeacherSelectionSection()}
+
           <div className="flex items-center justify-end gap-3 pt-3">
             <button
               type="button"
@@ -535,6 +677,9 @@ export default function ClassesView() {
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
+
+          {renderTeacherSelectionSection()}
+
           <div className="flex items-center justify-end gap-3 pt-3">
             <button
               type="button"
