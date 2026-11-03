@@ -18,6 +18,7 @@ import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { communicationService } from '../services/communicationService';
 import { teacherService } from '../services/teacherService';
+import { staffService } from '../services/staffService';
 
 export default function CommunicationsView() {
   const { currentUser, searchQuery } = useAuth();
@@ -26,6 +27,8 @@ export default function CommunicationsView() {
   const [sentMessages, setSentMessages] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [staffMembers, setStaffMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -38,7 +41,7 @@ export default function CommunicationsView() {
   const [submitting, setSubmitting] = useState(false);
 
   const [messageForm, setMessageForm] = useState({
-    recipientId: '1',
+    recipientId: '',
     subject: '',
     content: '',
   });
@@ -50,21 +53,25 @@ export default function CommunicationsView() {
     setLoading(true);
     setError(null);
     try {
-      const [inboxRes, sentRes, annRes, teachersRes] = await Promise.allSettled([
+      const [inboxRes, sentRes, annRes, teachersRes, staffRes] = await Promise.allSettled([
         communicationService.getInbox(userId, { page: 0, size: 50 }),
         communicationService.getSent(userId, { page: 0, size: 50 }),
         communicationService.getAnnouncements({ page: 0, size: 20 }),
-        teacherService.getTeachers()
+        teacherService.getTeachers(),
+        staffService.getStaff()
       ]);
 
       const inboxList = inboxRes.status === 'fulfilled' ? (inboxRes.value?.content || (Array.isArray(inboxRes.value) ? inboxRes.value : [])) : [];
       const sentList = sentRes.status === 'fulfilled' ? (sentRes.value?.content || (Array.isArray(sentRes.value) ? sentRes.value : [])) : [];
       const annList = annRes.status === 'fulfilled' ? (annRes.value?.content || (Array.isArray(annRes.value) ? annRes.value : [])) : [];
       const teachersList = teachersRes.status === 'fulfilled' && Array.isArray(teachersRes.value) ? teachersRes.value : [];
+      const staffList = staffRes.status === 'fulfilled' && Array.isArray(staffRes.value) ? staffRes.value : [];
 
       setInboxMessages(inboxList);
       setSentMessages(sentList);
       setAnnouncements(annList);
+      setTeachers(teachersList);
+      setStaffMembers(staffList);
       setContacts(teachersList);
     } catch (err) {
       setError(err.message || 'Impossible de charger la messagerie.');
@@ -80,7 +87,7 @@ export default function CommunicationsView() {
   const handleOpenCompose = () => {
     setModalError(null);
     setMessageForm({
-      recipientId: contacts.length > 0 ? (contacts[0].user?.id || '1') : '1',
+      recipientId: '',
       subject: '',
       content: '',
     });
@@ -101,17 +108,34 @@ export default function CommunicationsView() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (!messageForm.recipientId) {
+      setModalError('Veuillez sélectionner un destinataire.');
+      return;
+    }
+    if (!messageForm.subject?.trim()) {
+      setModalError("L'objet du message est obligatoire.");
+      return;
+    }
+    if (!messageForm.content?.trim()) {
+      setModalError('Le contenu du message est obligatoire.');
+      return;
+    }
+
     setSubmitting(true);
     setModalError(null);
     setError(null);
     try {
       await communicationService.sendMessage({
-        senderId: userId,
         recipientId: Number(messageForm.recipientId),
-        subject: messageForm.subject,
-        content: messageForm.content,
+        subject: messageForm.subject.trim(),
+        content: messageForm.content.trim(),
       });
       setIsComposeOpen(false);
+      setMessageForm({
+        recipientId: '',
+        subject: '',
+        content: '',
+      });
       setSuccessMessage('Message envoyé avec succès.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadCommunications();
@@ -369,18 +393,45 @@ export default function CommunicationsView() {
             </div>
           )}
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Destinataire (Enseignant / Direction) *</label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">
+              Destinataire *
+            </label>
             <select
               value={messageForm.recipientId}
               onChange={(e) => setMessageForm({ ...messageForm, recipientId: e.target.value })}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
+              required
             >
-              <option value="1">Direction - Marc Dupont (admin@school.com)</option>
-              {contacts.map((t) => (
-                <option key={t.id} value={t.user?.id || t.id}>
-                  {t.user?.firstName} {t.user?.lastName} - {t.specialization}
-                </option>
-              ))}
+              <option value="" disabled>
+                -- Sélectionnez un destinataire --
+              </option>
+
+              <optgroup label="Direction & Administration">
+                {userId !== 1 && (
+                  <option value="1">
+                    Direction Générale - Marc Dupont (admin@school.com)
+                  </option>
+                )}
+                {staffMembers
+                  .filter((s) => (s.user?.id || s.id) !== userId && (s.user?.id || s.id) !== 1)
+                  .map((s) => (
+                    <option key={s.id} value={s.user?.id || s.id}>
+                      {s.user?.firstName} {s.user?.lastName} - {s.position}
+                    </option>
+                  ))}
+              </optgroup>
+
+              {teachers.length > 0 && (
+                <optgroup label="Corps Professoral / Enseignants">
+                  {teachers
+                    .filter((t) => (t.user?.id || t.id) !== userId)
+                    .map((t) => (
+                      <option key={t.id} value={t.user?.id || t.id}>
+                        {t.user?.firstName} {t.user?.lastName} - {t.specialization || 'Enseignant'}
+                      </option>
+                    ))}
+                </optgroup>
+              )}
             </select>
           </div>
 
