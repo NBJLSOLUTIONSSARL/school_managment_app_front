@@ -116,6 +116,10 @@ export default function TeachersView() {
 
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
+    if (!formData.departmentId) {
+      setModalError('Veuillez sélectionner un département académique.');
+      return;
+    }
     setSubmitting(true);
     setModalError(null);
     setError(null);
@@ -135,6 +139,10 @@ export default function TeachersView() {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     if (!selectedTeacher) return;
+    if (!formData.departmentId) {
+      setModalError('Veuillez sélectionner un département académique.');
+      return;
+    }
     setSubmitting(true);
     setModalError(null);
     setError(null);
@@ -504,8 +512,9 @@ export default function TeachersView() {
                 required
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
               >
+                <option value="" disabled>-- Sélectionner un département --</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -587,7 +596,7 @@ export default function TeachersView() {
                 type="text"
                 value={formData.specialization}
                 onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
               />
             </div>
             <div>
@@ -596,8 +605,39 @@ export default function TeachersView() {
                 type="text"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Type de contrat</label>
+              <select
+                value={formData.contractType}
+                onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden"
+              >
+                <option value="CDI">CDI (Titulaire)</option>
+                <option value="CDD">CDD (Contractuel)</option>
+                <option value="VACATAIRE">Vacataire</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Département académique *</label>
+              <select
+                required
+                value={formData.departmentId}
+                onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
+                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
+              >
+                <option value="" disabled>-- Sélectionner un département --</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

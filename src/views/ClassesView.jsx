@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { School, Building2, Users, AlertCircle, Loader2, Plus, Search, Edit2, CheckCircle2 } from 'lucide-react';
+import {
+  Building2,
+  Users,
+  AlertCircle,
+  Loader2,
+  Plus,
+  Search,
+  Edit2,
+  CheckCircle2,
+  Eye,
+  Trash2,
+  GraduationCap,
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase
+} from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +34,9 @@ export default function ClassesView() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewTeachersModalOpen, setIsViewTeachersModalOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
+  const [viewingDept, setViewingDept] = useState(null);
   const [deptName, setDeptName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -60,12 +78,21 @@ export default function ClassesView() {
     setIsEditModalOpen(true);
   };
 
+  const handleOpenViewTeachers = (dept) => {
+    setViewingDept(dept);
+    setIsViewTeachersModalOpen(true);
+  };
+
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
+    if (!deptName.trim()) {
+      setModalError('Le nom du département est obligatoire.');
+      return;
+    }
     setSubmitting(true);
     setModalError(null);
     try {
-      await departmentService.createDepartment({ name: deptName });
+      await departmentService.createDepartment({ name: deptName.trim() });
       setIsAddModalOpen(false);
       setSuccessMessage('Département créé avec succès.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -80,10 +107,14 @@ export default function ClassesView() {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     if (!selectedDept) return;
+    if (!deptName.trim()) {
+      setModalError('Le nom du département est obligatoire.');
+      return;
+    }
     setSubmitting(true);
     setModalError(null);
     try {
-      await departmentService.updateDepartment(selectedDept.id, { name: deptName });
+      await departmentService.updateDepartment(selectedDept.id, { name: deptName.trim() });
       setIsEditModalOpen(false);
       setSuccessMessage('Département mis à jour avec succès.');
       setTimeout(() => setSuccessMessage(''), 4000);
@@ -95,6 +126,29 @@ export default function ClassesView() {
     }
   };
 
+  const handleDelete = async (dept) => {
+    const assigned = teachers.filter((t) => t.department?.id === dept.id);
+    if (assigned.length > 0) {
+      alert(`Impossible de supprimer le département "${dept.name}" car ${assigned.length} enseignant(s) y sont actuellement rattaché(s). Veuillez d'abord modifier leur département.`);
+      return;
+    }
+    if (!window.confirm(`Confirmez-vous la suppression du département académique "${dept.name}" de la base de données ?`)) {
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await departmentService.deleteDepartment(dept.id);
+      setSuccessMessage(`Département "${dept.name}" supprimé avec succès.`);
+      setTimeout(() => setSuccessMessage(''), 4000);
+      await fetchData();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression du département.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const q = (localSearch || searchQuery).toLowerCase().trim();
   const filteredDepartments = departments.filter((dept) => {
     if (!q) return true;
@@ -103,6 +157,10 @@ export default function ClassesView() {
     return name.includes(q) || id.includes(q);
   });
 
+  const activeDeptsCount = departments.filter((d) => teachers.some((t) => t.department?.id === d.id)).length;
+  const emptyDeptsCount = departments.filter((d) => !teachers.some((t) => t.department?.id === d.id)).length;
+  const viewingTeachers = viewingDept ? teachers.filter((t) => t.department?.id === viewingDept.id) : [];
+
   return (
     <div className="space-y-6 pb-12">
       <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
@@ -110,14 +168,14 @@ export default function ClassesView() {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-6 h-0.5 bg-[#C5A880]"></span>
             <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Structure Académique
+              Départements Académiques
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Structure & Pôles Pédagogiques
+            Gestion des Départements Académiques
           </h1>
           <p className="text-sm text-[#78716C] mt-1">
-            Organisation des départements et des enseignants rattachés
+            Organisation des pôles d'enseignement et affectation des enseignants
           </p>
         </div>
 
@@ -164,13 +222,12 @@ export default function ClassesView() {
         </div>
       )}
 
-      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
-        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] text-xs text-[#78716C] flex items-start gap-3">
+        <Building2 className="w-4 h-4 text-[#C5A880] shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold block mb-0.5">Note d'intégration Backend :</span>
+          <span className="font-bold text-[#16222F] block mb-0.5">Pôles Pédagogiques Académiques :</span>
           <span>
-            Le backend Spring Boot actuel regroupe les enseignants par <strong>Départements académiques</strong> (table MySQL <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">departments</code>).
-            La table des classes scolaires (ex: 1ère A) n'est pas encore implémentée dans le schéma de la base de données. Aucune statistique fictive de classe n'est affichée ici afin de respecter l'intégrité absolue des données MySQL.
+            Le système regroupe les enseignants par <strong>départements académiques</strong> enregistrés dans la table MySQL <code className="bg-white px-1.5 py-0.5 rounded border border-[#EFECE6] font-mono">departments</code>. Les effectifs et rattachements affichés ci-dessous sont synchronisés en temps réel avec la base de données.
           </span>
         </div>
       </div>
@@ -178,11 +235,11 @@ export default function ClassesView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={Building2}
-          title="Départements réels"
+          title="Départements académiques"
           value={departments.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Pôles enregistrés"
+          subtitle="Pôles enregistrés en base"
         />
         <StatCard
           icon={Users}
@@ -190,23 +247,23 @@ export default function ClassesView() {
           value={teachers.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Effectif professoral"
+          subtitle="Corps professoral actif"
         />
         <StatCard
-          icon={School}
-          title="Classes (salles)"
-          value="Non configuré"
+          icon={GraduationCap}
+          title="Pôles actifs"
+          value={activeDeptsCount.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Entité absente du backend"
+          subtitle="Départements pourvus"
         />
         <StatCard
           icon={AlertCircle}
-          title="Emplois du temps"
-          value="Non configuré"
+          title="Sans enseignant"
+          value={emptyDeptsCount.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Donnée non disponible"
+          subtitle="En attente d'affectation"
         />
       </div>
 
@@ -218,7 +275,7 @@ export default function ClassesView() {
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Rechercher un département..."
-            className="w-full bg-white border border-[#EFECE6] rounded-full pl-10 pr-4 py-2 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            className="w-full bg-white border border-[#EFECE6] rounded-full pl-10 pr-4 py-2 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] shadow-xs focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
           />
         </div>
       </div>
@@ -239,7 +296,8 @@ export default function ClassesView() {
               <thead>
                 <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2] font-bold text-[#78716C] uppercase">
                   <th className="py-4 px-6">Identifiant</th>
-                  <th className="py-4 px-6">Nom du département académique</th>
+                  <th className="py-4 px-6">Département académique</th>
+                  <th className="py-4 px-6 text-center">Effectif</th>
                   <th className="py-4 px-6">Enseignants rattachés</th>
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
@@ -247,32 +305,78 @@ export default function ClassesView() {
               <tbody className="divide-y divide-[#F4EDE2]">
                 {filteredDepartments.map((dept) => {
                   const assignedTeachers = teachers.filter((t) => t.department?.id === dept.id);
+                  const teacherCount = assignedTeachers.length;
                   return (
-                    <tr key={dept.id} className="hover:bg-[#FAF7F2]/60">
+                    <tr key={dept.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
                       <td className="py-4 px-6 font-mono text-[#78716C]">#{dept.id}</td>
                       <td className="py-4 px-6 font-bold text-[#16222F] text-sm">{dept.name}</td>
+                      <td className="py-4 px-6 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            teacherCount > 0
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {teacherCount} {teacherCount > 1 ? 'enseignants' : 'enseignant'}
+                        </span>
+                      </td>
                       <td className="py-4 px-6 text-[#16222F]">
-                        {assignedTeachers.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
+                        {teacherCount > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {assignedTeachers.map((t) => (
-                              <span key={t.id} className="px-2 py-0.5 rounded-full bg-[#FAF7F2] border border-[#EFECE6] text-[11px]">
-                                {t.user?.firstName} {t.user?.lastName} ({t.specialization})
-                              </span>
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => handleOpenViewTeachers(dept)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FAF7F2] hover:bg-white border border-[#EFECE6] text-xs font-medium text-[#16222F] transition-colors cursor-pointer"
+                                title="Cliquer pour afficher les détails"
+                              >
+                                <GraduationCap className="w-3 h-3 text-[#C5A880]" />
+                                <span>{t.user?.firstName} {t.user?.lastName}</span>
+                                {t.specialization && (
+                                  <span className="text-[#78716C] text-[11px]">({t.specialization})</span>
+                                )}
+                              </button>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[#A8A29E] italic">Aucun enseignant rattaché</span>
+                          <span className="inline-flex items-center gap-1.5 text-xs text-[#A8A29E] italic">
+                            Aucun enseignant rattaché
+                          </span>
                         )}
                       </td>
                       <td className="py-4 px-6 text-right">
-                        {canManage && (
+                        <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => handleOpenEdit(dept)}
+                            type="button"
+                            onClick={() => handleOpenViewTeachers(dept)}
                             className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                            title="Consulter les enseignants"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </button>
-                        )}
+                          {canManage && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEdit(dept)}
+                                className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                                title="Modifier le nom du département"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(dept)}
+                                className="p-1.5 text-[#78716C] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                title="Supprimer le département"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -282,6 +386,89 @@ export default function ClassesView() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isViewTeachersModalOpen}
+        onClose={() => setIsViewTeachersModalOpen(false)}
+        title={viewingDept ? `Enseignants rattachés : ${viewingDept.name}` : 'Enseignants du département'}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#F4EDE2]">
+            <div className="flex items-center gap-2 text-xs text-[#78716C]">
+              <Building2 className="w-4 h-4 text-[#C5A880]" />
+              <span>Département #{viewingDept?.id}</span>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              {viewingTeachers.length} {viewingTeachers.length > 1 ? 'enseignants' : 'enseignant'}
+            </span>
+          </div>
+
+          {viewingTeachers.length === 0 ? (
+            <div className="py-10 text-center space-y-2">
+              <GraduationCap className="w-10 h-10 text-[#C5A880]/50 mx-auto" />
+              <p className="text-sm font-semibold text-[#16222F]">Aucun enseignant rattaché</p>
+              <p className="text-xs text-[#78716C] max-w-sm mx-auto">
+                Ce département ne compte actuellement aucun enseignant. Vous pouvez lui affecter des enseignants depuis la section Enseignants.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {viewingTeachers.map((t) => (
+                <div
+                  key={t.id}
+                  className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={t.user?.photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"}
+                      alt=""
+                      className="w-10 h-10 rounded-xl object-cover border border-[#EFECE6] shrink-0"
+                    />
+                    <div>
+                      <h4 className="font-bold text-sm text-[#16222F]">
+                        {t.user?.firstName} {t.user?.lastName}
+                      </h4>
+                      <p className="text-[#78716C]">{t.specialization || 'Enseignant'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-1.5 text-[#78716C] pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EFECE6]">
+                    {t.user?.email && (
+                      <span className="flex items-center gap-1 font-mono text-[11px]">
+                        <Mail className="w-3 h-3 text-[#A8A29E]" />
+                        <span>{t.user.email}</span>
+                      </span>
+                    )}
+                    <div className="flex items-center gap-2 text-[11px]">
+                      {t.contractType && (
+                        <span className="px-2 py-0.5 rounded-md bg-white border border-[#EFECE6] font-semibold text-[#16222F]">
+                          {t.contractType}
+                        </span>
+                      )}
+                      {t.hireDate && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[#A8A29E]" />
+                          <span>Depuis le {t.hireDate}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end pt-3 border-t border-[#F4EDE2]">
+            <button
+              type="button"
+              onClick={() => setIsViewTeachersModalOpen(false)}
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] transition-colors cursor-pointer"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={isAddModalOpen}
@@ -303,7 +490,7 @@ export default function ClassesView() {
               value={deptName}
               onChange={(e) => setDeptName(e.target.value)}
               placeholder="Ex: Sciences Économiques & Sociales"
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
           <div className="flex items-center justify-end gap-3 pt-3">
@@ -345,7 +532,7 @@ export default function ClassesView() {
               required
               value={deptName}
               onChange={(e) => setDeptName(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
           <div className="flex items-center justify-end gap-3 pt-3">
