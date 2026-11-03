@@ -361,16 +361,6 @@ export default function ClassesView() {
         </div>
       )}
 
-      <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] text-xs text-[#78716C] flex items-start gap-3">
-        <Building2 className="w-4 h-4 text-[#C5A880] shrink-0 mt-0.5" />
-        <div>
-          <span className="font-bold text-[#16222F] block mb-0.5">Pôles Pédagogiques Académiques :</span>
-          <span>
-            Le système regroupe les enseignants par <strong>départements académiques</strong> enregistrés dans la table MySQL <code className="bg-white px-1.5 py-0.5 rounded border border-[#EFECE6] font-mono">departments</code>. Les effectifs et rattachements affichés ci-dessous sont synchronisés en temps réel avec la base de données.
-          </span>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={Building2}
