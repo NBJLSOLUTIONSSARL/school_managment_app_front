@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, Check, LogOut, ShieldCheck, Globe } from 'lucide-react';
+import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { communicationService } from '../../services/communicationService';
 
@@ -33,9 +33,10 @@ export default function Navbar() {
 
   const getRoleLabel = () => {
     if (!currentUser?.roles) return 'Utilisateur';
-    if (currentUser.roles.includes('ROLE_ADMIN')) return 'Direction Générale';
+    if (currentUser.roles.includes('ROLE_ADMIN')) return 'Super Administrateur';
+    if (currentUser.roles.includes('ROLE_STAFF')) return 'Secrétariat Administratif';
+    if (currentUser.roles.includes('ROLE_LIBRARIAN')) return 'Bibliothécaire';
     if (currentUser.roles.includes('ROLE_TEACHER')) return 'Corps Enseignant';
-    if (currentUser.roles.includes('ROLE_STAFF')) return 'Administration & CPE';
     if (currentUser.roles.includes('ROLE_STUDENT')) return 'Élève';
     if (currentUser.roles.includes('ROLE_PARENT')) return 'Parent / Tuteur';
     return 'Membre';
