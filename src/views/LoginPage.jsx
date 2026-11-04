@@ -1,6 +1,32 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const DEMO_ACCOUNTS = [
+  { role: 'Super Admin', category: 'admin', name: 'Marc Dupont', email: 'admin@school.com', badgeColor: 'bg-[#16222F] text-[#DFC2A0]' },
+  { role: 'Secrétaire', category: 'staff', name: 'Lucas Petit', email: 'lucas.petit@school.com', badgeColor: 'bg-blue-100 text-blue-800' },
+  { role: 'Secrétaire', category: 'staff', name: 'Marie Robert', email: 'marie.robert@school.com', badgeColor: 'bg-blue-100 text-blue-800' },
+  { role: 'Bibliothécaire', category: 'librarian', name: 'Fatima-Zahra El Amrani', email: 'librarian@school.com', badgeColor: 'bg-amber-100 text-amber-800' },
+  { role: 'Enseignante', category: 'teacher', name: 'Claire Martin (Maths)', email: 'claire.martin@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
+  { role: 'Enseignant', category: 'teacher', name: 'Thomas Bernard (Français)', email: 'thomas.bernard@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
+  { role: 'Enseignante', category: 'teacher', name: 'Sophie Dubois (Sciences)', email: 'sophie.dubois@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
+  { role: 'Parent', category: 'parent', name: 'Alain Leroy (Parent de Léo)', email: 'alain.leroy@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
+  { role: 'Parent', category: 'parent', name: 'Isabelle Moreau (Parent d\'Emma)', email: 'isabelle.moreau@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
+  { role: 'Parent', category: 'parent', name: 'David Simon (Parent d\'Hugo)', email: 'david.simon@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
+  { role: 'Élève', category: 'student', name: 'Léo Leroy', email: 'leo.leroy@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
+  { role: 'Élève', category: 'student', name: 'Emma Moreau', email: 'emma.moreau@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
+  { role: 'Élève', category: 'student', name: 'Hugo Simon', email: 'hugo.simon@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
+];
+
+const CATEGORIES = [
+  { id: 'all', label: 'Tous' },
+  { id: 'admin', label: 'Admin' },
+  { id: 'staff', label: 'Secrétariat' },
+  { id: 'librarian', label: 'Bibliothèque' },
+  { id: 'teacher', label: 'Profs' },
+  { id: 'parent', label: 'Parents' },
+  { id: 'student', label: 'Élèves' },
+];
 
 export default function LoginPage() {
   const { login, setActiveView, language, setLanguage } = useAuth();
@@ -10,6 +36,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,6 +64,10 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const filteredAccounts = activeCategory === 'all'
+    ? DEMO_ACCOUNTS
+    : DEMO_ACCOUNTS.filter((acc) => acc.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#1E293B] flex flex-col justify-between relative overflow-hidden select-none">
@@ -89,12 +120,12 @@ export default function LoginPage() {
       </div>
 
       <main className="flex-1 flex items-center justify-center px-4 py-8 z-10">
-        <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl border border-[#EFECE6] p-8 sm:p-10 relative">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-serif-title font-bold text-[#16222F]">
+        <div className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border border-[#EFECE6] p-6 sm:p-8 relative">
+          <div className="text-center mb-5">
+            <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
               Bienvenue
             </h1>
-            <p className="text-sm text-[#78716C] mt-1.5">
+            <p className="text-sm text-[#78716C] mt-1">
               Connectez-vous à votre espace sécurisé
             </p>
           </div>
@@ -106,7 +137,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-3.5">
             <div>
               <div className="relative">
                 <Mail className="w-4 h-4 text-[#A8A29E] absolute left-4 top-1/2 -translate-y-1/2" />
@@ -142,7 +173,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#78716C] pt-1">
+            <div className="flex items-center justify-between text-xs text-[#78716C] pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -164,7 +195,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#16222F] hover:bg-[#203144] disabled:opacity-70 text-white font-semibold text-sm py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+              className="w-full bg-[#16222F] hover:bg-[#203144] disabled:opacity-70 text-white font-semibold text-sm py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer mt-1"
             >
               {isLoading ? (
                 <>
@@ -180,59 +211,60 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-[#F4EDE2]">
-            <p className="text-[11px] font-semibold text-[#78716C] text-center uppercase tracking-wider mb-2.5">
-              Accès rapide démo (6 rôles)
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@school.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Super Admin</span>
-                <span className="block text-[10px] text-[#78716C] truncate">admin@school.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('lucas.petit@school.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Secrétaire</span>
-                <span className="block text-[10px] text-[#78716C] truncate">lucas.petit</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('librarian@school.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Bibliothécaire</span>
-                <span className="block text-[10px] text-[#78716C] truncate">librarian@school.com</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('claire.martin@school.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Enseignant</span>
-                <span className="block text-[10px] text-[#78716C] truncate">claire.martin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('leo.leroy@student.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Élève</span>
-                <span className="block text-[10px] text-[#78716C] truncate">leo.leroy</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('alain.leroy@parent.com')}
-                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
-              >
-                <span className="block font-bold text-[#16222F]">Parent</span>
-                <span className="block text-[10px] text-[#78716C] truncate">alain.leroy</span>
-              </button>
+          <div className="mt-5 pt-4 border-t border-[#F4EDE2]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#16222F] uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+                <span>Comptes de test MySQL (1-clic)</span>
+              </div>
+              <span className="text-[10px] text-[#78716C]">
+                {filteredAccounts.length} compte(s)
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-1 mb-2.5 pb-1">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors cursor-pointer ${
+                    activeCategory === cat.id
+                      ? 'bg-[#16222F] text-white shadow-xs'
+                      : 'bg-[#FAF7F2] text-[#78716C] hover:bg-[#F4EDE2] hover:text-[#16222F]'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+              {filteredAccounts.map((acc) => (
+                <button
+                  key={acc.email}
+                  type="button"
+                  onClick={() => handleQuickLogin(acc.email)}
+                  className="w-full p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer flex items-center justify-between gap-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-[#16222F] truncate">
+                        {acc.name}
+                      </span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${acc.badgeColor}`}>
+                        {acc.role}
+                      </span>
+                    </div>
+                    <span className="block text-[10px] text-[#78716C] truncate">
+                      {acc.email}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-[#C5A880] shrink-0">
+                    Connexion →
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
