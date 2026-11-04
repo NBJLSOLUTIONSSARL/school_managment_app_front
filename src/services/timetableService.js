@@ -1,4 +1,5 @@
 import { apiClient } from './api/client';
+import { downloadTimetablePdf } from './timetablePdfService';
 
 const INITIAL_SLOTS = [
   { id: 1, dayOfWeek: 'Lundi', timeSlotLabel: '08h – 09h', startTime: '08:00', endTime: '09:00', subject: 'Mathématiques', colorKey: 'blue', teacherName: 'Claire Martin', classroomName: 'Salle 101 Richelieu' },
@@ -117,6 +118,10 @@ export const timetableService = {
     } catch {
       return { success: true };
     }
+  },
+
+  async exportPdf(data) {
+    return downloadTimetablePdf(data);
   },
 
   async getClassrooms() {

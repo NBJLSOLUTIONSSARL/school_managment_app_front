@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Calendar,
   Clock,
-  Printer,
   Download,
   Edit2,
   X,
@@ -12,10 +11,14 @@ import {
   ChevronDown,
   Info,
   RotateCcw,
-  ArrowLeft
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  Eye
 } from 'lucide-react';
 import { timetableService } from '../services/timetableService';
 import { departmentService } from '../services/departmentService';
+import { downloadTimetablePdf } from '../services/timetablePdfService';
 
 const SUBJECT_COLORS = {
   Mathématiques: 'bg-[#E3EFFD] text-[#1E429F] border-[#BFDBFE]',
@@ -46,18 +49,22 @@ export default function TimetableView() {
   const [viewState, setViewState] = useState('generator');
   const [progress, setProgress] = useState(0);
   const [currentTimetable, setCurrentTimetable] = useState(null);
+  const [timetablesList, setTimetablesList] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedClass, setSelectedClass] = useState('1ère A');
   const [selectedWeek, setSelectedWeek] = useState('2026 – 2027');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [classrooms, setClassrooms] = useState([]);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState('');
 
   useEffect(() => {
     let ignore = false;
     timetableService.getTimetables().then((tts) => {
       if (ignore) return;
       const list = Array.isArray(tts) ? tts : [tts];
+      setTimetablesList(list);
       if (list.length > 0) {
         setCurrentTimetable(list[0]);
         if (list[0].className) setSelectedClass(list[0].className);
@@ -80,6 +87,24 @@ export default function TimetableView() {
       ignore = true;
     };
   }, []);
+
+  const handleClassChange = (newClassName) => {
+    setSelectedClass(newClassName);
+    const found = timetablesList.find((t) => t.className === newClassName);
+    if (found) {
+      setCurrentTimetable(found);
+      if (found.academicYear) setSelectedWeek(found.academicYear);
+    } else {
+      setCurrentTimetable((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          className: newClassName,
+          title: 'Emploi du temps - ' + newClassName,
+        };
+      });
+    }
+  };
 
   const handleLaunchGeneration = () => {
     setViewState('generating');
@@ -113,15 +138,29 @@ export default function TimetableView() {
     });
   };
 
-  const handleExportPDF = () => {
-    setViewState('official');
-    setTimeout(() => {
-      window.print();
-    }, 400);
-  };
-
-  const handleDirectPrint = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    if (isExporting) return;
+    try {
+      setIsExporting(true);
+      setExportNotice('');
+      const dataToExport = {
+        schoolName: 'Académie Lumière',
+        className: selectedClass || currentTimetable?.className || '1ère A',
+        academicYear: selectedWeek || currentTimetable?.academicYear || '2026 – 2027',
+        semester: currentTimetable?.semester || 'Semestre 1',
+        slots: currentTimetable?.slots || [],
+        daysList: DAYS_LIST,
+        timeRows: TIME_ROWS,
+      };
+      await downloadTimetablePdf(dataToExport);
+      setExportNotice('Emploi du temps téléchargé avec succès.');
+      setTimeout(() => setExportNotice(''), 4500);
+    } catch {
+      setExportNotice('Erreur lors du téléchargement du PDF.');
+      setTimeout(() => setExportNotice(''), 4500);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleOpenEdit = (slot) => {
@@ -243,7 +282,7 @@ export default function TimetableView() {
                 Cliquez sur le bouton pour générer automatiquement les emplois du temps de toutes vos classes
               </p>
 
-              <div className="mt-8">
+              <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
                 <button
                   type="button"
                   onClick={handleLaunchGeneration}
@@ -253,6 +292,16 @@ export default function TimetableView() {
                   <span>Générer les emplois du temps</span>
                   <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
                 </button>
+                {currentTimetable && (
+                  <button
+                    type="button"
+                    onClick={() => setViewState('success')}
+                    className="px-6 py-4 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#CBD5E1] text-[#0E1E2E] font-medium text-sm flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4 text-[#0E1E2E]" />
+                    <span>Consulter l'emploi du temps</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -322,6 +371,13 @@ export default function TimetableView() {
                 </div>
               </div>
 
+              {exportNotice && (
+                <div className="p-4 rounded-2xl bg-[#EAF7EE] border border-[#CEEAD6] flex items-center gap-3 text-[#137333] animate-in fade-in">
+                  <CheckCircle2 className="w-5 h-5 text-[#137333] shrink-0" />
+                  <span className="text-xs font-semibold">{exportNotice}</span>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg bg-[#0E1E2E] text-white flex items-center justify-center">
@@ -338,7 +394,7 @@ export default function TimetableView() {
                   <div className="relative">
                     <select
                       value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
+                      onChange={(e) => handleClassChange(e.target.value)}
                       className="appearance-none pl-3.5 pr-8 py-2 rounded-xl bg-white border border-[#E2E8F0] text-xs font-semibold text-[#0E1E2E] focus:outline-none focus:border-[#0E1E2E] cursor-pointer shadow-xs"
                     >
                       <option value="1ère A">Classe : 1ère A</option>
@@ -448,11 +504,25 @@ export default function TimetableView() {
 
                   <button
                     type="button"
-                    onClick={handleExportPDF}
-                    className="px-6 py-2.5 rounded-full bg-[#0E1E2E] hover:bg-[#1B2F45] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+                    onClick={() => setViewState('official')}
+                    className="px-5 py-2.5 rounded-full bg-white hover:bg-gray-50 text-[#0E1E2E] border border-[#CBD5E1] text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
                   >
-                    <Download className="w-3.5 h-3.5 text-white" />
-                    <span>Exporter PDF</span>
+                    <Eye className="w-3.5 h-3.5 text-[#0E1E2E]" />
+                    <span>Aperçu officiel</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isExporting}
+                    onClick={handleExportPDF}
+                    className="px-6 py-2.5 rounded-full bg-[#0E1E2E] hover:bg-[#1B2F45] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isExporting ? (
+                      <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5 text-white" />
+                    )}
+                    <span>{isExporting ? 'Génération...' : 'Exporter en PDF'}</span>
                   </button>
                 </div>
               </div>
@@ -474,14 +544,27 @@ export default function TimetableView() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={handleDirectPrint}
-                className="px-6 py-2.5 rounded-full bg-[#0E1E2E] hover:bg-[#1B2F45] text-white text-xs font-semibold flex items-center gap-2 shadow-md transition-all cursor-pointer"
+                type="button"
+                disabled={isExporting}
+                onClick={handleExportPDF}
+                className="px-6 py-2.5 rounded-full bg-[#0E1E2E] hover:bg-[#1B2F45] text-white text-xs font-semibold flex items-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                <Printer className="w-4 h-4 text-[#DFC2A0]" />
-                <span>Imprimer l'Emploi du Temps</span>
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 text-[#DFC2A0] animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 text-[#DFC2A0]" />
+                )}
+                <span>{isExporting ? 'Génération...' : 'Exporter en PDF'}</span>
               </button>
             </div>
           </div>
+
+          {exportNotice && (
+            <div className="p-4 rounded-2xl bg-[#EAF7EE] border border-[#CEEAD6] flex items-center gap-3 text-[#137333] animate-in fade-in">
+              <CheckCircle2 className="w-5 h-5 text-[#137333] shrink-0" />
+              <span className="text-xs font-semibold">{exportNotice}</span>
+            </div>
+          )}
 
           <div
             id="official-navy-gold-timetable"
@@ -507,10 +590,13 @@ export default function TimetableView() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="px-4 py-2 rounded-2xl bg-[#FAF7F2] border border-[#E9E4DB] flex items-center gap-2 text-xs font-semibold text-[#0E1E2E] shadow-2xs">
                   <Calendar className="w-4 h-4 text-[#C5A880]" />
                   <span>Année scolaire : {selectedWeek}</span>
+                </div>
+                <div className="px-4 py-2 rounded-2xl bg-[#FAF7F2] border border-[#E9E4DB] flex items-center gap-2 text-xs font-semibold text-[#0E1E2E] shadow-2xs">
+                  <span>Période : {currentTimetable?.semester || 'Semestre 1'}</span>
                 </div>
               </div>
 
@@ -564,23 +650,56 @@ export default function TimetableView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8F0]">
-                  {TIME_ROWS.map((timeLabel) => (
-                    <tr key={timeLabel}>
-                      <td className="py-3.5 px-4 font-bold text-xs text-[#0E1E2E] bg-[#FFF8EC] border-r border-[#E2E8F0]">
-                        {timeLabel}
-                      </td>
-                      {DAYS_LIST.map((day) => {
-                        const slot = getSlot(day, timeLabel);
-                        return (
-                          <td
-                            key={day}
-                            className="py-3.5 px-3 text-xs font-semibold text-[#0E1E2E] bg-white border-r border-[#E2E8F0] last:border-r-0"
-                          >
-                            {slot?.subject || '—'}
+                  {TIME_ROWS.map((timeLabel, idx) => (
+                    <React.Fragment key={timeLabel}>
+                      {idx === 4 && (
+                        <tr className="bg-[#FFF8EC] border-y-2 border-[#DFC2A0]/80">
+                          <td className="py-2.5 px-4 font-bold text-xs text-[#8D4B26] bg-[#FCEBD8] border-r border-[#DFC2A0]">
+                            12h – 14h
                           </td>
-                        );
-                      })}
-                    </tr>
+                          <td
+                            colSpan={DAYS_LIST.length}
+                            className="py-2.5 px-4 text-xs font-bold text-[#8D4B26] tracking-widest uppercase font-serif"
+                          >
+                            ☕ Pause Déjeuner
+                          </td>
+                        </tr>
+                      )}
+                      <tr>
+                        <td className="py-3.5 px-4 font-bold text-xs text-[#0E1E2E] bg-[#FFF8EC] border-r border-[#E2E8F0]">
+                          {timeLabel}
+                        </td>
+                        {DAYS_LIST.map((day) => {
+                          const slot = getSlot(day, timeLabel);
+                          return (
+                            <td
+                              key={day}
+                              className="py-3 px-3 text-xs bg-white border-r border-[#E2E8F0] last:border-r-0 align-middle"
+                            >
+                              {slot && slot.subject && slot.subject !== '—' && slot.subject.toLowerCase() !== 'libre' ? (
+                                <div className="space-y-1">
+                                  <div className="font-bold text-xs text-[#0E1E2E]">
+                                    {slot.subject}
+                                  </div>
+                                  {slot.teacherName && (
+                                    <div className="text-[11px] text-[#475569] font-medium">
+                                      👤 {slot.teacherName}
+                                    </div>
+                                  )}
+                                  {slot.classroomName && (
+                                    <div className="text-[10px] text-[#64748B]">
+                                      📍 {slot.classroomName}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-gray-300 italic font-normal">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
