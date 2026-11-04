@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { studentService } from '../services/studentService';
 
 export default function StudentsView() {
-  const { searchQuery, hasAnyRole } = useAuth();
+  const { searchQuery, hasAnyRole, hasRole } = useAuth();
   const [students, setStudents] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,6 +51,7 @@ export default function StudentsView() {
   });
 
   const canManage = hasAnyRole(['ROLE_ADMIN', 'ROLE_STAFF']);
+  const canDelete = hasRole('ROLE_ADMIN');
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -82,7 +83,7 @@ export default function StudentsView() {
       setStudents(list);
       setTotalElements(data.totalElements !== undefined ? data.totalElements : list.length);
     } catch (err) {
-      setError(err.message || 'Impossible de charger les élèves.');
+      setError(err.message || 'Impossible de charger les Ã©lÃ¨ves.');
     } finally {
       setLoading(false);
     }
@@ -143,11 +144,11 @@ export default function StudentsView() {
     try {
       await studentService.createStudent(formData);
       setIsAddModalOpen(false);
-      setSuccessMessage('Élève enregistré avec succès dans la base de données.');
+      setSuccessMessage('Ã‰lÃ¨ve enregistrÃ© avec succÃ¨s dans la base de donnÃ©es.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await fetchStudents();
     } catch (err) {
-      setModalError(err.message || 'Erreur lors de la création de l\'élève.');
+      setModalError(err.message || 'Erreur lors de la crÃ©ation de l\'Ã©lÃ¨ve.');
     } finally {
       setSubmitting(false);
     }
@@ -162,28 +163,28 @@ export default function StudentsView() {
     try {
       await studentService.updateStudent(selectedStudent.id, formData);
       setIsEditModalOpen(false);
-      setSuccessMessage('Informations de l\'élève mises à jour avec succès.');
+      setSuccessMessage('Informations de l\'Ã©lÃ¨ve mises Ã  jour avec succÃ¨s.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await fetchStudents();
     } catch (err) {
-      setModalError(err.message || 'Erreur lors de la mise à jour.');
+      setModalError(err.message || 'Erreur lors de la mise Ã  jour.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteStudent = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement cet élève de MySQL ?')) {
+    if (!window.confirm('ÃŠtes-vous sÃ»r de vouloir supprimer dÃ©finitivement cet Ã©lÃ¨ve de MySQL ?')) {
       return;
     }
     setError(null);
     try {
       await studentService.deleteStudent(id);
-      setSuccessMessage('Élève supprimé avec succès.');
+      setSuccessMessage('Ã‰lÃ¨ve supprimÃ© avec succÃ¨s.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await fetchStudents();
     } catch (err) {
-      setError(err.message || 'Impossible de supprimer cet élève.');
+      setError(err.message || 'Impossible de supprimer cet Ã©lÃ¨ve.');
     }
   };
 
@@ -196,14 +197,14 @@ export default function StudentsView() {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-6 h-0.5 bg-[#C5A880]"></span>
             <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Scolarité
+              ScolaritÃ©
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Gestion des Élèves
+            Gestion des Ã‰lÃ¨ves
           </h1>
           <p className="text-sm text-[#78716C] mt-1">
-            Consultez et gérez les dossiers officiels enregistrés dans MySQL
+            Consultez et gÃ©rez les dossiers officiels enregistrÃ©s dans MySQL
           </p>
         </div>
 
@@ -214,7 +215,7 @@ export default function StudentsView() {
               className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Ajouter un élève</span>
+              <span>+ Ajouter un Ã©lÃ¨ve</span>
             </button>
           </div>
         )}
@@ -245,7 +246,7 @@ export default function StudentsView() {
             onClick={fetchStudents}
             className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
           >
-            Réessayer
+            RÃ©essayer
           </button>
         </div>
       )}
@@ -253,27 +254,27 @@ export default function StudentsView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={Users}
-          title="Total élèves"
+          title="Total Ã©lÃ¨ves"
           value={totalElements.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Enregistrés dans MySQL"
+          subtitle="EnregistrÃ©s dans MySQL"
         />
         <StatCard
           icon={GraduationCap}
-          title="Élèves actifs"
+          title="Ã‰lÃ¨ves actifs"
           value={activeCount.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Statut régulier"
+          subtitle="Statut rÃ©gulier"
         />
         <StatCard
           icon={TrendingUp}
-          title="Tuteurs associés"
+          title="Tuteurs associÃ©s"
           value={students.reduce((acc, s) => acc + (s.guardians?.length || 0), 0).toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Parents référencés"
+          subtitle="Parents rÃ©fÃ©rencÃ©s"
         />
         <StatCard
           icon={FileText}
@@ -281,7 +282,7 @@ export default function StudentsView() {
           value={totalElements.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Dossiers validés"
+          subtitle="Dossiers validÃ©s"
         />
       </div>
 
@@ -314,16 +315,16 @@ export default function StudentsView() {
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
             <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
-            <span className="text-sm font-medium">Chargement des données élèves depuis MySQL...</span>
+            <span className="text-sm font-medium">Chargement des donnÃ©es Ã©lÃ¨ves depuis MySQL...</span>
           </div>
         ) : students.length === 0 ? (
           <div className="py-20 text-center space-y-3">
             <Users className="w-12 h-12 text-[#C5A880] mx-auto opacity-60" />
             <h3 className="text-base font-bold text-[#16222F]">
-              Aucun élève trouvé dans la base de données
+              Aucun Ã©lÃ¨ve trouvÃ© dans la base de donnÃ©es
             </h3>
             <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-              Aucun enregistrement ne correspond à vos critères de recherche.
+              Aucun enregistrement ne correspond Ã  vos critÃ¨res de recherche.
             </p>
             {canManage && (
               <button
@@ -331,7 +332,7 @@ export default function StudentsView() {
                 className="mt-2 inline-flex items-center gap-2 bg-[#16222F] text-white text-xs font-semibold px-4 py-2 rounded-full cursor-pointer hover:bg-[#203144]"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Créer le premier élève</span>
+                <span>CrÃ©er le premier Ã©lÃ¨ve</span>
               </button>
             )}
           </div>
@@ -351,7 +352,7 @@ export default function StudentsView() {
               <tbody className="divide-y divide-[#F4EDE2] text-sm">
                 {students.map((student) => {
                   const user = student.user || {};
-                  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Élève';
+                  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Ã‰lÃ¨ve';
                   const avatar = user.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
                   return (
@@ -377,7 +378,7 @@ export default function StudentsView() {
                         <span className="block text-[#A8A29E] mt-0.5">{user.phone || '-'}</span>
                       </td>
                       <td className="py-4 px-6 text-[#78716C] text-xs">
-                        <span className="block">{student.gender === 'MALE' ? 'Masculin' : 'Féminin'}</span>
+                        <span className="block">{student.gender === 'MALE' ? 'Masculin' : 'FÃ©minin'}</span>
                         <span className="block text-[#A8A29E] mt-0.5">{student.birthDate || '-'}</span>
                       </td>
                       <td className="py-4 px-6">
@@ -403,13 +404,15 @@ export default function StudentsView() {
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => handleDeleteStudent(student.id)}
-                              title="Supprimer"
-                              className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteStudent(student.id)}
+                                title="Supprimer"
+                                className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </>
                         )}
                       </td>
@@ -425,7 +428,7 @@ export default function StudentsView() {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Ajouter un nouvel élève dans MySQL"
+        title="Ajouter un nouvel Ã©lÃ¨ve dans MySQL"
       >
         <form onSubmit={handleSubmitAdd} className="space-y-4">
           {modalError && (
@@ -436,7 +439,7 @@ export default function StudentsView() {
           )}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">PrÃ©nom *</label>
               <input
                 type="text"
                 required
@@ -469,7 +472,7 @@ export default function StudentsView() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Téléphone</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">TÃ©lÃ©phone</label>
               <input
                 type="text"
                 value={formData.phone}
@@ -498,7 +501,7 @@ export default function StudentsView() {
                 className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
               >
                 <option value="MALE">Masculin</option>
-                <option value="FEMALE">Féminin</option>
+                <option value="FEMALE">FÃ©minin</option>
               </select>
             </div>
           </div>
@@ -514,7 +517,7 @@ export default function StudentsView() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Établissement précédent</label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Ã‰tablissement prÃ©cÃ©dent</label>
             <input
               type="text"
               value={formData.previousSchool}
@@ -546,7 +549,7 @@ export default function StudentsView() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Modifier l'élève"
+        title="Modifier l'Ã©lÃ¨ve"
       >
         <form onSubmit={handleSubmitEdit} className="space-y-4">
           {modalError && (
@@ -557,7 +560,7 @@ export default function StudentsView() {
           )}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">PrÃ©nom *</label>
               <input
                 type="text"
                 required
@@ -580,7 +583,7 @@ export default function StudentsView() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Téléphone</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">TÃ©lÃ©phone</label>
               <input
                 type="text"
                 value={formData.phone}
@@ -623,7 +626,7 @@ export default function StudentsView() {
               className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
               {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Mettre à jour</span>
+              <span>Mettre Ã  jour</span>
             </button>
           </div>
         </form>
@@ -632,7 +635,7 @@ export default function StudentsView() {
       <Modal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        title="Dossier scolaire de l'élève"
+        title="Dossier scolaire de l'Ã©lÃ¨ve"
       >
         {selectedStudent && (
           <div className="space-y-4 text-xs">
@@ -659,7 +662,7 @@ export default function StudentsView() {
                 <span className="block text-[#16222F] font-semibold">{selectedStudent.user?.email || '-'}</span>
               </div>
               <div>
-                <span className="block text-[#A8A29E] font-medium">Téléphone</span>
+                <span className="block text-[#A8A29E] font-medium">TÃ©lÃ©phone</span>
                 <span className="block text-[#16222F] font-semibold">{selectedStudent.user?.phone || '-'}</span>
               </div>
               <div>
@@ -675,22 +678,22 @@ export default function StudentsView() {
                 <span className="block text-[#16222F] font-semibold">{selectedStudent.address || '-'}</span>
               </div>
               <div className="col-span-2">
-                <span className="block text-[#A8A29E] font-medium">Établissement précédent</span>
+                <span className="block text-[#A8A29E] font-medium">Ã‰tablissement prÃ©cÃ©dent</span>
                 <span className="block text-[#16222F] font-semibold">{selectedStudent.previousSchool || '-'}</span>
               </div>
             </div>
 
             <div className="pt-3 border-t border-[#F4EDE2]">
-              <h4 className="font-bold text-[#16222F] mb-2">Tuteurs & Parents associés</h4>
+              <h4 className="font-bold text-[#16222F] mb-2">Tuteurs & Parents associÃ©s</h4>
               {!selectedStudent.guardians || selectedStudent.guardians.length === 0 ? (
-                <p className="text-[#78716C] italic">Aucun tuteur associé dans MySQL.</p>
+                <p className="text-[#78716C] italic">Aucun tuteur associÃ© dans MySQL.</p>
               ) : (
                 <div className="space-y-2">
                   {selectedStudent.guardians.map((g, idx) => (
                     <div key={idx} className="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between">
                       <div>
                         <span className="font-bold text-[#16222F] block">{g.guardianName}</span>
-                        <span className="text-[10px] text-[#78716C] block">{g.relationship} • {g.guardianEmail}</span>
+                        <span className="text-[10px] text-[#78716C] block">{g.relationship} â€¢ {g.guardianEmail}</span>
                       </div>
                       {g.primaryContact && (
                         <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">

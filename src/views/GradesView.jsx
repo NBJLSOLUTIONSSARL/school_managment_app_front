@@ -60,6 +60,7 @@ export default function GradesView() {
   const [batchScores, setBatchScores] = useState({});
 
   const canManage = hasAnyRole(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STAFF']);
+  const canGrade = hasAnyRole(['ROLE_ADMIN', 'ROLE_TEACHER']);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -177,13 +178,13 @@ export default function GradesView() {
         teacherId: Number(examForm.teacherId || (teachers.length > 0 ? teachers[0].id : 2)),
       });
       setIsAddExamOpen(false);
-      setSuccessMessage('Examen créé avec succès.');
+      setSuccessMessage('Examen crÃ©Ã© avec succÃ¨s.');
       setTimeout(() => setSuccessMessage(''), 4000);
       const updated = await evaluationService.getExams();
       setExams(Array.isArray(updated) ? updated : []);
       if (created?.id) setSelectedExamId(created.id.toString());
     } catch (err) {
-      setModalError(err.message || 'Erreur lors de la création de l\'examen.');
+      setModalError(err.message || 'Erreur lors de la crÃ©ation de l\'examen.');
     } finally {
       setSubmitting(false);
     }
@@ -210,7 +211,7 @@ export default function GradesView() {
 
       await evaluationService.batchGrade(Number(selectedExamId), { grades: entries });
       setIsBatchGradeOpen(false);
-      setSuccessMessage('Notes enregistrées avec succès dans MySQL.');
+      setSuccessMessage('Notes enregistrÃ©es avec succÃ¨s dans MySQL.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadGradesForExam(selectedExamId);
     } catch (err) {
@@ -225,7 +226,7 @@ export default function GradesView() {
     try {
       const nextLocked = !selectedExam.locked;
       await evaluationService.lockExam(selectedExam.id, nextLocked);
-      setSuccessMessage(nextLocked ? 'Examen verrouillé.' : 'Examen déverrouillé.');
+      setSuccessMessage(nextLocked ? 'Examen verrouillÃ©.' : 'Examen dÃ©verrouillÃ©.');
       setTimeout(() => setSuccessMessage(''), 3000);
       const updated = await evaluationService.getExams();
       setExams(Array.isArray(updated) ? updated : []);
@@ -237,7 +238,7 @@ export default function GradesView() {
   const handleGenerateBulletinPdf = async (e) => {
     e.preventDefault();
     if (!selectedStudentId) {
-      setExportModalError('Veuillez sélectionner un élève.');
+      setExportModalError('Veuillez sÃ©lectionner un Ã©lÃ¨ve.');
       return;
     }
     setExportLoading(true);
@@ -255,7 +256,7 @@ export default function GradesView() {
       const cardId = generatedCard?.id;
 
       if (!cardId) {
-        throw new Error('Impossible de générer le bulletin pour cet élève.');
+        throw new Error('Impossible de gÃ©nÃ©rer le bulletin pour cet Ã©lÃ¨ve.');
       }
 
       const response = await evaluationService.downloadReportCardPdf(cardId);
@@ -274,11 +275,11 @@ export default function GradesView() {
       window.URL.revokeObjectURL(url);
 
       setIsExportModalOpen(false);
-      setSuccessMessage(`Bulletin PDF de ${studentObj?.user?.firstName || ''} ${studentObj?.user?.lastName || ''} (${exportPeriod}) généré avec succès.`);
+      setSuccessMessage(`Bulletin PDF de ${studentObj?.user?.firstName || ''} ${studentObj?.user?.lastName || ''} (${exportPeriod}) gÃ©nÃ©rÃ© avec succÃ¨s.`);
       setTimeout(() => setSuccessMessage(''), 5000);
       await loadInitialData();
     } catch (err) {
-      setExportModalError(err.message || 'Erreur lors de la génération du bulletin PDF.');
+      setExportModalError(err.message || 'Erreur lors de la gÃ©nÃ©ration du bulletin PDF.');
     } finally {
       setExportLoading(false);
     }
@@ -312,14 +313,14 @@ export default function GradesView() {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-6 h-0.5 bg-[#C5A880]"></span>
             <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Évaluations
+              Ã‰valuations
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
             Gestion des Notes & Examens
           </h1>
           <p className="text-sm text-[#78716C] mt-1">
-            Consultez les notes réelles enregistrées dans MySQL et éditez les bulletins
+            Consultez les notes rÃ©elles enregistrÃ©es dans MySQL et Ã©ditez les bulletins
           </p>
         </div>
 
@@ -330,7 +331,7 @@ export default function GradesView() {
               className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Créer un examen</span>
+              <span>+ CrÃ©er un examen</span>
             </button>
             <button
               onClick={() => handleOpenExportModal()}
@@ -360,7 +361,7 @@ export default function GradesView() {
             onClick={loadInitialData}
             className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
           >
-            Réessayer
+            RÃ©essayer
           </button>
         </div>
       )}
@@ -368,11 +369,11 @@ export default function GradesView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={FileSpreadsheet}
-          title="Examens & Épreuves"
+          title="Examens & Ã‰preuves"
           value={exams.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Épreuves configurées"
+          subtitle="Ã‰preuves configurÃ©es"
         />
         <StatCard
           icon={Award}
@@ -380,19 +381,19 @@ export default function GradesView() {
           value={grades.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
-          subtitle="Pour l'examen sélectionné"
+          subtitle="Pour l'examen sÃ©lectionnÃ©"
         />
         <StatCard
           icon={TrendingUp}
-          title="Moyenne de l'épreuve"
-          value={averageGrade !== 'N/A' ? `${averageGrade} / 20` : '—'}
+          title="Moyenne de l'Ã©preuve"
+          value={averageGrade !== 'N/A' ? `${averageGrade} / 20` : 'â€”'}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
           subtitle="Toutes notes confondues"
         />
         <StatCard
           icon={CheckSquare}
-          title="Élèves inscrits"
+          title="Ã‰lÃ¨ves inscrits"
           value={students.length.toString()}
           iconBg="bg-[#F4EDE2]"
           iconColor="text-[#16222F]"
@@ -404,7 +405,7 @@ export default function GradesView() {
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex-1 max-w-md">
             <label className="block text-xs font-bold text-[#16222F] mb-1.5 uppercase tracking-wider">
-              Sélectionner l'examen / épreuve :
+              SÃ©lectionner l'examen / Ã©preuve :
             </label>
             <select
               value={selectedExamId}
@@ -413,7 +414,7 @@ export default function GradesView() {
             >
               {exams.map((exam) => (
                 <option key={exam.id} value={exam.id}>
-                  {exam.title} ({exam.type}) — {exam.date} (Coeff {exam.coefficient})
+                  {exam.title} ({exam.type}) â€” {exam.date} (Coeff {exam.coefficient})
                 </option>
               ))}
             </select>
@@ -430,9 +431,10 @@ export default function GradesView() {
                 }`}
               >
                 {selectedExam.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                <span>{selectedExam.locked ? 'Épreuve Verrouillée' : 'Verrouiller'}</span>
+                <span>{selectedExam.locked ? 'Ã‰preuve VerrouillÃ©e' : 'Verrouiller'}</span>
               </button>
 
+              {canGrade && (
               <button
                 onClick={handleOpenBatchGrade}
                 disabled={selectedExam.locked}
@@ -441,6 +443,7 @@ export default function GradesView() {
                 <Plus className="w-3.5 h-3.5" />
                 <span>Saisir les notes</span>
               </button>
+            )}
             </div>
           )}
         </div>
@@ -452,7 +455,7 @@ export default function GradesView() {
               type="text"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Rechercher par élève ou matricule..."
+              placeholder="Rechercher par Ã©lÃ¨ve ou matricule..."
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-full pl-10 pr-4 py-2 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
@@ -466,16 +469,16 @@ export default function GradesView() {
             </div>
           ) : filteredGrades.length === 0 ? (
             <div className="py-16 text-center text-xs text-[#78716C]">
-              Aucune note enregistrée pour cette épreuve.
+              Aucune note enregistrÃ©e pour cette Ã©preuve.
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2] font-bold text-[#78716C] uppercase">
-                  <th className="py-3 px-4">Élève</th>
+                  <th className="py-3 px-4">Ã‰lÃ¨ve</th>
                   <th className="py-3 px-4">Matricule</th>
                   <th className="py-3 px-4 text-center">Note / {selectedExam?.maxScore || 20}</th>
-                  <th className="py-3 px-4 text-center">Pondération (/20)</th>
+                  <th className="py-3 px-4 text-center">PondÃ©ration (/20)</th>
                   <th className="py-3 px-4">Commentaire officiel</th>
                   <th className="py-3 px-4 text-right">Bulletin</th>
                 </tr>
@@ -491,7 +494,7 @@ export default function GradesView() {
                         {student?.user?.firstName} {student?.user?.lastName}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-[#78716C]">
-                        {student?.studentNumber || '—'}
+                        {student?.studentNumber || 'â€”'}
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span className="font-bold text-sm text-[#16222F]">
@@ -519,7 +522,7 @@ export default function GradesView() {
                           type="button"
                           onClick={() => handleOpenExportModal(student)}
                           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-[#EFECE6] bg-[#FAF7F2] hover:bg-white text-xs font-semibold text-[#16222F] transition-colors cursor-pointer"
-                          title="Générer le bulletin pour cet élève"
+                          title="GÃ©nÃ©rer le bulletin pour cet Ã©lÃ¨ve"
                         >
                           <FileText className="w-3.5 h-3.5 text-[#C5A880]" />
                           <span>Bulletin</span>
@@ -537,7 +540,7 @@ export default function GradesView() {
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        title="Générer un bulletin"
+        title="GÃ©nÃ©rer un bulletin"
       >
         <form onSubmit={handleGenerateBulletinPdf} className="space-y-6 py-1">
           {exportModalError && (
@@ -549,7 +552,7 @@ export default function GradesView() {
 
           <div className="space-y-2">
             <label className="block text-xs font-bold text-[#16222F] uppercase tracking-wider">
-              Élève *
+              Ã‰lÃ¨ve *
             </label>
             <div className="relative mb-2">
               <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -567,10 +570,10 @@ export default function GradesView() {
               required
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             >
-              <option value="">-- Sélectionner un élève --</option>
+              <option value="">-- SÃ©lectionner un Ã©lÃ¨ve --</option>
               {filteredStudentsForModal.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.user?.firstName} {s.user?.lastName} — {s.studentNumber || 'STU-' + s.id}
+                  {s.user?.firstName} {s.user?.lastName} â€” {s.studentNumber || 'STU-' + s.id}
                 </option>
               ))}
             </select>
@@ -578,7 +581,7 @@ export default function GradesView() {
 
           <div className="space-y-2">
             <label className="block text-xs font-bold text-[#16222F] uppercase tracking-wider">
-              Période pédagogique *
+              PÃ©riode pÃ©dagogique *
             </label>
             <select
               value={exportPeriod}
@@ -587,7 +590,7 @@ export default function GradesView() {
             >
               <option value="Semestre 1">Semestre 1</option>
               <option value="Semestre 2">Semestre 2</option>
-              <option value="Année complète">Année complète</option>
+              <option value="AnnÃ©e complÃ¨te">AnnÃ©e complÃ¨te</option>
             </select>
           </div>
 
@@ -607,12 +610,12 @@ export default function GradesView() {
               {exportLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-[#C5A880]" />
-                  <span>Génération du PDF...</span>
+                  <span>GÃ©nÃ©ration du PDF...</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 text-[#C5A880]" />
-                  <span>Générer le PDF</span>
+                  <span>GÃ©nÃ©rer le PDF</span>
                 </>
               )}
             </button>
@@ -623,7 +626,7 @@ export default function GradesView() {
       <Modal
         isOpen={isAddExamOpen}
         onClose={() => setIsAddExamOpen(false)}
-        title="Créer un nouvel examen / épreuve"
+        title="CrÃ©er un nouvel examen / Ã©preuve"
       >
         <form onSubmit={handleSubmitExam} className="space-y-4">
           {modalError && (
@@ -634,20 +637,20 @@ export default function GradesView() {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Titre de l'épreuve *</label>
+            <label className="block text-xs font-bold text-[#16222F] mb-1">Titre de l'Ã©preuve *</label>
             <input
               type="text"
               required
               value={examForm.title}
               onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
-              placeholder="Ex: Devoir Surveillé 1 - Algèbre"
+              placeholder="Ex: Devoir SurveillÃ© 1 - AlgÃ¨bre"
               className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Type d'évaluation</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Type d'Ã©valuation</label>
               <select
                 value={examForm.type}
                 onChange={(e) => setExamForm({ ...examForm, type: e.target.value })}
@@ -660,7 +663,7 @@ export default function GradesView() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Date de l'épreuve</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">Date de l'Ã©preuve</label>
               <input
                 type="date"
                 required
@@ -673,7 +676,7 @@ export default function GradesView() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Barème max</label>
+              <label className="block text-xs font-bold text-[#16222F] mb-1">BarÃ¨me max</label>
               <input
                 type="number"
                 min="1"
@@ -710,7 +713,7 @@ export default function GradesView() {
               className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
               {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Créer l'examen</span>
+              <span>CrÃ©er l'examen</span>
             </button>
           </div>
         </form>
@@ -729,7 +732,7 @@ export default function GradesView() {
             </div>
           )}
           <p className="text-xs text-[#78716C]">
-            Renseignez la note sur {selectedExam?.maxScore || 20} pour chaque élève inscrit.
+            Renseignez la note sur {selectedExam?.maxScore || 20} pour chaque Ã©lÃ¨ve inscrit.
           </p>
 
           <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
