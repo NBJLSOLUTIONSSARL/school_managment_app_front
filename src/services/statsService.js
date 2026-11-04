@@ -1,5 +1,7 @@
 import { studentService } from './studentService';
 import { teacherService } from './teacherService';
+import { staffService } from './staffService';
+import { departmentService } from './departmentService';
 import { applicationService } from './applicationService';
 import { financeService } from './financeService';
 import { evaluationService } from './evaluationService';
@@ -8,9 +10,11 @@ import { communicationService } from './communicationService';
 
 export const statsService = {
   async getAdminStats() {
-    const [studentsRes, teachersRes, appsRes, invoicesRes, eventsRes] = await Promise.allSettled([
+    const [studentsRes, teachersRes, staffRes, deptsRes, appsRes, invoicesRes, eventsRes] = await Promise.allSettled([
       studentService.getStudents({ page: 0, size: 1 }),
       teacherService.getTeachers(),
+      staffService.getStaff(),
+      departmentService.getDepartments(),
       applicationService.getApplications({ page: 0, size: 1 }),
       financeService.getInvoices({ page: 0, size: 100 }),
       communicationService.getEvents({ page: 0, size: 5 }),
@@ -19,6 +23,10 @@ export const statsService = {
     const totalStudents = studentsRes.status === 'fulfilled' ? studentsRes.value.totalElements ?? studentsRes.value.content?.length ?? 0 : 0;
     const teachersList = teachersRes.status === 'fulfilled' && Array.isArray(teachersRes.value) ? teachersRes.value : [];
     const totalTeachers = teachersList.length;
+    const staffList = staffRes.status === 'fulfilled' && Array.isArray(staffRes.value) ? staffRes.value : [];
+    const totalStaff = staffList.length;
+    const deptsList = deptsRes.status === 'fulfilled' && Array.isArray(deptsRes.value) ? deptsRes.value : [];
+    const totalDepartments = deptsList.length;
     const totalApplications = appsRes.status === 'fulfilled' ? appsRes.value.totalElements ?? appsRes.value.content?.length ?? 0 : 0;
 
     let totalInvoiced = 0;
@@ -47,6 +55,8 @@ export const statsService = {
     return {
       totalStudents,
       totalTeachers,
+      totalStaff,
+      totalDepartments,
       totalApplications,
       totalInvoiced,
       totalPaid,
@@ -54,7 +64,61 @@ export const statsService = {
       paymentRate,
       recentEvents: eventsList,
       attendanceRate: null,
-      totalClasses: null,
+      totalClasses: totalDepartments,
+    };
+  },
+
+  async getStaffStats() {
+    const [appsRes, studentsRes, invoicesRes, eventsRes] = await Promise.allSettled([
+      applicationService.getApplications({ page: 0, size: 50 }),
+      studentService.getStudents({ page: 0, size: 5 }),
+      financeService.getInvoices({ page: 0, size: 50 }),
+      communicationService.getEvents({ page: 0, size: 5 }),
+    ]);
+
+    const appPage = appsRes.status === 'fulfilled' ? appsRes.value : { content: [], totalElements: 0 };
+    const applications = appPage.content || [];
+    const totalApplications = appPage.totalElements ?? applications.length;
+    const pendingApplications = applications.filter((a) => a.status === 'PENDING' || a.status === 'SUBMITTED').length;
+    const acceptedApplications = applications.filter((a) => a.status === 'ACCEPTED').length;
+
+    const studentPage = studentsRes.status === 'fulfilled' ? studentsRes.value : { content: [] };
+    const recentStudents = studentPage.content || [];
+    const totalStudents = studentPage.totalElements ?? recentStudents.length;
+
+    let unpaidInvoicesCount = 0;
+    let paidInvoicesCount = 0;
+    let totalUnpaidAmount = 0;
+    let totalPaidAmount = 0;
+
+    if (invoicesRes.status === 'fulfilled' && invoicesRes.value?.content) {
+      const invoices = invoicesRes.value.content;
+      invoices.forEach((inv) => {
+        const amount = Number(inv.totalAmount) || 0;
+        if (inv.status === 'PAID') {
+          paidInvoicesCount++;
+          totalPaidAmount += amount;
+        } else {
+          unpaidInvoicesCount++;
+          totalUnpaidAmount += amount;
+        }
+      });
+    }
+
+    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.content ? eventsRes.value.content : [];
+
+    return {
+      totalApplications,
+      pendingApplications,
+      acceptedApplications,
+      recentApplications: applications.slice(0, 5),
+      totalStudents,
+      recentStudents,
+      unpaidInvoicesCount,
+      paidInvoicesCount,
+      totalUnpaidAmount,
+      totalPaidAmount,
+      recentEvents: eventsList,
     };
   },
 
