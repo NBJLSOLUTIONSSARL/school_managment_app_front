@@ -9,11 +9,12 @@ export function AuthProvider({ children }) {
   const [activeView, setActiveView] = useState(() => {
     const user = authService.getStoredUser();
     if (!user) return 'landing';
-    if (user.roles?.includes('ROLE_STUDENT')) return 'student-portal';
-    if (user.roles?.includes('ROLE_PARENT')) return 'student-portal';
-    if (user.roles?.includes('ROLE_TEACHER')) return 'grades';
-    if (user.roles?.includes('ROLE_LIBRARIAN')) return 'librarian-dashboard';
+    if (user.roles?.includes('ROLE_ADMIN')) return 'dashboard';
     if (user.roles?.includes('ROLE_STAFF')) return 'staff-dashboard';
+    if (user.roles?.includes('ROLE_LIBRARIAN')) return 'librarian-dashboard';
+    if (user.roles?.includes('ROLE_TEACHER')) return 'teacher-dashboard';
+    if (user.roles?.includes('ROLE_STUDENT')) return 'student-dashboard';
+    if (user.roles?.includes('ROLE_PARENT')) return 'parent-dashboard';
     return 'dashboard';
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,12 +66,12 @@ export function AuthProvider({ children }) {
       setActiveView('staff-dashboard');
     } else if (user.roles?.includes('ROLE_LIBRARIAN')) {
       setActiveView('librarian-dashboard');
-    } else if (user.roles?.includes('ROLE_STUDENT')) {
-      setActiveView('student-portal');
-    } else if (user.roles?.includes('ROLE_PARENT')) {
-      setActiveView('student-portal');
     } else if (user.roles?.includes('ROLE_TEACHER')) {
-      setActiveView('grades');
+      setActiveView('teacher-dashboard');
+    } else if (user.roles?.includes('ROLE_STUDENT')) {
+      setActiveView('student-dashboard');
+    } else if (user.roles?.includes('ROLE_PARENT')) {
+      setActiveView('parent-dashboard');
     } else {
       setActiveView('dashboard');
     }

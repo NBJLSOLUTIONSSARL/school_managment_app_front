@@ -7,6 +7,8 @@ import { financeService } from './financeService';
 import { evaluationService } from './evaluationService';
 import { homeworkService } from './homeworkService';
 import { communicationService } from './communicationService';
+import { pedagogyService } from './pedagogyService';
+import { timetableService } from './timetableService';
 
 export const statsService = {
   async getAdminStats() {
@@ -122,11 +124,53 @@ export const statsService = {
     };
   },
 
+  async getTeacherStats(teacherName = '') {
+    const [classesRes, studentsRes, examsRes, eventsRes, timetableRes] = await Promise.allSettled([
+      pedagogyService.getClasses(),
+      studentService.getStudents({ page: 0, size: 50 }),
+      evaluationService.getExams(),
+      communicationService.getEvents({ page: 0, size: 5 }),
+      timetableService.getTimetableById(1),
+    ]);
+
+    const classesList = classesRes.status === 'fulfilled' && Array.isArray(classesRes.value) ? classesRes.value : [];
+    const totalClasses = classesList.length;
+
+    const studentPage = studentsRes.status === 'fulfilled' ? studentsRes.value : { content: [], totalElements: 0 };
+    const totalStudents = studentPage.totalElements ?? (studentPage.content?.length || 0);
+
+    const examsList = examsRes.status === 'fulfilled' && Array.isArray(examsRes.value) ? examsRes.value : [];
+    const upcomingExams = examsList.filter((e) => !e.locked);
+
+    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.content ? eventsRes.value.content : [];
+
+    let timetableSlots = [];
+    if (timetableRes.status === 'fulfilled' && timetableRes.value?.slots) {
+      const allSlots = timetableRes.value.slots;
+      if (teacherName) {
+        timetableSlots = allSlots.filter((s) => s.teacherName?.toLowerCase().includes(teacherName.toLowerCase()));
+      } else {
+        timetableSlots = allSlots;
+      }
+    }
+
+    return {
+      totalClasses,
+      classes: classesList,
+      totalStudents,
+      totalExams: examsList.length,
+      upcomingExams,
+      events: eventsList,
+      timetableSlots,
+    };
+  },
+
   async getStudentStats(studentId) {
-    const [reportCardsRes, homeworkRes, eventsRes] = await Promise.allSettled([
+    const [reportCardsRes, homeworkRes, eventsRes, timetableRes] = await Promise.allSettled([
       evaluationService.getReportCards({ studentId }),
       homeworkService.getSubmissionsByStudent(studentId),
       communicationService.getEvents({ page: 0, size: 5 }),
+      timetableService.getTimetableById(1),
     ]);
 
     let generalAverage = null;
@@ -143,12 +187,14 @@ export const statsService = {
     }
 
     const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.content ? eventsRes.value.content : [];
+    const slots = timetableRes.status === 'fulfilled' && timetableRes.value?.slots ? timetableRes.value.slots : [];
 
     return {
       generalAverage,
       termTitle,
       submissionCount,
       events: eventsList,
+      timetableSlots: slots,
       attendanceRate: null,
     };
   },

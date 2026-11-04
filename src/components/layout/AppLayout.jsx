@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
 import StaffSidebar from './StaffSidebar';
 import LibrarianSidebar from './LibrarianSidebar';
+import TeacherSidebar from './TeacherSidebar';
 import StudentSidebar from './StudentSidebar';
+import ParentSidebar from './ParentSidebar';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
@@ -21,6 +23,10 @@ import LoanHistoryView from '../../views/librarian/LoanHistoryView';
 import AvailabilityView from '../../views/librarian/AvailabilityView';
 import LibraryStudentsView from '../../views/librarian/LibraryStudentsView';
 import LibraryStaffView from '../../views/librarian/LibraryStaffView';
+
+import TeacherDashboardView from '../../views/teacher/TeacherDashboardView';
+import StudentDashboardView from '../../views/student/StudentDashboardView';
+import ParentDashboardView from '../../views/parent/ParentDashboardView';
 
 import StudentsView from '../../views/StudentsView';
 import TeachersView from '../../views/TeachersView';
@@ -58,9 +64,9 @@ export default function AppLayout() {
   const isAdmin = currentUser.roles?.includes('ROLE_ADMIN');
   const isStaff = currentUser.roles?.includes('ROLE_STAFF');
   const isLibrarian = currentUser.roles?.includes('ROLE_LIBRARIAN');
+  const isTeacher = currentUser.roles?.includes('ROLE_TEACHER');
   const isStudent = currentUser.roles?.includes('ROLE_STUDENT');
   const isParent = currentUser.roles?.includes('ROLE_PARENT');
-  const isTeacher = currentUser.roles?.includes('ROLE_TEACHER');
 
   const adminAllowedViews = [
     'dashboard',
@@ -100,6 +106,7 @@ export default function AppLayout() {
     'grades',
     'communications',
     'calendar',
+    'settings',
   ];
 
   const librarianAllowedViews = [
@@ -112,6 +119,43 @@ export default function AppLayout() {
     'library-availability',
     'library-students',
     'library-staff',
+    'settings',
+  ];
+
+  const teacherAllowedViews = [
+    'teacher-dashboard',
+    'classes',
+    'students',
+    'timetable',
+    'grades',
+    'evaluations',
+    'documents',
+    'communications',
+    'settings',
+  ];
+
+  const studentAllowedViews = [
+    'student-dashboard',
+    'student-portal',
+    'timetable',
+    'grades',
+    'reports',
+    'evaluations',
+    'documents',
+    'library-catalog',
+    'communications',
+    'settings',
+  ];
+
+  const parentAllowedViews = [
+    'parent-dashboard',
+    'grades',
+    'reports',
+    'timetable',
+    'finances',
+    'documents',
+    'communications',
+    'settings',
   ];
 
   useEffect(() => {
@@ -121,14 +165,22 @@ export default function AppLayout() {
       setActiveView('staff-dashboard');
     } else if (isLibrarian && !librarianAllowedViews.includes(activeView)) {
       setActiveView('librarian-dashboard');
+    } else if (isTeacher && !teacherAllowedViews.includes(activeView)) {
+      setActiveView('teacher-dashboard');
+    } else if (isStudent && !studentAllowedViews.includes(activeView)) {
+      setActiveView('student-dashboard');
+    } else if (isParent && !parentAllowedViews.includes(activeView)) {
+      setActiveView('parent-dashboard');
     }
-  }, [activeView, isAdmin, isStaff, isLibrarian]);
+  }, [activeView, isAdmin, isStaff, isLibrarian, isTeacher, isStudent, isParent]);
 
   const renderSidebar = () => {
     if (isAdmin) return <AdminSidebar />;
     if (isStaff) return <StaffSidebar />;
     if (isLibrarian) return <LibrarianSidebar />;
+    if (isTeacher) return <TeacherSidebar />;
     if (isStudent) return <StudentSidebar />;
+    if (isParent) return <ParentSidebar />;
     return <Sidebar />;
   };
 
@@ -161,15 +213,22 @@ export default function AppLayout() {
         return <LibraryStudentsView />;
       case 'library-staff':
         return <LibraryStaffView />;
+      case 'teacher-dashboard':
+        return <TeacherDashboardView />;
+      case 'student-dashboard':
+        return <StudentDashboardView />;
+      case 'parent-dashboard':
+        return <ParentDashboardView />;
       case 'students':
         return <StudentsView />;
       case 'teachers':
         return isAdmin ? <TeachersView /> : <StaffDashboardView />;
       case 'classes':
-        return isAdmin ? <ClassesView /> : <StaffDashboardView />;
+        return <ClassesView />;
       case 'timetable':
         return <TimetableView />;
       case 'grades':
+      case 'evaluations':
         return <GradesView />;
       case 'absences':
         return <AbsencesView />;
@@ -180,7 +239,7 @@ export default function AppLayout() {
       case 'reports':
         return <ReportsView />;
       case 'settings':
-        return isAdmin ? <SettingsView /> : <DashboardView />;
+        return <SettingsView />;
       case 'admissions':
       case 'admissions-admin':
         return <AdmissionsPage />;
@@ -194,8 +253,9 @@ export default function AppLayout() {
         if (isAdmin) return <DashboardView />;
         if (isStaff) return <StaffDashboardView />;
         if (isLibrarian) return <LibrarianDashboardView />;
-        if (isStudent || isParent) return <StudentPortalView />;
-        if (isTeacher) return <GradesView />;
+        if (isTeacher) return <TeacherDashboardView />;
+        if (isStudent) return <StudentDashboardView />;
+        if (isParent) return <ParentDashboardView />;
         return <DashboardView />;
     }
   };

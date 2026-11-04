@@ -16,4 +16,14 @@ export const guardianService = {
     const res = await apiClient.post('/guardians', data);
     return res.data;
   },
+
+  async getMyChildren() {
+    const res = await apiClient.get('/guardians/my-children');
+    return res.data;
+  },
+
+  async getStudentsByGuardianId(guardianId) {
+    const res = await apiClient.get(`/guardians/${guardianId}/students`);
+    return res.data;
+  },
 };
