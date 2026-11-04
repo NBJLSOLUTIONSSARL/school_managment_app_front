@@ -16,7 +16,7 @@ export default function LoginPage() {
     setErrorMessage('');
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
     } catch (err) {
       setErrorMessage(err.message || 'Identifiants invalides. Veuillez réessayer.');
     } finally {
@@ -24,10 +24,18 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = (demoEmail) => {
+  const handleQuickLogin = async (demoEmail) => {
     setEmail(demoEmail);
     setPassword('Password123');
     setErrorMessage('');
+    setIsLoading(true);
+    try {
+      await login(demoEmail.trim(), 'Password123');
+    } catch (err) {
+      setErrorMessage(err.message || 'Identifiants invalides. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -174,7 +182,7 @@ export default function LoginPage() {
 
           <div className="mt-6 pt-5 border-t border-[#F4EDE2]">
             <p className="text-[11px] font-semibold text-[#78716C] text-center uppercase tracking-wider mb-2.5">
-              Comptes de test MySQL
+              Accès rapide démo (6 rôles)
             </p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
@@ -182,15 +190,31 @@ export default function LoginPage() {
                 onClick={() => handleQuickLogin('admin@school.com')}
                 className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
               >
-                <span className="block font-bold text-[#16222F]">Directeur</span>
+                <span className="block font-bold text-[#16222F]">Super Admin</span>
                 <span className="block text-[10px] text-[#78716C] truncate">admin@school.com</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('lucas.petit@school.com')}
+                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
+              >
+                <span className="block font-bold text-[#16222F]">Secrétaire</span>
+                <span className="block text-[10px] text-[#78716C] truncate">lucas.petit</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('librarian@school.com')}
+                className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
+              >
+                <span className="block font-bold text-[#16222F]">Bibliothécaire</span>
+                <span className="block text-[10px] text-[#78716C] truncate">librarian@school.com</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin('claire.martin@school.com')}
                 className="p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer"
               >
-                <span className="block font-bold text-[#16222F]">Enseignante</span>
+                <span className="block font-bold text-[#16222F]">Enseignant</span>
                 <span className="block text-[10px] text-[#78716C] truncate">claire.martin</span>
               </button>
               <button
