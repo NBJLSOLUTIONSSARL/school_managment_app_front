@@ -105,4 +105,14 @@ export const communicationService = {
     const res = await rawApiClient.post('/leave-requests', data);
     return res;
   },
+
+  async approveLeaveRequest(id) {
+    const res = await rawApiClient.put(`/leave-requests/${id}/approve`);
+    return res;
+  },
+
+  async rejectLeaveRequest(id) {
+    const res = await rawApiClient.put(`/leave-requests/${id}/reject`);
+    return res;
+  },
 };
