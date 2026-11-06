@@ -1,8 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Tailwind v4 compatibility import — used by src/auth/ components */
+/* Tailwind v4 — injected via @tailwindcss/vite plugin in vite.config.js */
 @import "tailwindcss";
 
 :root {
