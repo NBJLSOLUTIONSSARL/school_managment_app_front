@@ -10,6 +10,10 @@ import { ComponentShowcasePage } from '@/features/showcase/ComponentShowcasePage
 import { NotFoundPage } from '@/features/errors/NotFoundPage'
 import { ForbiddenPage } from '@/features/errors/ForbiddenPage'
 import ProfilePage from '@/pages/ProfilePage'
+import ObservationsPage from '@/pages/ObservationsPage'
+import ConsentsPage from '@/pages/ConsentsPage'
+import AnalysesPage from '@/pages/AnalysesPage'
+import StrategiesPage from '@/pages/StrategiesPage'
 import { RootIndexRedirect } from './RootIndexRedirect'
 
 export const router = createBrowserRouter([
@@ -57,6 +61,22 @@ export const router = createBrowserRouter([
       {
         path: '/profile',
         element: <ProfilePage />,
+      },
+      {
+        path: '/observations',
+        element: <ObservationsPage />,
+      },
+      {
+        path: '/consents',
+        element: <ConsentsPage />,
+      },
+      {
+        path: '/analyses',
+        element: <AnalysesPage />,
+      },
+      {
+        path: '/strategies',
+        element: <StrategiesPage />,
       },
       {
         path: '/showcase',
