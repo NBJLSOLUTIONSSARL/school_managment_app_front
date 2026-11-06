@@ -1,51 +1,40 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, Phone, User, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import EduTrackLogo from '../components/common/EduTrackLogo';
 
 const DEMO_ACCOUNTS = [
-  { role: 'Super Admin', category: 'admin', name: 'Marc Dupont', email: 'admin@school.com', badgeColor: 'bg-[#16222F] text-[#DFC2A0]' },
-  { role: 'Secrétaire', category: 'staff', name: 'Lucas Petit', email: 'lucas.petit@school.com', badgeColor: 'bg-blue-100 text-blue-800' },
-  { role: 'Secrétaire', category: 'staff', name: 'Marie Robert', email: 'marie.robert@school.com', badgeColor: 'bg-blue-100 text-blue-800' },
-  { role: 'Bibliothécaire', category: 'librarian', name: 'Fatima-Zahra El Amrani', email: 'librarian@school.com', badgeColor: 'bg-amber-100 text-amber-800' },
-  { role: 'Enseignante', category: 'teacher', name: 'Claire Martin (Maths)', email: 'claire.martin@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
-  { role: 'Enseignant', category: 'teacher', name: 'Thomas Bernard (Français)', email: 'thomas.bernard@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
-  { role: 'Enseignante', category: 'teacher', name: 'Sophie Dubois (Sciences)', email: 'sophie.dubois@school.com', badgeColor: 'bg-emerald-100 text-emerald-800' },
-  { role: 'Parent', category: 'parent', name: 'Alain Leroy (Parent de Léo)', email: 'alain.leroy@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
-  { role: 'Parent', category: 'parent', name: 'Isabelle Moreau (Parent d\'Emma)', email: 'isabelle.moreau@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
-  { role: 'Parent', category: 'parent', name: 'David Simon (Parent d\'Hugo)', email: 'david.simon@parent.com', badgeColor: 'bg-purple-100 text-purple-800' },
-  { role: 'Élève', category: 'student', name: 'Léo Leroy', email: 'leo.leroy@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
-  { role: 'Élève', category: 'student', name: 'Emma Moreau', email: 'emma.moreau@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
-  { role: 'Élève', category: 'student', name: 'Hugo Simon', email: 'hugo.simon@student.com', badgeColor: 'bg-sky-100 text-sky-800' },
-];
-
-const CATEGORIES = [
-  { id: 'all', label: 'Tous' },
-  { id: 'admin', label: 'Admin' },
-  { id: 'staff', label: 'Secrétariat' },
-  { id: 'librarian', label: 'Bibliothèque' },
-  { id: 'teacher', label: 'Profs' },
-  { id: 'parent', label: 'Parents' },
-  { id: 'student', label: 'Élèves' },
+  { role: 'Super Admin', name: 'Marc Dupont', email: 'admin@school.com', badge: 'bg-[#EEF2FF] text-[#4361EE]' },
+  { role: 'Secretary', name: 'Lucas Petit', email: 'lucas.petit@school.com', badge: 'bg-[#DBEAFE] text-[#1D4ED8]' },
+  { role: 'Librarian', name: 'Fatima-Zahra', email: 'librarian@school.com', badge: 'bg-[#FEF3C7] text-[#B45309]' },
+  { role: 'Teacher', name: 'Claire Martin', email: 'claire.martin@school.com', badge: 'bg-[#DCFCE7] text-[#15803D]' },
+  { role: 'Parent', name: 'Alain Leroy', email: 'alain.leroy@parent.com', badge: 'bg-[#F3E8FF] text-[#7E22CE]' },
+  { role: 'Student', name: 'Léo Leroy', email: 'leo.leroy@student.com', badge: 'bg-[#E0E7FF] text-[#4338CA]' },
 ];
 
 export default function LoginPage() {
-  const { login, setActiveView, language, setLanguage } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login, setActiveView } = useAuth();
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('+374 0000 00 00');
+  const [fullName, setFullName] = useState('Juliette Karapetyan');
+  const [username, setUsername] = useState('juliettex');
+  const [email, setEmail] = useState('admin@school.com');
+  const [password, setPassword] = useState('Password123');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [showQuickLogins, setShowQuickLogins] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setIsLoading(true);
+
     try {
-      await login(email.trim(), password);
+      const loginEmail = email.trim() || `${username.trim()}@school.com`;
+      await login(loginEmail, password);
     } catch (err) {
-      setErrorMessage(err.message || 'Identifiants invalides. Veuillez réessayer.');
+      setErrorMessage(err.message || 'Invalid credentials. Please verify your email/password.');
     } finally {
       setIsLoading(false);
     }
@@ -59,220 +48,270 @@ export default function LoginPage() {
     try {
       await login(demoEmail.trim(), 'Password123');
     } catch (err) {
-      setErrorMessage(err.message || 'Identifiants invalides. Veuillez réessayer.');
+      setErrorMessage(err.message || 'Login failed.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredAccounts = activeCategory === 'all'
-    ? DEMO_ACCOUNTS
-    : DEMO_ACCOUNTS.filter((acc) => acc.category === activeCategory);
-
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#1E293B] flex flex-col justify-between relative overflow-hidden select-none">
-      <header className="max-w-7xl w-full mx-auto px-8 py-6 flex items-center justify-between z-10">
-        <div
-          onClick={() => setActiveView('landing')}
-          className="flex items-center gap-3 cursor-pointer"
-        >
-          <div className="w-10 h-10 rounded-xl bg-[#16222F] flex items-center justify-center p-2">
-            <img src="/logo.svg" alt="Académie Lumière" className="w-full h-full object-contain filter invert" />
+    <div className="min-h-screen flex flex-col md:flex-row bg-white select-none">
+      {/* Left Column (50% on Desktop) - Classroom Photo with Dark Overlay & 3 Steps */}
+      <div className="w-full md:w-1/2 relative bg-[#0F172A] flex flex-col justify-between p-8 sm:p-12 lg:p-16 min-h-[480px] md:min-h-screen overflow-hidden">
+        {/* Background Image from Figma */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/assets/auth-hero-figma.jpg"
+            alt="EduTrack Campus"
+            className="w-full h-full object-cover opacity-40 brightness-75 contrast-125"
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&auto=format&fit=crop&q=80';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-[#0B0F19]/60 to-[#0B0F19]/40" />
+        </div>
+
+        {/* Top: EduTrack Brand */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div
+            onClick={() => setActiveView('landing')}
+            className="cursor-pointer"
+          >
+            <EduTrackLogo variant="light" size="md" />
           </div>
-          <div>
-            <span className="font-brand text-base tracking-wider text-[#16222F] font-bold block leading-tight">
-              Académie
-            </span>
-            <span className="font-brand text-xs tracking-widest text-[#C5A880] uppercase block">
-              Lumière
-            </span>
-          </div>
         </div>
 
-        <div className="flex items-center bg-white border border-[#EFECE6] rounded-full p-1 text-xs font-semibold text-[#78716C] shadow-sm">
-          {['FR', 'EN', 'AR'].map((l) => (
-            <button
-              key={l}
-              onClick={() => setLanguage(l)}
-              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                language === l ? 'bg-[#16222F] text-white shadow-sm' : 'hover:text-[#16222F]'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
+        {/* Middle: Start Your Journey Headings */}
+        <div className="relative z-10 max-w-lg my-auto py-8">
+          <span className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-semibold text-white/90 border border-white/15 mb-4">
+            Academic Portal · {isRegisterMode ? 'Join Us' : 'Welcome Back'}
+          </span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            Start your journey
+          </h1>
+          <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed">
+            Follow these simple steps to set up your institutional account and access your academic desk.
+          </p>
         </div>
-      </header>
 
-      <div className="absolute left-6 bottom-12 w-64 opacity-25 pointer-events-none hidden lg:block">
-        <div className="space-y-3">
-          <div className="h-20 w-44 bg-[#C5A880]/20 rounded-2xl transform -rotate-3" />
-          <div className="h-16 w-52 bg-[#C5A880]/15 rounded-2xl transform rotate-2" />
-        </div>
-      </div>
-
-      <div className="absolute right-0 top-1/4 bottom-0 w-80 opacity-20 pointer-events-none hidden lg:block">
-        <img
-          src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80"
-          alt="School Architecture"
-          className="w-full h-full object-cover rounded-l-[4rem]"
-        />
-      </div>
-
-      <main className="flex-1 flex items-center justify-center px-4 py-8 z-10">
-        <div className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl border border-[#EFECE6] p-6 sm:p-8 relative">
-          <div className="text-center mb-5">
-            <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-              Bienvenue
-            </h1>
-            <p className="text-sm text-[#78716C] mt-1">
-              Connectez-vous à votre espace sécurisé
+        {/* Bottom: 3 Progress Steps from Figma */}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6">
+          {/* Step 1: Active */}
+          <div className="bg-white rounded-2xl p-4 text-[#1E293B] shadow-lg flex flex-col justify-between min-h-[90px]">
+            <div className="w-6 h-6 rounded-full bg-[#4361EE] text-white font-bold text-xs flex items-center justify-center">
+              1
+            </div>
+            <p className="text-xs font-bold mt-2">
+              Register your account
             </p>
           </div>
 
+          {/* Step 2 */}
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-white/80 flex flex-col justify-between min-h-[90px]">
+            <div className="w-6 h-6 rounded-full bg-white/10 text-white/80 font-bold text-xs flex items-center justify-center">
+              2
+            </div>
+            <p className="text-xs font-medium mt-2">
+              Set up profile information
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 text-white/80 flex flex-col justify-between min-h-[90px]">
+            <div className="w-6 h-6 rounded-full bg-white/10 text-white/80 font-bold text-xs flex items-center justify-center">
+              3
+            </div>
+            <p className="text-xs font-medium mt-2">
+              Verify identity & role
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column (50% on Desktop) - Clean White Form matching Figma */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white overflow-y-auto">
+        <div className="w-full max-w-md space-y-6">
+          {/* Header Title */}
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E293B] tracking-tight">
+              {isRegisterMode ? 'Join Us' : 'Log in to EduTrack'}
+            </h2>
+          </div>
+
           {errorMessage && (
-            <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 animate-in fade-in">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Phone Number Field from Figma */}
             <div>
+              <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                Phone number
+              </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-[#A8A29E] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Adresse e-mail"
-                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-11 pr-4 py-3 text-sm text-[#16222F] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                  type="text"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
                 />
               </div>
             </div>
 
+            {/* Full Name & Username / Email Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                  Full name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                  Email / Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
             <div>
+              <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                Password
+              </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#A8A29E] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mot de passe"
-                  className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl pl-11 pr-11 py-3 text-sm text-[#16222F] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A8A29E] hover:text-[#16222F] cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1E293B] cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-[11px] text-[#94A3B8] mt-1.5 leading-tight">
+                At least 8 characters, uppercase letters, lowercase letters, numbers, and symbols.
+              </p>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#78716C] pt-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#D9D2C7] text-[#16222F] focus:ring-[#C5A880]"
-                />
-                <span>Se souvenir de moi</span>
-              </label>
+            {/* Continue Primary Button */}
+            <div className="pt-2">
               <button
-                type="button"
-                onClick={() => alert("Veuillez contacter l'administrateur scolaire pour réinitialiser votre mot de passe.")}
-                className="hover:text-[#16222F] transition-colors cursor-pointer"
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#4361EE] hover:bg-[#3451D1] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 active:scale-98"
               >
-                Mot de passe oublié ?
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>Continue</span>
               </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#16222F] hover:bg-[#203144] disabled:opacity-70 text-white font-semibold text-sm py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer mt-1"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Connexion en cours...</span>
-                </>
-              ) : (
-                <>
-                  <span>Se connecter</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+            {/* Already have an account link */}
+            <div className="text-center text-xs text-[#64748B]">
+              <span>{isRegisterMode ? 'Already have an account? ' : "Don't have an account? "}</span>
+              <button
+                type="button"
+                onClick={() => setIsRegisterMode(!isRegisterMode)}
+                className="text-[#4361EE] font-bold hover:underline cursor-pointer"
+              >
+                {isRegisterMode ? 'Log in' : 'Join Us'}
+              </button>
+            </div>
 
-          <div className="mt-5 pt-4 border-t border-[#F4EDE2]">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#16222F] uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
-                <span>Comptes de test MySQL (1-clic)</span>
-              </div>
-              <span className="text-[10px] text-[#78716C]">
-                {filteredAccounts.length} compte(s)
+            {/* Divider: OR */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="border-t border-[#E2E8F0] w-full" />
+              <span className="bg-white px-3 text-[11px] font-bold text-[#94A3B8] uppercase absolute">
+                OR
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-1 mb-2.5 pb-1">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors cursor-pointer ${
-                    activeCategory === cat.id
-                      ? 'bg-[#16222F] text-white shadow-xs'
-                      : 'bg-[#FAF7F2] text-[#78716C] hover:bg-[#F4EDE2] hover:text-[#16222F]'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+            {/* Sign up with Google */}
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2.5 bg-white border border-[#E2E8F0] hover:bg-slate-50 text-xs font-semibold text-[#1E293B] py-2.5 px-4 rounded-xl shadow-2xs transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>{isRegisterMode ? 'Sign up with Google' : 'Sign in with Google'}</span>
+            </button>
 
-            <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-              {filteredAccounts.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => handleQuickLogin(acc.email)}
-                  className="w-full p-2 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] hover:bg-[#F4EDE2] text-left transition-colors cursor-pointer flex items-center justify-between gap-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-[#16222F] truncate">
-                        {acc.name}
-                      </span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${acc.badgeColor}`}>
+            {/* Quick Demo Logins Toggle (Convenient 1-click login for testing MySQL accounts) */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowQuickLogins(!showQuickLogins)}
+                className="w-full text-center text-[11px] text-[#4361EE] hover:underline font-semibold cursor-pointer"
+              >
+                {showQuickLogins ? '▲ Hide Quick Demo Logins' : '▼ Quick 1-Click Login (6 Roles)'}
+              </button>
+
+              {showQuickLogins && (
+                <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 animate-in fade-in">
+                  {DEMO_ACCOUNTS.map((acc) => (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      onClick={() => handleQuickLogin(acc.email)}
+                      className="text-left p-2 rounded-lg bg-white border border-slate-200 hover:border-[#4361EE] hover:shadow-2xs transition cursor-pointer"
+                    >
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${acc.badge} block w-fit`}>
                         {acc.role}
                       </span>
-                    </div>
-                    <span className="block text-[10px] text-[#78716C] truncate">
-                      {acc.email}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-medium text-[#C5A880] shrink-0">
-                    Connexion →
-                  </span>
-                </button>
-              ))}
+                      <p className="text-xs font-semibold text-[#1E293B] mt-1 truncate">{acc.name}</p>
+                      <p className="text-[10px] text-[#64748B] truncate">{acc.email}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      </main>
 
-      <footer className="text-center py-4 text-xs text-[#78716C] z-10">
-        Académie Lumière • Année Scolaire 2026-2027
-      </footer>
+            {/* Legal terms footer */}
+            <p className="text-[10px] text-center text-[#94A3B8] leading-relaxed pt-2">
+              By signing up I confirm that I carefully have read and agree to the EduTrack{' '}
+              <a href="#" className="underline hover:text-[#4361EE]">Privacy Policy</a> and{' '}
+              <a href="#" className="underline hover:text-[#4361EE]">Terms of Service</a>.
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

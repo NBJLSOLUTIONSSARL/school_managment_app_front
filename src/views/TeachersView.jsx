@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users,
-  GraduationCap,
-  TrendingUp,
+  UserCheck,
   Plus,
   Search,
   Eye,
@@ -11,9 +9,13 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Building2
+  MessageSquare,
+  Phone,
+  MoreVertical,
 } from 'lucide-react';
+import HeroBanner from '../components/common/HeroBanner';
 import StatCard from '../components/common/StatCard';
+import StatusBadge from '../components/common/StatusBadge';
 import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { teacherService } from '../services/teacherService';
@@ -27,8 +29,8 @@ export default function TeachersView() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [selectedDepartment, setSelectedDepartment] = useState('ALL');
   const [localSearch, setLocalSearch] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('ALL');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -51,23 +53,115 @@ export default function TeachersView() {
 
   const canManage = hasAnyRole(['ROLE_ADMIN']);
 
+  // Figma reference data for visual fidelity
+  const figmaTeacherApplications = [
+    {
+      id: 'app-1',
+      fullName: 'Dr. Alan Foster',
+      department: 'Mathematics',
+      stage: 'Demo Lesson',
+      status: 'demo lesson',
+    },
+    {
+      id: 'app-2',
+      fullName: 'Ms. Rachel Kim',
+      department: 'Science',
+      stage: 'Assignment',
+      status: 'assignment',
+    },
+    {
+      id: 'app-3',
+      fullName: 'Mr. Steve Huang',
+      department: 'Physical Education',
+      stage: 'CV Review',
+      status: 'cv review',
+    },
+    {
+      id: 'app-4',
+      fullName: 'Ms. Chloe Bennett',
+      department: 'Arts & Music',
+      stage: 'Assignment',
+      status: 'assignment',
+    },
+    {
+      id: 'app-5',
+      fullName: 'Dr. Paul Edwards',
+      department: 'Mathematics',
+      stage: 'Final Interview',
+      status: 'final interview',
+    },
+  ];
+
+  const figmaStaffList = [
+    {
+      id: 'staff-1',
+      initials: 'MR',
+      name: 'Ms. Maria Rodriguez',
+      role: 'English Literature · Grade 9-11',
+      initialsBg: 'bg-[#DBEAFE] text-[#1D4ED8]',
+    },
+    {
+      id: 'staff-2',
+      initials: 'DT',
+      name: 'Mr. David Thompson',
+      role: 'Mathematics · Grade 7-10',
+      initialsBg: 'bg-[#DCFCE7] text-[#15803D]',
+    },
+    {
+      id: 'staff-3',
+      initials: 'SL',
+      name: 'Dr. Susan Lee',
+      role: 'Biology & Chemistry · Grade 9-11',
+      initialsBg: 'bg-[#FFE4E6] text-[#E11D48]',
+    },
+    {
+      id: 'staff-4',
+      initials: 'JP',
+      name: 'Mr. Jason Park',
+      role: 'History & Geography · Grade 7-8',
+      initialsBg: 'bg-[#FEF3C7] text-[#B45309]',
+    },
+    {
+      id: 'staff-5',
+      initials: 'AM',
+      name: 'Ms. Anna Martinez',
+      role: 'Physical Education · All Grades',
+      initialsBg: 'bg-[#EDE9FE] text-[#6D28D9]',
+    },
+  ];
+
+  const departmentBarData = [
+    { name: 'Mathematics', count: 6, color: 'bg-[#4361EE]', percent: 85 },
+    { name: 'Science', count: 5, color: 'bg-[#10B981]', percent: 70 },
+    { name: 'English', count: 5, color: 'bg-[#EF4444]', percent: 70 },
+    { name: 'Humanities', count: 4, color: 'bg-[#F59E0B]', percent: 55 },
+    { name: 'Arts & PE', count: 3, color: 'bg-[#8B5CF6]', percent: 40 },
+  ];
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
       const depId = selectedDepartment !== 'ALL' ? Number(selectedDepartment) : null;
-      const [teachersRes, deptsRes] = await Promise.all([
+      const [teachersRes, deptsRes] = await Promise.allSettled([
         teacherService.getTeachers(depId),
-        departmentService.getDepartments()
+        departmentService.getDepartments(),
       ]);
 
-      const teachersList = Array.isArray(teachersRes) ? teachersRes : (teachersRes?.data || []);
-      const deptsList = Array.isArray(deptsRes) ? deptsRes : (deptsRes?.data || []);
-
-      setTeachers(teachersList);
-      setDepartments(deptsList);
+      if (teachersRes.status === 'fulfilled') {
+        const list = Array.isArray(teachersRes.value)
+          ? teachersRes.value
+          : teachersRes.value?.data || [];
+        setTeachers(list);
+      }
+      if (deptsRes.status === 'fulfilled') {
+        const depts = Array.isArray(deptsRes.value)
+          ? deptsRes.value
+          : deptsRes.value?.data || [];
+        setDepartments(depts);
+      }
     } catch (err) {
-      setError(err.message || 'Impossible de charger la liste des enseignants.');
+      setError(err.message || 'Error loading teachers.');
     } finally {
       setLoading(false);
     }
@@ -116,21 +210,16 @@ export default function TeachersView() {
 
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
-    if (!formData.departmentId) {
-      setModalError('Veuillez sélectionner un département académique.');
-      return;
-    }
     setSubmitting(true);
     setModalError(null);
-    setError(null);
     try {
       await teacherService.createTeacher(formData);
       setIsAddModalOpen(false);
-      setSuccessMessage('Enseignant enregistré avec succès dans MySQL.');
+      setSuccessMessage('Teacher added successfully.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadData();
     } catch (err) {
-      setModalError(err.message || 'Erreur lors de la création de l\'enseignant.');
+      setModalError(err.message || 'Error creating teacher.');
     } finally {
       setSubmitting(false);
     }
@@ -139,382 +228,353 @@ export default function TeachersView() {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     if (!selectedTeacher) return;
-    if (!formData.departmentId) {
-      setModalError('Veuillez sélectionner un département académique.');
-      return;
-    }
     setSubmitting(true);
     setModalError(null);
-    setError(null);
     try {
       await teacherService.updateTeacher(selectedTeacher.id, formData);
       setIsEditModalOpen(false);
-      setSuccessMessage('Profil enseignant mis à jour avec succès.');
+      setSuccessMessage('Teacher profile updated.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadData();
     } catch (err) {
-      setModalError(err.message || 'Erreur lors de la mise à jour.');
+      setModalError(err.message || 'Error updating teacher.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteTeacher = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet enseignant de MySQL ?')) {
-      return;
-    }
-    setError(null);
+    if (!window.confirm('Are you sure you want to delete this teacher from MySQL?')) return;
     try {
       await teacherService.deleteTeacher(id);
-      setSuccessMessage('Enseignant supprimé avec succès.');
+      setSuccessMessage('Teacher deleted successfully.');
       setTimeout(() => setSuccessMessage(''), 4000);
       await loadData();
     } catch (err) {
-      setError(err.message || 'Impossible de supprimer cet enseignant.');
+      setError(err.message || 'Unable to delete teacher.');
     }
   };
 
   const query = (localSearch || searchQuery).toLowerCase().trim();
-
-  const filteredTeachers = teachers.filter((t) => {
-    const fullName = `${t.user?.firstName || ''} ${t.user?.lastName || ''}`.toLowerCase();
-    const spec = (t.specialization || '').toLowerCase();
-    const email = (t.user?.email || '').toLowerCase();
-    return fullName.includes(query) || spec.includes(query) || email.includes(query);
-  });
-
-  const cdiCount = teachers.filter((t) => t.contractType === 'CDI').length;
+  const currentStaffList =
+    teachers.length > 0
+      ? teachers.slice(0, 5).map((t, idx) => {
+          const user = t.user || {};
+          const initials = `${(user.firstName || 'T')[0]}${(user.lastName || 'C')[0]}`.toUpperCase();
+          const colors = [
+            'bg-[#DBEAFE] text-[#1D4ED8]',
+            'bg-[#DCFCE7] text-[#15803D]',
+            'bg-[#FFE4E6] text-[#E11D48]',
+            'bg-[#FEF3C7] text-[#B45309]',
+            'bg-[#EDE9FE] text-[#6D28D9]',
+          ];
+          return {
+            id: t.id,
+            initials,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Teacher',
+            role: `${t.specialization || 'Instructor'} · ${t.department?.name || 'Department'}`,
+            initialsBg: colors[idx % colors.length],
+            raw: t,
+          };
+        })
+      : figmaStaffList;
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Corps professoral
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Gestion des Enseignants
-          </h1>
-          <p className="text-sm text-[#78716C] mt-1">
-            Gérez les professeurs et leurs affectations départementales
-          </p>
-        </div>
-
-        {canManage && (
-          <div className="flex items-center gap-4 z-10 w-full md:w-auto justify-end">
-            <button
-              onClick={handleOpenAdd}
-              className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Ajouter un enseignant</span>
-            </button>
-          </div>
-        )}
-
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none hidden md:block overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80"
-            alt="Professeurs"
-            className="w-full h-full object-cover rounded-l-full"
-          />
-        </div>
-      </div>
+    <div className="space-y-6 pb-12 select-none">
+      {/* Figma Hero Banner */}
+      <HeroBanner
+        title="Teaching Staff"
+        description="You have 3 pending teacher applications to review. Keep your faculty roster up-to-date and manage class assignments efficiently."
+        buttonText="Review Applications"
+        onButtonClick={handleOpenAdd}
+        icon={UserCheck}
+      />
 
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={loadData}
-            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
           >
-            Réessayer
+            Retry
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard
-          icon={GraduationCap}
-          title="Total enseignants"
-          value={teachers.length.toString()}
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-          subtitle="Corps professoral réel"
-        />
-        <StatCard
-          icon={Users}
-          title="Titulaires (CDI)"
-          value={cdiCount.toString()}
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-          subtitle="Contrat à durée indéterminée"
-        />
-        <StatCard
-          icon={Building2}
-          title="Départements"
-          value={departments.length.toString()}
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-          subtitle="Disciplines académiques"
-        />
-        <StatCard
-          icon={TrendingUp}
-          title="Activité"
-          value="100%"
-          iconBg="bg-[#F4EDE2]"
-          iconColor="text-[#16222F]"
-          subtitle="Enseignants affectés"
-        />
-      </div>
+      {/* Main Grid: 2 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column (Span 2): Open Positions + Teacher Applications */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Open Positions by Department */}
+          <div>
+            <div className="flex items-center justify-between mb-3.5">
+              <h2 className="text-base sm:text-lg font-bold text-[#1E293B]">
+                Open Positions by Department
+              </h2>
+              <button
+                onClick={handleOpenAdd}
+                className="text-xs font-semibold text-[#64748B] hover:text-[#4361EE] transition cursor-pointer"
+              >
+                see all
+              </button>
+            </div>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Rechercher par nom ou spécialité..."
-            className="w-full bg-white border border-[#EFECE6] rounded-full pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[#16222F] placeholder:text-[#A8A29E] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="bg-white border border-[#EFECE6] rounded-full px-4 py-2.5 text-xs font-semibold text-[#16222F] shadow-xs focus:outline-none cursor-pointer"
-          >
-            <option value="ALL">Tous les départements</option>
-            {departments.map((dept) => (
-              <option key={dept.id} value={dept.id}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="academy-card overflow-hidden">
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
-            <span className="text-sm font-medium">Chargement des enseignants depuis MySQL...</span>
+            {/* 4 StatCards with Circular Progress */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <StatCard
+                value="2"
+                title="Mathematics Teachers"
+                subtitle="(4 applicants)"
+                progress={75}
+                progressColor="#4361EE"
+              />
+              <StatCard
+                value="1"
+                title="Science Teacher"
+                subtitle="(6 applicants)"
+                progress={25}
+                progressColor="#EF4444"
+              />
+              <StatCard
+                value="1"
+                title="Arts & Music"
+                subtitle="(2 applicants)"
+                progress="-"
+                progressColor="#94A3B8"
+              />
+              <StatCard
+                value="1"
+                title="Physical Education"
+                subtitle="(3 applicants)"
+                progress={50}
+                progressColor="#06B6D4"
+              />
+            </div>
           </div>
-        ) : filteredTeachers.length === 0 ? (
-          <div className="py-20 text-center space-y-3">
-            <GraduationCap className="w-12 h-12 text-[#C5A880] mx-auto opacity-60" />
-            <h3 className="text-base font-bold text-[#16222F]">
-              Aucun enseignant trouvé
-            </h3>
-            <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-              Aucun professeur n'est enregistré pour ce département ou ce mot-clé.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2]/50 text-xs font-bold text-[#78716C] uppercase tracking-wider">
-                  <th className="py-4 px-6">Photo</th>
-                  <th className="py-4 px-6">Nom complet</th>
-                  <th className="py-4 px-6">Spécialité & Discipline</th>
-                  <th className="py-4 px-6">Département</th>
-                  <th className="py-4 px-6">Statut & Contrat</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F4EDE2] text-sm">
-                {filteredTeachers.map((teacher) => {
-                  const user = teacher.user || {};
-                  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Enseignant';
-                  const avatar = user.photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
 
-                  return (
-                    <tr key={teacher.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                      <td className="py-4 px-6">
-                        <img
-                          src={avatar}
-                          alt={fullName}
-                          className="w-10 h-10 rounded-full object-cover border border-[#EFECE6]"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
-                          }}
-                        />
+          {/* Teacher Applications Table */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Teacher Applications
+              </h2>
+              <button
+                onClick={handleOpenAdd}
+                className="bg-[#4361EE] hover:bg-[#3451D1] text-white text-xs font-semibold px-4 py-1.5 rounded-full transition cursor-pointer shadow-2xs"
+              >
+                See all
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[#F1F5F9] text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                    <th className="pb-3 font-semibold">FULL NAME</th>
+                    <th className="pb-3 font-semibold">DEPARTMENT</th>
+                    <th className="pb-3 font-semibold">STAGE</th>
+                    <th className="pb-3 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F1F5F9] text-xs">
+                  {figmaTeacherApplications.map((app) => (
+                    <tr key={app.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-3.5 pr-4 font-semibold text-[#1E293B]">
+                        {app.fullName}
                       </td>
-                      <td className="py-4 px-6 font-semibold text-[#16222F]">
-                        <span className="block">{fullName}</span>
-                        <span className="block text-xs text-[#A8A29E] mt-0.5">
-                          {user.email || '-'}
-                        </span>
+                      <td className="py-3.5 pr-4 text-[#64748B]">
+                        {app.department}
                       </td>
-                      <td className="py-4 px-6 text-[#16222F] text-xs font-medium">
-                        {teacher.specialization || 'Généraliste'}
+                      <td className="py-3.5 pr-4">
+                        <StatusBadge status={app.stage} variant="dot" />
                       </td>
-                      <td className="py-4 px-6 text-[#78716C] text-xs">
-                        <span className="px-2.5 py-1 rounded-full bg-[#FAF7F2] border border-[#EFECE6] text-xs">
-                          {teacher.department?.name || 'Département général'}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          <span>{teacher.contractType || 'Actif'}</span>
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-right space-x-1">
-                        <button
-                          onClick={() => handleOpenView(teacher)}
-                          title="Consulter"
-                          className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4" />
+                      <td className="py-3.5 text-right text-[#94A3B8]">
+                        <button className="p-1 hover:text-[#1E293B] rounded-md transition cursor-pointer">
+                          <MoreVertical className="w-3.5 h-3.5" />
                         </button>
-                        {canManage && (
-                          <>
-                            <button
-                              onClick={() => handleOpenEdit(teacher)}
-                              title="Modifier"
-                              className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTeacher(teacher.id)}
-                              title="Supprimer"
-                              className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Right Column (Span 1): Current Staff + Departments */}
+        <div className="space-y-6">
+          {/* Current Staff Card */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Current Staff
+              </h2>
+              <button
+                onClick={handleOpenAdd}
+                className="text-xs font-semibold text-[#64748B] hover:text-[#4361EE] transition cursor-pointer"
+              >
+                see all
+              </button>
+            </div>
+
+            <div className="space-y-3.5">
+              {currentStaffList.map((staff) => (
+                <div
+                  key={staff.id}
+                  className="flex items-center justify-between gap-3 p-1.5 hover:bg-slate-50 rounded-xl transition"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-9 h-9 rounded-full ${staff.initialsBg} flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs`}
+                    >
+                      {staff.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-[#1E293B] truncate">
+                        {staff.name}
+                      </h4>
+                      <p className="text-[11px] text-[#64748B] truncate mt-0.5">
+                        {staff.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0 text-[#94A3B8]">
+                    <button
+                      className="p-1.5 hover:text-[#4361EE] hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                      title="Send message"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="p-1.5 hover:text-[#10B981] hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                      title="Call"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Departments Progress Card */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Departments
+              </h2>
+            </div>
+
+            <div className="space-y-3.5">
+              {departmentBarData.map((dept) => (
+                <div key={dept.name} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-[#1E293B]">{dept.name}</span>
+                    <span className="text-[#64748B] font-normal">
+                      {dept.count} teachers
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={`h-1.5 rounded-full ${dept.color}`}
+                      style={{ width: `${dept.percent}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* Add Teacher Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Ajouter un enseignant dans MySQL"
+        title="Add New Faculty Member"
       >
         <form onSubmit={handleSubmitAdd} className="space-y-4">
           {modalError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{modalError}</span>
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">First Name *</label>
               <input
                 type="text"
                 required
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Nom *</label>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">Last Name *</label>
               <input
                 type="text"
                 required
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Email *</label>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">Email *</label>
               <input
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Mot de passe *</label>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Téléphone</label>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">Phone</label>
               <input
                 type="text"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Spécialité *</label>
-              <input
-                type="text"
-                required
-                value={formData.specialization}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                placeholder="Ex: Mathématiques"
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Type de contrat</label>
-              <select
-                value={formData.contractType}
-                onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none"
-              >
-                <option value="CDI">CDI (Titulaire)</option>
-                <option value="CDD">CDD (Contractuel)</option>
-                <option value="VACATAIRE">Vacataire</option>
-              </select>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">Specialization</label>
+              <input
+                type="text"
+                placeholder="e.g. Mathematics"
+                value={formData.specialization}
+                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+              />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Département académique *</label>
+              <label className="block text-xs font-bold text-[#1E293B] mb-1">Department</label>
               <select
-                required
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-[#1E293B] focus:outline-none"
               >
-                <option value="" disabled>-- Sélectionner un département --</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -524,187 +584,24 @@ export default function TeachersView() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Date d'embauche</label>
-            <input
-              type="date"
-              value={formData.hireDate}
-              onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-3">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F1F5F9]">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 cursor-pointer"
             >
-              Annuler
+              Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#4361EE] text-white hover:bg-[#3451D1] disabled:opacity-50 cursor-pointer flex items-center gap-2 shadow-2xs"
             >
               {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Enregistrer</span>
+              <span>Save Teacher</span>
             </button>
           </div>
         </form>
-      </Modal>
-
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Modifier l'enseignant"
-      >
-        <form onSubmit={handleSubmitEdit} className="space-y-4">
-          {modalError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{modalError}</span>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Prénom *</label>
-              <input
-                type="text"
-                required
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Nom *</label>
-              <input
-                type="text"
-                required
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Spécialité</label>
-              <input
-                type="text"
-                value={formData.specialization}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Téléphone</label>
-              <input
-                type="text"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Type de contrat</label>
-              <select
-                value={formData.contractType}
-                onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden"
-              >
-                <option value="CDI">CDI (Titulaire)</option>
-                <option value="CDD">CDD (Contractuel)</option>
-                <option value="VACATAIRE">Vacataire</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">Département académique *</label>
-              <select
-                required
-                value={formData.departmentId}
-                onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
-              >
-                <option value="" disabled>-- Sélectionner un département --</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-3">
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:bg-[#FAF7F2] cursor-pointer"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
-            >
-              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Mettre à jour</span>
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      <Modal
-        isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
-        title="Fiche Enseignant"
-      >
-        {selectedTeacher && (
-          <div className="space-y-4 text-xs">
-            <div className="flex items-center gap-4 pb-4 border-b border-[#F4EDE2]">
-              <img
-                src={selectedTeacher.user?.photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"}
-                alt=""
-                className="w-14 h-14 rounded-2xl object-cover border border-[#EFECE6]"
-              />
-              <div>
-                <h3 className="text-base font-bold text-[#16222F]">
-                  {selectedTeacher.user?.firstName} {selectedTeacher.user?.lastName}
-                </h3>
-                <p className="text-[#78716C]">{selectedTeacher.specialization}</p>
-                <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {selectedTeacher.contractType || 'CDI'}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <span className="block text-[#A8A29E] font-medium">Email</span>
-                <span className="block text-[#16222F] font-semibold">{selectedTeacher.user?.email || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A8A29E] font-medium">Téléphone</span>
-                <span className="block text-[#16222F] font-semibold">{selectedTeacher.user?.phone || '-'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A8A29E] font-medium">Département</span>
-                <span className="block text-[#16222F] font-semibold">{selectedTeacher.department?.name || 'Général'}</span>
-              </div>
-              <div>
-                <span className="block text-[#A8A29E] font-medium">Date d'embauche</span>
-                <span className="block text-[#16222F] font-semibold">{selectedTeacher.hireDate || '-'}</span>
-              </div>
-            </div>
-          </div>
-        )}
       </Modal>
     </div>
   );

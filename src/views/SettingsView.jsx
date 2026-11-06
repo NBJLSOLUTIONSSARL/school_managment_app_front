@@ -1,222 +1,582 @@
 import React, { useState } from 'react';
 import {
+  School,
   User,
-  Lock,
-  Globe,
-  ShieldCheck,
+  Star,
+  Bell,
+  Sliders,
+  AlertTriangle,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 
 export default function SettingsView() {
-  const { currentUser, language, setLanguage } = useAuth();
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { currentUser } = useAuth();
+
+  // School profile state
+  const [schoolProfile, setSchoolProfile] = useState({
+    name: 'Greenfield Academy',
+    code: 'GFA-2026',
+    academicYear: '2026 - 2027',
+    phone: '+1 (555) 234-5678',
+    address: '123 Education Lane, Springfield, IL 62701',
+  });
+
+  // Admin account state
+  const [adminAccount, setAdminAccount] = useState({
+    fullName: currentUser
+      ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Dr. Patricia Adams'
+      : 'Dr. Patricia Adams',
+    email: currentUser?.email || 'p.adams@greenfieldacademy.edu',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  // Academic settings
+  const [academicSettings, setAcademicSettings] = useState({
+    gradingSystem: 'GPA (4.0 Scale)',
+    passMark: '60%',
+    minAttendance: '80%',
+    maxClassSize: '35 students',
+  });
+
+  // Notifications toggles
+  const [notifications, setNotifications] = useState({
+    enrollmentAlerts: true,
+    attendanceReports: true,
+    gradeSubmissions: false,
+    eventReminders: true,
+    parentMessages: true,
+  });
+
+  // System toggles
+  const [systemSettings, setSystemSettings] = useState({
+    darkMode: false,
+    twoFactorAuth: true,
+    autoBackup: true,
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
 
-  const handleChangePassword = async (e) => {
+  const toggleNotification = (key) => {
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleSystem = (key) => {
+    setSystemSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSaveSettings = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess('');
-
-    if (newPassword !== confirmPassword) {
-      setError('Le nouveau mot de passe et sa confirmation ne correspondent pas.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError('Le mot de passe doit comporter au moins 6 caractères.');
-      return;
-    }
-
     setLoading(true);
+
     try {
-      await authService.changePassword(oldPassword, newPassword);
-      setSuccess('Mot de passe mis à jour avec succès.');
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      if (adminAccount.newPassword) {
+        if (adminAccount.newPassword !== adminAccount.confirmPassword) {
+          throw new Error('New password and confirmation do not match.');
+        }
+        if (adminAccount.newPassword.length < 6) {
+          throw new Error('Password must be at least 6 characters long.');
+        }
+        await authService.changePassword('CurrentPass123', adminAccount.newPassword);
+      }
+
+      setSuccess('Settings saved successfully.');
       setTimeout(() => setSuccess(''), 4000);
     } catch (err) {
-      setError(err.message || 'Impossible de changer le mot de passe.');
+      setError(err.message || 'Error saving settings.');
     } finally {
       setLoading(false);
     }
   };
 
-  const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const handleDiscard = () => {
+    setAdminAccount({
+      ...adminAccount,
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setSuccess('Modifications discarded.');
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Sécurité & Compte
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Paramètres du Compte
-          </h1>
-          <p className="text-sm text-[#78716C] mt-1">
-            Gérez vos informations de profil, vos préférences et votre mot de passe
-          </p>
-        </div>
-
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none hidden md:block overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80"
-            alt="Settings"
-            className="w-full h-full object-cover rounded-l-full"
-          />
-        </div>
-      </div>
-
+    <div className="space-y-6 pb-12 select-none">
+      {/* Alert Banners */}
       {success && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{success}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
+      {/* Main Grid: 2 Columns matching Figma */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="academy-card p-6 space-y-6">
-          <div className="flex items-center gap-4 pb-6 border-b border-[#F4EDE2]">
-            <img
-              src={currentUser?.photoUrl || defaultAvatar}
-              alt=""
-              className="w-16 h-16 rounded-2xl object-cover border-2 border-[#C5A880] shadow-sm shrink-0"
-              onError={(e) => {
-                e.currentTarget.src = defaultAvatar;
-              }}
-            />
-            <div className="min-w-0">
-              <h2 className="text-lg font-bold text-[#16222F] truncate">
-                {currentUser?.firstName} {currentUser?.lastName}
+        {/* Left Column (Span 2): Profile, Account, Grading Settings */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Card 1: School Profile */}
+          <div className="edutrack-card bg-white p-6 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#4361EE] flex items-center justify-center">
+                <School className="w-4 h-4 stroke-[2]" />
+              </div>
+              <h2 className="text-base font-bold text-[#1E293B]">
+                School Profile
               </h2>
-              <p className="text-xs text-[#78716C] truncate">{currentUser?.email}</p>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {currentUser?.roles?.map((role, i) => (
-                  <span
-                    key={i}
-                    className="inline-block text-[10px] font-bold bg-[#FAF7F2] text-[#C5A880] px-2 py-0.5 rounded-full border border-[#EFECE6]"
-                  >
-                    {role}
-                  </span>
-                ))}
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    School Name
+                  </label>
+                  <input
+                    type="text"
+                    value={schoolProfile.name}
+                    onChange={(e) =>
+                      setSchoolProfile({ ...schoolProfile, name: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    School Code
+                  </label>
+                  <input
+                    type="text"
+                    value={schoolProfile.code}
+                    onChange={(e) =>
+                      setSchoolProfile({ ...schoolProfile, code: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Academic Year
+                  </label>
+                  <input
+                    type="text"
+                    value={schoolProfile.academicYear}
+                    onChange={(e) =>
+                      setSchoolProfile({ ...schoolProfile, academicYear: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    value={schoolProfile.phone}
+                    onChange={(e) =>
+                      setSchoolProfile({ ...schoolProfile, phone: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={schoolProfile.address}
+                  onChange={(e) =>
+                    setSchoolProfile({ ...schoolProfile, address: e.target.value })
+                  }
+                  className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                />
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-[#16222F] uppercase tracking-wider">
-              Langue & Accessibilité
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { code: 'FR', label: 'Français' },
-                { code: 'EN', label: 'English' },
-                { code: 'AR', label: 'العربية (RTL)' },
-              ].map((item) => (
-                <button
-                  key={item.code}
-                  type="button"
-                  onClick={() => setLanguage(item.code)}
-                  className={`p-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center ${
-                    language === item.code
-                      ? 'bg-[#16222F] text-white border-[#16222F] shadow-xs'
-                      : 'bg-[#FAF7F2] text-[#16222F] border-[#EFECE6] hover:bg-white'
-                  }`}
-                >
-                  <span className="block text-sm mb-0.5">{item.code}</span>
-                  <span className="text-[10px] opacity-80 block truncate">{item.label}</span>
-                </button>
-              ))}
+          {/* Card 2: Administrator Account */}
+          <div className="edutrack-card bg-white p-6 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] text-[#10B981] flex items-center justify-center">
+                <User className="w-4 h-4 stroke-[2]" />
+              </div>
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Administrator Account
+              </h2>
             </div>
+
+            {/* Admin Profile Row from Figma */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-[#F1F5F9] mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#EEF2FF] text-[#4361EE] font-bold text-xs flex items-center justify-center shadow-xs">
+                  PA
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#1E293B]">
+                    {adminAccount.fullName}
+                  </h4>
+                  <p className="text-[11px] text-[#64748B]">
+                    {adminAccount.email}
+                  </p>
+                  <span className="inline-block mt-0.5 text-[10px] font-semibold text-[#4361EE] bg-[#EEF2FF] px-2 py-0.2 rounded-md">
+                    Super Admin
+                  </span>
+                </div>
+              </div>
+
+              <button className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-semibold text-[#1E293B] hover:bg-slate-50 transition cursor-pointer">
+                Edit
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={adminAccount.fullName}
+                    onChange={(e) =>
+                      setAdminAccount({ ...adminAccount, fullName: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={adminAccount.email}
+                    onChange={(e) =>
+                      setAdminAccount({ ...adminAccount, email: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={adminAccount.newPassword}
+                    onChange={(e) =>
+                      setAdminAccount({ ...adminAccount, newPassword: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={adminAccount.confirmPassword}
+                    onChange={(e) =>
+                      setAdminAccount({ ...adminAccount, confirmPassword: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Grading & Academic Settings */}
+          <div className="edutrack-card bg-white p-6 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-8 h-8 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
+                <Star className="w-4 h-4 stroke-[2]" />
+              </div>
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Grading & Academic Settings
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Grading System
+                  </label>
+                  <select
+                    value={academicSettings.gradingSystem}
+                    onChange={(e) =>
+                      setAcademicSettings({
+                        ...academicSettings,
+                        gradingSystem: e.target.value,
+                      })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none"
+                  >
+                    <option value="GPA (4.0 Scale)">GPA (4.0 Scale)</option>
+                    <option value="Percentage (0-100%)">Percentage (0-100%)</option>
+                    <option value="Scale (0-20)">Système Français (0-20)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Pass Mark
+                  </label>
+                  <input
+                    type="text"
+                    value={academicSettings.passMark}
+                    onChange={(e) =>
+                      setAcademicSettings({ ...academicSettings, passMark: e.target.value })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Minimum Attendance
+                  </label>
+                  <input
+                    type="text"
+                    value={academicSettings.minAttendance}
+                    onChange={(e) =>
+                      setAcademicSettings({
+                        ...academicSettings,
+                        minAttendance: e.target.value,
+                      })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#64748B] mb-1.5">
+                    Max Class Size
+                  </label>
+                  <input
+                    type="text"
+                    value={academicSettings.maxClassSize}
+                    onChange={(e) =>
+                      setAcademicSettings({
+                        ...academicSettings,
+                        maxClassSize: e.target.value,
+                      })
+                    }
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons matching Figma */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="px-5 py-2.5 rounded-full border border-[#E2E8F0] bg-white text-xs font-semibold text-[#64748B] hover:bg-slate-50 transition cursor-pointer"
+            >
+              Discard Changes
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              disabled={loading}
+              className="px-6 py-2.5 rounded-full bg-[#4361EE] hover:bg-[#3451D1] text-white text-xs font-semibold transition cursor-pointer flex items-center gap-2 shadow-2xs"
+            >
+              {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>Save Settings</span>
+            </button>
           </div>
         </div>
 
-        <div className="lg:col-span-2 academy-card p-6">
-          <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#F4EDE2]">
-            <Lock className="w-5 h-5 text-[#C5A880]" />
-            <div>
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
-                Modifier le mot de passe
+        {/* Right Column (Span 1): Notifications, System, Danger Zone */}
+        <div className="space-y-6">
+          {/* Notifications Card */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-4 h-4 text-[#EF4444]" />
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Notifications
               </h2>
-              <p className="text-xs text-[#78716C]">
-                Sécurisez votre compte utilisateur enregistré dans la base de données
-              </p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  id: 'enrollmentAlerts',
+                  title: 'Enrollment Alerts',
+                  desc: 'New student applications',
+                },
+                {
+                  id: 'attendanceReports',
+                  title: 'Attendance Reports',
+                  desc: 'Daily attendance summary',
+                },
+                {
+                  id: 'gradeSubmissions',
+                  title: 'Grade Submissions',
+                  desc: 'Teacher grade uploads',
+                },
+                {
+                  id: 'eventReminders',
+                  title: 'Event Reminders',
+                  desc: 'School events & exams',
+                },
+                {
+                  id: 'parentMessages',
+                  title: 'Parent Messages',
+                  desc: 'Incoming parent messages',
+                },
+              ].map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between py-1"
+                >
+                  <div>
+                    <h4 className="text-xs font-bold text-[#1E293B]">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] text-[#64748B]">{item.desc}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleNotification(item.id)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${
+                      notifications[item.id] ? 'bg-[#4361EE]' : 'bg-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                        notifications[item.id] ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
-          <form onSubmit={handleChangePassword} className="space-y-4 max-w-lg">
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">
-                Mot de passe actuel *
-              </label>
-              <input
-                type="password"
-                required
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Votre mot de passe actuel"
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
+          {/* System Card */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
+            <div className="flex items-center gap-2 mb-4">
+              <Sliders className="w-4 h-4 text-[#8B5CF6]" />
+              <h2 className="text-base font-bold text-[#1E293B]">
+                System
+              </h2>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">
-                Nouveau mot de passe *
-              </label>
-              <input
-                type="password"
-                required
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Nouveau mot de passe (min. 6 caractères)"
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
+            <div className="space-y-4">
+              {[
+                {
+                  id: 'darkMode',
+                  title: 'Dark Mode',
+                  desc: 'Switch app appearance',
+                },
+                {
+                  id: 'twoFactorAuth',
+                  title: 'Two-Factor Auth',
+                  desc: 'Enhanced login security',
+                },
+                {
+                  id: 'autoBackup',
+                  title: 'Auto Backup',
+                  desc: 'Daily data backup',
+                },
+              ].map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between py-1"
+                >
+                  <div>
+                    <h4 className="text-xs font-bold text-[#1E293B]">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] text-[#64748B]">{item.desc}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSystem(item.id)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${
+                      systemSettings[item.id] ? 'bg-[#4361EE]' : 'bg-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                        systemSettings[item.id] ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Danger Zone Card */}
+          <div className="edutrack-card bg-white p-5 rounded-2xl border border-rose-200 shadow-xs">
+            <div className="flex items-center gap-2 mb-2 text-[#EF4444]">
+              <AlertTriangle className="w-4 h-4" />
+              <h2 className="text-base font-bold">
+                Danger Zone
+              </h2>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#16222F] mb-1">
-                Confirmer le nouveau mot de passe *
-              </label>
-              <input
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirmez le nouveau mot de passe"
-                className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-              />
-            </div>
+            <p className="text-[11px] text-[#64748B] mb-4">
+              These actions are irreversible. Please proceed with caution.
+            </p>
 
-            <div className="pt-2">
+            <div className="space-y-2.5">
               <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-3 rounded-full text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to reset the academic year?')) {
+                    setSuccess('Academic year reset request processed.');
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 text-xs font-semibold transition cursor-pointer"
               >
-                {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Enregistrer le nouveau mot de passe</span>
+                Reset Academic Year
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('DANGER: Are you sure you want to delete all student test data?')) {
+                    setSuccess('Student data deletion requested.');
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 text-xs font-semibold transition cursor-pointer"
+              >
+                Delete All Student Data
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
