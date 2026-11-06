@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
+import { Search, Bell, Mail, ChevronDown, LogOut, User, Globe, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { communicationService } from '../../services/communicationService';
 
 export default function Navbar() {
   const {
     currentUser,
+    activeView,
     searchQuery,
     setSearchQuery,
     notifications,
@@ -17,58 +18,190 @@ export default function Navbar() {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSearchInput, setShowSearchInput] = useState(false);
 
-  const unreadNotifications = notifications.filter((n) => !n.isRead && !n.read);
+  const unreadNotifications = notifications?.filter((n) => !n.isRead && !n.read) || [];
   const unreadCount = unreadNotifications.length;
 
   const markAllRead = async () => {
     try {
-      await Promise.all(
-        unreadNotifications.map((n) => communicationService.markNotificationRead(n.id))
-      );
-      await refreshNotifications();
+      if (notifications && notifications.length > 0) {
+        await Promise.all(
+          unreadNotifications.map((n) => communicationService.markNotificationRead(n.id))
+        );
+        await refreshNotifications();
+      }
     } catch {
     }
   };
 
-  const getRoleLabel = () => {
-    if (!currentUser?.roles) return 'Utilisateur';
-    if (currentUser.roles.includes('ROLE_ADMIN')) return 'Super Administrateur';
-    if (currentUser.roles.includes('ROLE_STAFF')) return 'Secrétariat Administratif';
-    if (currentUser.roles.includes('ROLE_LIBRARIAN')) return 'Bibliothécaire';
-    if (currentUser.roles.includes('ROLE_TEACHER')) return 'Corps Enseignant';
-    if (currentUser.roles.includes('ROLE_STUDENT')) return 'Élève';
-    if (currentUser.roles.includes('ROLE_PARENT')) return 'Parent / Tuteur';
-    return 'Membre';
+  // Convert activeView slug to a clean title matching Figma
+  const getPageTitle = () => {
+    switch (activeView) {
+      case 'dashboard':
+      case 'staff-dashboard':
+      case 'teacher-dashboard':
+      case 'student-dashboard':
+      case 'parent-dashboard':
+      case 'librarian-dashboard':
+        return 'Dashboard';
+      case 'students':
+      case 'student-portal':
+        return 'Students';
+      case 'teachers':
+        return 'Teachers';
+      case 'classes':
+        return 'Classes';
+      case 'calendar':
+      case 'timetable':
+        return 'Calendar';
+      case 'settings':
+        return 'Settings';
+      case 'finances':
+        return 'Finances';
+      case 'grades':
+        return 'Grades & Examinations';
+      case 'documents':
+        return 'Documents';
+      case 'admissions':
+      case 'admissions-admin':
+        return 'Admissions';
+      case 'communications':
+        return 'Communications';
+      case 'library-catalog':
+      case 'library-loans':
+      case 'library-returns':
+      case 'library-history':
+      case 'library-availability':
+        return 'Library';
+      case 'users-management':
+        return 'Users Management';
+      case 'audit-logs':
+        return 'Audit Logs';
+      case 'absences':
+        return 'Absences';
+      case 'reports':
+        return 'Reports';
+      default:
+        return 'Dashboard';
+    }
+  };
+
+  const getInitials = () => {
+    if (!currentUser) return 'PA';
+    const first = currentUser.firstName ? currentUser.firstName.charAt(0) : '';
+    const last = currentUser.lastName ? currentUser.lastName.charAt(0) : '';
+    return (first + last).toUpperCase() || 'PA';
   };
 
   const displayName = currentUser
     ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
-    : 'Utilisateur';
+    : 'Principal Adams';
 
-  const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  const userRole = currentUser?.roles?.[0]?.replace('ROLE_', '') || 'SUPER ADMIN';
 
   return (
-    <header className="h-16 sm:h-20 bg-transparent px-6 sm:px-8 flex items-center justify-between gap-4 sticky top-0 z-20">
-      <div className="relative flex-1 max-w-sm sm:max-w-md">
-        <Search className="w-4 h-4 text-[#94A3B8] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher..."
-          className="w-full bg-white/95 border border-[#EBE5DA] rounded-full pl-10 pr-4 py-2 text-xs sm:text-sm text-[#16222F] placeholder:text-[#94A3B8] shadow-sm focus:outline-none focus:ring-1 focus:ring-[#C5A880] transition-all"
-        />
+    <header className="h-20 bg-transparent px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20 select-none">
+      {/* Page Title from Figma */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E293B]">
+          {getPageTitle()}
+        </h1>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="flex items-center bg-white border border-[#EFECE6] rounded-full p-0.5 text-xs font-semibold text-[#78716C] shadow-sm">
-          {['FR', 'EN', 'AR'].map((l) => (
+      {/* Right Action Icons & Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Search Bar / Icon */}
+        <div className="relative">
+          {showSearchInput ? (
+            <div className="flex items-center bg-white border border-[#E2E8F0] rounded-full pl-3 pr-2 py-1.5 shadow-sm">
+              <Search className="w-4 h-4 text-[#94A3B8] shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                autoFocus
+                className="w-36 sm:w-56 text-xs text-[#1E293B] pl-2 focus:outline-none"
+                onBlur={() => !searchQuery && setShowSearchInput(false)}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowSearchInput(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-white transition-colors cursor-pointer"
+              title="Search"
+            >
+              <Search className="w-4 h-4 stroke-[2]" />
+            </button>
+          )}
+        </div>
+
+        {/* Messages / Mail Icon from Figma */}
+        <button
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-white transition-colors cursor-pointer"
+          title="Messages"
+        >
+          <Mail className="w-4 h-4 stroke-[2]" />
+        </button>
+
+        {/* Notifications Bell from Figma */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-white transition-colors relative cursor-pointer"
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4 stroke-[2]" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#F1F5F9] p-4 z-50 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between pb-3 mb-2 border-b border-[#F1F5F9]">
+                <span className="text-xs font-bold text-[#1E293B]">
+                  Notifications ({unreadCount})
+                </span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-[11px] text-[#4361EE] hover:underline font-medium cursor-pointer"
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {notifications && notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((n) => (
+                    <div
+                      key={n.id}
+                      className={`p-2.5 rounded-xl text-xs ${
+                        n.isRead ? 'bg-slate-50 text-[#64748B]' : 'bg-[#EEF2FF] text-[#1E293B]'
+                      }`}
+                    >
+                      <p className="font-semibold">{n.title || 'Notification'}</p>
+                      <p className="text-[11px] text-[#64748B] mt-0.5">{n.message || n.content}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-xs text-[#94A3B8] py-4">No notifications</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Language selector subtle pill */}
+        <div className="hidden sm:flex items-center bg-white border border-[#E2E8F0] rounded-full p-0.5 text-xs text-[#64748B] shadow-2xs">
+          {['FR', 'EN'].map((l) => (
             <button
               key={l}
               onClick={() => setLanguage(l)}
-              className={`px-2 py-0.5 rounded-full transition-all text-[11px] cursor-pointer ${
-                language === l ? 'bg-[#16222F] text-white shadow-xs' : 'hover:text-[#16222F]'
+              className={`px-2 py-0.5 rounded-full transition-all text-[11px] font-semibold cursor-pointer ${
+                language === l ? 'bg-[#4361EE] text-white' : 'hover:text-[#1E293B]'
               }`}
             >
               {l}
@@ -76,98 +209,32 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[#16222F] hover:bg-black/5 transition-colors relative cursor-pointer"
-          >
-            <Bell className="w-5 h-5 text-[#16222F]" />
-            {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-[#EF4444] text-white rounded-full text-[9px] font-bold flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#EFECE6] p-3 z-50 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#F4EDE2]">
-                <span className="text-xs font-bold text-[#16222F]">Notifications ({unreadCount})</span>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllRead}
-                    className="text-[11px] text-[#C5A880] hover:underline font-medium cursor-pointer"
-                  >
-                    Tout marquer comme lu
-                  </button>
-                )}
-              </div>
-              <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-[#78716C]">
-                    Aucune notification pour le moment.
-                  </div>
-                ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`p-2.5 rounded-xl text-xs flex flex-col gap-0.5 transition-colors ${
-                        !n.isRead && !n.read ? 'bg-[#FAF7F2] border border-[#EFECE6]' : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-[#16222F]">{n.content || n.title}</span>
-                        {!n.isRead && !n.read && <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>}
-                      </div>
-                      <span className="text-[10px] text-[#78716C]">{n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : 'Aujourd\'hui'}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="relative">
+        {/* User Avatar Circle from Figma ("PA") */}
+        <div className="relative ml-1">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2.5 py-1 px-2.5 rounded-full hover:bg-black/5 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 p-0.5 rounded-full hover:ring-2 hover:ring-[#4361EE]/20 transition-all cursor-pointer"
           >
-            <img
-              src={currentUser?.photoUrl || defaultAvatar}
-              alt={displayName}
-              className="w-8 h-8 rounded-full object-cover border border-[#EFECE6]"
-              onError={(e) => {
-                e.currentTarget.src = defaultAvatar;
-              }}
-            />
-            <div className="hidden sm:block text-left leading-tight">
-              <span className="text-xs font-bold text-[#16222F] block">
-                {displayName}
-              </span>
-              <span className="text-[10px] text-[#78716C] block">
-                {getRoleLabel()}
-              </span>
+            <div className="w-9 h-9 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center text-[#4361EE] text-xs font-bold shadow-xs">
+              {getInitials()}
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-[#16222F]" />
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#EFECE6] p-2 z-50 animate-in fade-in zoom-in-95">
-              <div className="px-3 py-2 border-b border-[#F4EDE2]">
-                <p className="text-xs font-bold text-[#16222F]">{displayName}</p>
-                <p className="text-[10px] text-[#78716C] truncate">{currentUser?.email}</p>
-                <span className="inline-block mt-1 text-[9px] font-bold bg-[#FAF7F2] text-[#C5A880] px-2 py-0.5 rounded-full border border-[#EFECE6]">
-                  {getRoleLabel()}
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#F1F5F9] p-2 z-50 animate-in fade-in zoom-in-95">
+              <div className="px-3 py-2.5 border-b border-[#F1F5F9]">
+                <p className="text-xs font-bold text-[#1E293B] truncate">{displayName}</p>
+                <span className="text-[10px] font-semibold text-[#4361EE] bg-[#EEF2FF] px-2 py-0.5 rounded-md inline-block mt-1">
+                  {userRole}
                 </span>
               </div>
-              <div className="pt-1">
+              <div className="py-1">
                 <button
                   onClick={logout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#FEF2F2] rounded-xl transition cursor-pointer"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Se déconnecter</span>
+                  <LogOut className="w-4 h-4" />
+                  <span>Log out</span>
                 </button>
               </div>
             </div>

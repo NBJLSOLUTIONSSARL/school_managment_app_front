@@ -1,14 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <polygon points="50,14 14,34 86,34" fill="#C5A880" stroke="#C5A880" stroke-width="2" stroke-linejoin="round"/>
-  <rect x="18" y="34" width="64" height="6" rx="1" fill="#C5A880"/>
-  <rect x="22" y="44" width="8" height="32" rx="1.5" fill="#C5A880"/>
-  <rect x="38" y="44" width="8" height="32" rx="1.5" fill="#C5A880"/>
-  <rect x="54" y="44" width="8" height="32" rx="1.5" fill="#C5A880"/>
-  <rect x="70" y="44" width="8" height="32" rx="1.5" fill="#C5A880"/>
-  <rect x="20" y="41" width="12" height="3" rx="1" fill="#C5A880"/>
-  <rect x="36" y="41" width="12" height="3" rx="1" fill="#C5A880"/>
-  <rect x="52" y="41" width="12" height="3" rx="1" fill="#C5A880"/>
-  <rect x="68" y="41" width="12" height="3" rx="1" fill="#C5A880"/>
-  <rect x="16" y="78" width="68" height="5" rx="1" fill="#C5A880"/>
-  <rect x="12" y="83" width="76" height="5" rx="1" fill="#C5A880"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="14" fill="#4361EE"/>
+  <path d="M24 13L10 20L24 27L38 20L24 13Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 23.5V30.5C15 30.5 18 34.5 24 34.5C30 34.5 33 30.5 33 30.5V23.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 20.5V29" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="38" cy="30" r="1.5" fill="white"/>
 </svg>

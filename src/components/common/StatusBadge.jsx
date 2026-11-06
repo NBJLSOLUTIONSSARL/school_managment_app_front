@@ -1,51 +1,80 @@
 import React from 'react';
 
-export default function StatusBadge({ status, dot = false }) {
+export default function StatusBadge({
+  status,
+  variant = 'pill', // 'pill' or 'dot'
+  dot = false,
+  className = '',
+}) {
   if (!status) return null;
 
-  const normalized = status.toLowerCase();
+  const normalized = String(status).toLowerCase().trim();
 
-  let styles = 'bg-slate-100 text-slate-700 border-slate-200';
-  let dotColor = 'bg-slate-500';
+  let dotColor = 'bg-slate-400';
+  let pillStyles = 'bg-slate-100 text-slate-700';
 
   if (
+    normalized === 'active' ||
     normalized === 'actif' ||
-    normalized === 'justifiée' ||
+    normalized === 'approved' ||
     normalized === 'approuvé' ||
-    normalized === 'lu' ||
-    normalized === 'réussie'
+    normalized === 'justifiée' ||
+    normalized === 'paid' ||
+    normalized === 'payée'
   ) {
-    styles = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    dotColor = 'bg-emerald-500';
+    dotColor = 'bg-[#10B981]';
+    pillStyles = 'bg-[#ECFDF5] text-[#10B981]';
   } else if (
+    normalized === 'pending' ||
     normalized === 'en attente' ||
-    normalized === 'non lu' ||
-    normalized === 'en cours'
+    normalized === 'pending payment' ||
+    normalized === 'demo lesson' ||
+    normalized === 'assignment' ||
+    normalized === 'final interview' ||
+    normalized === 'low attendance' ||
+    normalized === 'unassigned'
   ) {
-    styles = 'bg-amber-50 text-amber-700 border-amber-200';
-    dotColor = 'bg-amber-500';
-  } else if (
-    normalized === 'en congé' ||
-    normalized === 'refusé' ||
-    normalized === 'rejeté' ||
-    normalized === 'inactif'
-  ) {
-    styles = 'bg-rose-50 text-rose-700 border-rose-200';
-    dotColor = 'bg-rose-500';
-  } else if (normalized.includes('moyen') || !isNaN(parseFloat(status))) {
-    const val = parseFloat(status);
-    if (val >= 16) {
-      styles = 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold';
-    } else if (val >= 14) {
-      styles = 'bg-amber-50 text-amber-700 border-amber-200 font-bold';
+    if (normalized === 'pending payment' || normalized === 'low attendance') {
+      dotColor = 'bg-[#EF4444]';
+      pillStyles = 'bg-[#FEF2F2] text-[#EF4444]';
+    } else if (normalized === 'demo lesson') {
+      dotColor = 'bg-[#4361EE]';
+      pillStyles = 'bg-[#EEF2FF] text-[#4361EE]';
     } else {
-      styles = 'bg-orange-50 text-orange-700 border-orange-200 font-bold';
+      dotColor = 'bg-[#F59E0B]';
+      pillStyles = 'bg-[#FFFBEB] text-[#D97706]';
     }
+  } else if (
+    normalized === 'documents review' ||
+    normalized === 'in review' ||
+    normalized === 'cv review'
+  ) {
+    dotColor = normalized === 'cv review' ? 'bg-[#10B981]' : 'bg-[#4361EE]';
+    pillStyles = 'bg-[#EEF2FF] text-[#4361EE]';
+  } else if (
+    normalized === 'suspended' ||
+    normalized === 'at risk' ||
+    normalized === 'no teacher' ||
+    normalized === 'rejeté' ||
+    normalized === 'refusé' ||
+    normalized === 'en retard'
+  ) {
+    dotColor = 'bg-[#EF4444]';
+    pillStyles = 'bg-[#FEF2F2] text-[#EF4444]';
+  }
+
+  if (variant === 'dot' || dot) {
+    return (
+      <span className={`inline-flex items-center gap-2 text-xs font-medium text-[#1E293B] ${className}`}>
+        <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`}></span>
+        <span>{status}</span>
+      </span>
+    );
   }
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${styles}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${pillStyles} ${className}`}
     >
       {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>}
       {status}

@@ -2,29 +2,23 @@
 
 @layer base {
   :root {
-    --primary-navy: #16222F;
-    --sidebar-bg: #16222F;
-    --sidebar-hover: #223244;
-    --sand-bg: #FAF7F2;
-    --sand-card: #FFFFFF;
-    --sand-border: #EFECE6;
-    --sand-gold: #C5A880;
-    --sand-gold-light: #F4EDE2;
-    --sand-gold-hover: #B8996F;
+    --primary: #4361EE;
+    --primary-hover: #3451D1;
+    --primary-light: #EEF2FF;
+    --sidebar-bg: #FFFFFF;
+    --sidebar-active-bg: #EEF2FF;
+    --sidebar-active-text: #4361EE;
+    --bg-page: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --card-border: #F1F5F9;
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #FAF7F2;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F8FAFC;
     color: #1E293B;
-  }
-
-  h1, h2, h3, .font-serif-title {
-    font-family: 'Playfair Display', Georgia, serif;
-  }
-
-  .font-brand {
-    font-family: 'Cinzel', serif;
   }
 }
 
@@ -38,23 +32,25 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D9D2C7;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #BDB4A5;
+  background: #94A3B8;
 }
 
+.edutrack-card,
 .academy-card {
   background-color: #FFFFFF;
-  border: 1px solid #EFECE6;
-  border-radius: 1.25rem;
-  box-shadow: 0 4px 20px -2px rgba(22, 34, 47, 0.03), 0 2px 6px -1px rgba(22, 34, 47, 0.02);
+  border: 1px solid #F1F5F9;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 4px 16px -2px rgba(67, 97, 238, 0.04);
 }
 
+.edutrack-pill-active,
 .academy-pill-active {
-  background-color: #E8DFC9;
-  color: #16222F;
+  background-color: #EEF2FF;
+  color: #4361EE;
   font-weight: 600;
 }

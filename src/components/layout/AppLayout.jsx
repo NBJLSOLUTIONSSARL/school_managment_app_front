@@ -261,12 +261,12 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#FAF7F2] text-[#1E293B]">
+    <div className="flex min-h-screen bg-[#F8FAFC] text-[#1E293B]">
       {renderSidebar()}
 
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar />
-        <main className="flex-1 px-4 sm:px-8 py-2 max-w-7xl w-full mx-auto animate-in fade-in duration-200">
+        <main className="flex-1 px-6 sm:px-8 pb-10 max-w-[1600px] w-full mx-auto animate-in fade-in duration-200">
           {renderActiveView()}
         </main>
       </div>
