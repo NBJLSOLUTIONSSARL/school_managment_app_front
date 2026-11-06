@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle, AlertCircle, Loader2, UserCheck, Eye, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle, AlertCircle, Loader2, UserCheck, Eye, Sparkles, FileCheck } from 'lucide-react';
+import EduTrackLogo from '../components/common/EduTrackLogo';
+import HeroBanner from '../components/common/HeroBanner';
 import { useAuth } from '../context/AuthContext';
 import { applicationService } from '../services/applicationService';
 
@@ -121,23 +123,23 @@ export default function AdmissionsPage() {
           <div className="w-8 h-8 flex items-center justify-center">
             <img
               src="/logo.svg"
-              alt="Académie Lumière"
+              alt="EduTrack"
               className="w-full h-full object-contain"
             />
           </div>
           <span className="font-serif-title text-base sm:text-lg tracking-wide text-[#16222F] font-semibold">
-            Académie Lumière
+            EduTrack
           </span>
         </div>
 
         <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-xs sm:text-sm font-medium">
           <button
             onClick={() => setActiveView('landing')}
-            className="text-[#16222F]/80 hover:text-[#C5A880] transition-colors cursor-pointer"
+            className="text-[#16222F]/80 hover:text-[#4361EE] transition-colors cursor-pointer"
           >
             Accueil
           </button>
-          <span className="text-[#C5A880] font-semibold cursor-default">
+          <span className="text-[#4361EE] font-semibold cursor-default">
             Admissions
           </span>
           <button
@@ -156,7 +158,7 @@ export default function AdmissionsPage() {
                 onClick={() => setLanguage(l)}
                 className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                   language === l
-                    ? 'bg-[#16222F] text-white shadow-sm'
+                    ? 'bg-[#4361EE] text-white shadow-sm'
                     : 'hover:text-[#16222F]'
                 }`}
               >
@@ -216,7 +218,7 @@ export default function AdmissionsPage() {
                   value={localSearch}
                   onChange={(e) => setLocalSearch(e.target.value)}
                   placeholder="Filtrer candidat, statut..."
-                  className="bg-[#FAF7F2] border border-[#EFECE6] rounded-full px-3.5 py-1.5 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                  className="bg-white border border-[#EFECE6] rounded-full px-3.5 py-1.5 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                 />
                 {successAction && (
                   <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full font-bold shrink-0">
@@ -229,7 +231,7 @@ export default function AdmissionsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2] text-[#78716C] font-bold">
+                  <tr className="border-b border-[#F4EDE2] bg-white text-[#78716C] font-bold">
                     <th className="py-3 px-4">Candidat</th>
                     <th className="py-3 px-4">Date de naissance</th>
                     <th className="py-3 px-4">Tuteur légal</th>
@@ -240,7 +242,7 @@ export default function AdmissionsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#F4EDE2]">
                   {filteredApplications.map((app) => (
-                    <tr key={app.id} className="hover:bg-[#FAF7F2]/60">
+                    <tr key={app.id} className="hover:bg-white/60">
                       <td className="py-3 px-4 font-bold text-[#16222F]">{app.candidateName}</td>
                       <td className="py-3 px-4 text-[#78716C]">{app.candidateBirthDate || '-'}</td>
                       <td className="py-3 px-4 text-[#78716C]">{app.guardianFullName || 'Tuteur'}</td>
@@ -278,7 +280,7 @@ export default function AdmissionsPage() {
                         {app.status === 'ACCEPTED' && !app.studentId && (
                           <button
                             onClick={() => handleConvertStudent(app.id)}
-                            className="px-3 py-1 bg-[#16222F] text-white rounded-lg text-[10px] font-bold hover:bg-[#203144] cursor-pointer"
+                            className="px-3 py-1 bg-[#4361EE] text-white rounded-lg text-[10px] font-bold hover:bg-[#3451D1] cursor-pointer"
                           >
                             Convertir en élève
                           </button>
@@ -302,16 +304,16 @@ export default function AdmissionsPage() {
                 Candidature enregistrée avec succès !
               </h2>
               <p className="text-sm text-[#78716C] max-w-md mx-auto">
-                Votre dossier a été transmis directement au secrétariat de l'Académie Lumière.
+                Votre dossier a été transmis directement au secrétariat de l'EduTrack.
               </p>
-              <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] inline-block">
+              <div className="p-4 rounded-2xl bg-white border border-[#EFECE6] inline-block">
                 <span className="text-xs text-[#78716C] block">Numéro de dossier :</span>
                 <span className="text-base font-mono font-bold text-[#16222F]">{trackingNumber}</span>
               </div>
               <div className="pt-4">
                 <button
                   onClick={() => setIsSubmitted(false)}
-                  className="px-6 py-2.5 bg-[#16222F] text-white rounded-full text-xs font-semibold cursor-pointer"
+                  className="px-6 py-2.5 bg-[#4361EE] text-white rounded-full text-xs font-semibold cursor-pointer"
                 >
                   Déposer une autre candidature
                 </button>
@@ -343,7 +345,7 @@ export default function AdmissionsPage() {
                     required
                     value={formData.studentFirstName}
                     onChange={(e) => setFormData({ ...formData, studentFirstName: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
                 <div>
@@ -353,7 +355,7 @@ export default function AdmissionsPage() {
                     required
                     value={formData.studentLastName}
                     onChange={(e) => setFormData({ ...formData, studentLastName: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
               </div>
@@ -366,7 +368,7 @@ export default function AdmissionsPage() {
                     required
                     value={formData.birthDate}
                     onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
                 <div>
@@ -376,7 +378,7 @@ export default function AdmissionsPage() {
                     required
                     value={formData.guardianName}
                     onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
               </div>
@@ -389,7 +391,7 @@ export default function AdmissionsPage() {
                     required
                     value={formData.guardianPhone}
                     onChange={(e) => setFormData({ ...formData, guardianPhone: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
                 <div>
@@ -398,7 +400,7 @@ export default function AdmissionsPage() {
                     type="text"
                     value={formData.guardianProfession}
                     onChange={(e) => setFormData({ ...formData, guardianProfession: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                    className="w-full bg-white border border-[#EFECE6] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                   />
                 </div>
               </div>
@@ -406,7 +408,7 @@ export default function AdmissionsPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#16222F] hover:bg-[#203144] disabled:opacity-50 text-white font-semibold text-sm py-3.5 rounded-full shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#4361EE] hover:bg-[#3451D1] disabled:opacity-50 text-white font-semibold text-sm py-3.5 rounded-full shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -426,7 +428,7 @@ export default function AdmissionsPage() {
       </main>
 
       <footer className="text-center py-6 text-xs text-[#78716C]">
-        Académie Lumière • Système officiel d'admission
+        EduTrack • Système officiel d'admission
       </footer>
     </div>
   );

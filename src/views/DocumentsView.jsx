@@ -9,8 +9,10 @@ import {
   Loader2,
   AlertCircle,
   Plus,
-  Search
+  Search,
+  Folder,
 } from 'lucide-react';
+import HeroBanner from '../components/common/HeroBanner';
 import StatusBadge from '../components/common/StatusBadge';
 import Modal from '../components/common/Modal';
 import DocumentViewerModal from '../components/documents/DocumentViewerModal';
@@ -130,108 +132,94 @@ export default function DocumentsView() {
   });
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              GED & Justificatifs
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Gestion des Documents
-          </h1>
-          <p className="text-sm text-[#78716C] mt-1">
-            Gérez et vérifiez les documents officiels enregistrés dans le système
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 z-10 w-full md:w-auto justify-end">
-          <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Rechercher un document..."
-              className="w-full bg-white border border-[#EFECE6] rounded-full pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-            />
-          </div>
-          <button
-            onClick={handleOpenUpload}
-            className="flex items-center justify-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
-          >
-            <Upload className="w-4 h-4" />
-            <span>+ Téléverser un document</span>
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 pb-12 select-none">
+      {/* EduTrack Hero Banner */}
+      <HeroBanner
+        title="Document Management & Archive"
+        description="Official school transcripts, medical records, identity verifications, and institutional diplomas."
+        buttonText="+ Upload Document"
+        onButtonClick={handleOpenUpload}
+        icon={Folder}
+      />
 
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-3 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={loadDocuments}
-            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+            className="px-3 py-1 bg-white border border-rose-200 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
           >
-            Réessayer
+            Retry
           </button>
         </div>
       )}
 
-      <div className="academy-card overflow-hidden">
+      {/* Filter and Search */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder="Search documents..."
+            className="w-full bg-white border border-[#E2E8F0] rounded-full pl-10 pr-4 py-2 text-xs text-[#1E293B] placeholder:text-[#94A3B8] shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
+          />
+        </div>
+      </div>
+
+      <div className="edutrack-card bg-white rounded-2xl border border-[#F1F5F9] shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
-            <span className="text-sm font-medium">Chargement des documents depuis MySQL...</span>
+          <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#64748B]">
+            <Loader2 className="w-8 h-8 animate-spin text-[#4361EE]" />
+            <span className="text-xs sm:text-sm font-medium">Loading documents from MySQL database...</span>
           </div>
         ) : filteredDocuments.length === 0 ? (
           <div className="py-20 text-center space-y-3">
-            <FileText className="w-12 h-12 text-[#C5A880] mx-auto opacity-60" />
-            <h3 className="text-base font-bold text-[#16222F]">
-              Aucun document trouvé
+            <Folder className="w-12 h-12 text-[#94A3B8] mx-auto opacity-40" />
+            <h3 className="text-base font-bold text-[#1E293B]">
+              No documents found
             </h3>
-            <p className="text-xs text-[#78716C] max-w-sm mx-auto">
-              Aucun document ne correspond à votre recherche dans la base de données.
+            <p className="text-xs text-[#64748B] max-w-sm mx-auto">
+              Upload a student birth certificate, previous school records, or enrollment file.
             </p>
             <button
               onClick={handleOpenUpload}
-              className="mt-2 inline-flex items-center gap-2 bg-[#16222F] text-white text-xs font-semibold px-4 py-2 rounded-full cursor-pointer hover:bg-[#203144]"
+              className="mt-2 inline-flex items-center gap-2 bg-[#4361EE] text-white text-xs font-semibold px-5 py-2.5 rounded-full cursor-pointer hover:bg-[#3451D1] shadow-2xs"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Téléverser un justificatif</span>
+              <span>Upload Document</span>
             </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#F4EDE2] bg-[#FAF7F2]/50 text-xs font-bold text-[#78716C] uppercase tracking-wider">
-                  <th className="py-4 px-6">Nom du document</th>
-                  <th className="py-4 px-6">Identifiant Type</th>
-                  <th className="py-4 px-6">Date de dépôt</th>
-                  <th className="py-4 px-6">Date d'expiration</th>
-                  <th className="py-4 px-6">Statut</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="border-b border-[#F1F5F9] text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                  <th className="py-4 px-6 font-semibold">Nom du document</th>
+                  <th className="py-4 px-6 font-semibold">Identifiant Type</th>
+                  <th className="py-4 px-6 font-semibold">Date de dépôt</th>
+                  <th className="py-4 px-6 font-semibold">Date d'expiration</th>
+                  <th className="py-4 px-6 font-semibold">Statut</th>
+                  <th className="py-4 px-6 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F4EDE2] text-sm">
+              <tbody className="divide-y divide-[#F1F5F9] text-xs">
                 {filteredDocuments.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                    <td className="py-4 px-6 font-semibold text-[#16222F]">
+                  <tr key={doc.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-4 px-6 font-semibold text-[#1E293B]">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[#C5A880]" />
+                        <FileText className="w-4 h-4 text-[#4361EE]" />
                         <div>
                           <span>{doc.documentTypeName || doc.fileName || `Document #${doc.id}`}</span>
                           {doc.rejectionReason && (

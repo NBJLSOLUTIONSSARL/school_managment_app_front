@@ -15,6 +15,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import StatCard from '../../components/common/StatCard';
+import HeroBanner from '../../components/common/HeroBanner';
 import { useAuth } from '../../context/AuthContext';
 import { libraryService } from '../../services/libraryService';
 
@@ -47,48 +48,13 @@ export default function LibrarianDashboardView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-        <div className="flex items-center gap-5 z-10">
-          <img
-            src={currentUser?.photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"}
-            alt={displayName}
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#E8DFC9] shadow-md"
-            onError={(e) => {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
-            }}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[#16222F] bg-[#DFC2A0] px-2.5 py-0.5 rounded-full">
-                Gestion du fonds & Bibliothèque
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F] mt-1">
-              Bonjour {displayName},
-            </h1>
-            <p className="text-xs sm:text-sm text-[#78716C] mt-0.5">
-              Supervision du catalogue, suivi des prêts d'ouvrages et gestion des retards.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setActiveView('library-loans')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#16222F] text-[#DFC2A0] text-xs font-semibold hover:bg-[#223244] transition-colors shadow-sm cursor-pointer"
-          >
-            <ArrowUpRight className="w-4 h-4" />
-            <span>Enregistrer un emprunt</span>
-          </button>
-          <button
-            onClick={() => setActiveView('library-catalog')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#EFECE6] text-[#16222F] text-xs font-semibold hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-[#C5A880]" />
-            <span>Ajouter un livre</span>
-          </button>
-        </div>
-      </div>
+      <HeroBanner
+        title={`Library Desk · ${displayName}`}
+        description="Manage school catalog, process active loans, record book returns, and track inventory availability in real-time."
+        buttonText="Book Catalog"
+        onButtonClick={() => setActiveView('library-catalog')}
+        icon={BookOpen}
+      />
 
       {error && (
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
@@ -117,7 +83,7 @@ export default function LibrarianDashboardView() {
               icon={BookOpen}
               title="Titres au catalogue"
               value={stats ? stats.totalBooks.toString() : '0'}
-              iconBg="bg-[#F4EDE2]"
+              iconBg="bg-[#EEF2FF]"
               iconColor="text-[#16222F]"
               subtitle={`${stats?.totalCopies || 0} exemplaires au total`}
             />
@@ -135,7 +101,7 @@ export default function LibrarianDashboardView() {
               icon={ArrowUpRight}
               title="Livres empruntés"
               value={stats ? stats.borrowedCopies.toString() : '0'}
-              iconBg="bg-[#F4EDE2]"
+              iconBg="bg-[#EEF2FF]"
               iconColor="text-[#16222F]"
               subtitle="En circulation"
             />
@@ -146,7 +112,7 @@ export default function LibrarianDashboardView() {
               icon={BookmarkCheck}
               title="Emprunts en cours"
               value={stats ? stats.activeLoans.toString() : '0'}
-              iconBg="bg-[#F4EDE2]"
+              iconBg="bg-[#EEF2FF]"
               iconColor="text-[#16222F]"
               subtitle="Fiches de prêt actives"
             />
@@ -183,7 +149,7 @@ export default function LibrarianDashboardView() {
                 </div>
                 <button
                   onClick={() => setActiveView('library-history')}
-                  className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <span>Historique complet</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -240,7 +206,7 @@ export default function LibrarianDashboardView() {
                   <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
                     Modules de gestion
                   </h2>
-                  <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#EFECE6]">
+                  <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#F1F5F9]">
                     Accès direct
                   </span>
                 </div>
@@ -248,10 +214,10 @@ export default function LibrarianDashboardView() {
                 <div className="space-y-2.5">
                   <button
                     onClick={() => setActiveView('library-catalog')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <BookOpen className="w-4 h-4" />
                       </div>
                       <div>
@@ -268,10 +234,10 @@ export default function LibrarianDashboardView() {
 
                   <button
                     onClick={() => setActiveView('library-returns')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <ArrowDownLeft className="w-4 h-4" />
                       </div>
                       <div>
@@ -288,7 +254,7 @@ export default function LibrarianDashboardView() {
 
                   <button
                     onClick={() => setActiveView('library-overdue')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0 border border-rose-200">
@@ -308,7 +274,7 @@ export default function LibrarianDashboardView() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#EFECE6] mt-4">
+              <div className="pt-4 border-t border-[#F1F5F9] mt-4">
                 <span className="text-[11px] text-[#78716C] block text-center">
                   Base de données bibliothèque connectée
                 </span>

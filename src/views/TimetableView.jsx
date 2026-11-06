@@ -197,20 +197,20 @@ export default function TimetableView() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto pb-16 font-sans">
+    <div className="w-full max-w-7xl mx-auto pb-16 font-sans select-none">
       {viewState !== 'official' && (
-        <div className="bg-white rounded-3xl border border-[#E9E4DB] shadow-sm overflow-hidden relative mb-8">
-          <div className="p-6 sm:p-8 flex items-center justify-between border-b border-[#F4EFE6] relative">
+        <div className="bg-white rounded-3xl border border-[#F1F5F9] shadow-xs overflow-hidden relative mb-8">
+          <div className="p-6 sm:p-8 flex items-center justify-between border-b border-[#F1F5F9] relative">
             <div className="flex items-center gap-4 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-[#FCEBD8] border border-[#F4DFC6] flex items-center justify-center text-[#0E1E2E] shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center text-[#4361EE] shadow-2xs">
                 <Calendar className="w-6 h-6 stroke-[1.8]" />
               </div>
-              <div className="h-9 w-px bg-[#E5E0D5]"></div>
+              <div className="h-9 w-px bg-[#E2E8F0]"></div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#0E1E2E] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#1E293B] tracking-tight">
                   {viewState === 'success' ? 'Résultat de la Génération' : 'Emplois du Temps'}
                 </h1>
-                <p className="text-xs sm:text-sm text-[#78716C] mt-0.5">
+                <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
                   {viewState === 'success'
                     ? 'Vos emplois du temps ont été générés avec succès'
                     : 'Générez automatiquement les emplois du temps de votre établissement'}
@@ -286,9 +286,9 @@ export default function TimetableView() {
                 <button
                   type="button"
                   onClick={handleLaunchGeneration}
-                  className="px-8 py-4 rounded-full bg-[#0E1E2E] hover:bg-[#1B2F45] active:scale-[0.98] text-white font-medium text-sm sm:text-base flex items-center gap-3 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
+                  className="px-8 py-4 rounded-full bg-[#4361EE] hover:bg-[#3451D1] active:scale-[0.98] text-white font-semibold text-sm sm:text-base flex items-center gap-3 shadow-md hover:shadow-lg transition-all cursor-pointer group"
                 >
-                  <Sparkles className="w-5 h-5 text-[#DFC2A0] group-hover:rotate-12 transition-transform" />
+                  <Sparkles className="w-5 h-5 text-white/90 group-hover:rotate-12 transition-transform" />
                   <span>Générer les emplois du temps</span>
                   <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
                 </button>

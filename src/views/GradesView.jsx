@@ -15,6 +15,7 @@ import {
   FileText
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
+import HeroBanner from '../components/common/HeroBanner';
 import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { evaluationService } from '../services/evaluationService';
@@ -308,41 +309,13 @@ export default function GradesView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
-              Ã‰valuations
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
-            Gestion des Notes & Examens
-          </h1>
-          <p className="text-sm text-[#78716C] mt-1">
-            Consultez les notes rÃ©elles enregistrÃ©es dans MySQL et Ã©ditez les bulletins
-          </p>
-        </div>
-
-        {canManage && (
-          <div className="flex items-center gap-3 z-10 w-full md:w-auto justify-end">
-            <button
-              onClick={handleOpenAddExam}
-              className="flex items-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ CrÃ©er un examen</span>
-            </button>
-            <button
-              onClick={() => handleOpenExportModal()}
-              className="flex items-center gap-2 border border-[#D9CEBC] bg-[#FAF7F2] text-[#16222F] hover:bg-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-xs transition-all cursor-pointer"
-            >
-              <Download className="w-4 h-4 text-[#C5A880]" />
-              <span>Exporter Bulletin PDF</span>
-            </button>
-          </div>
-        )}
-      </div>
+      <HeroBanner
+        title="Examinations & Grades"
+        description="Official assessment records, test score grading, report cards generation, and semester averages."
+        buttonText={canManage ? "+ Create Examination" : undefined}
+        onButtonClick={handleOpenAddExam}
+        icon={CheckSquare}
+      />
 
       {successMessage && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">

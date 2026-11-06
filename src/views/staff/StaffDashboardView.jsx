@@ -16,6 +16,7 @@ import {
   FileSearch,
 } from 'lucide-react';
 import StatCard from '../../components/common/StatCard';
+import HeroBanner from '../../components/common/HeroBanner';
 import { useAuth } from '../../context/AuthContext';
 import { statsService } from '../../services/statsService';
 
@@ -52,48 +53,13 @@ export default function StaffDashboardView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-        <div className="flex items-center gap-5 z-10">
-          <img
-            src={currentUser?.photoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"}
-            alt={displayName}
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-[#E8DFC9] shadow-md"
-            onError={(e) => {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80";
-            }}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[#16222F] bg-[#DFC2A0] px-2.5 py-0.5 rounded-full">
-                Secrétariat & Administration
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F] mt-1">
-              Bonjour {displayName},
-            </h1>
-            <p className="text-xs sm:text-sm text-[#78716C] mt-0.5">
-              Bienvenue sur votre espace de gestion administrative quotidienne.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setActiveView('admissions')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#16222F] text-white text-xs font-semibold hover:bg-[#223244] transition-colors shadow-sm cursor-pointer"
-          >
-            <FilePlus className="w-4 h-4 text-[#DFC2A0]" />
-            <span>Traiter candidatures</span>
-          </button>
-          <button
-            onClick={() => setActiveView('students')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#EFECE6] text-[#16222F] text-xs font-semibold hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4 text-[#C5A880]" />
-            <span>Inscrire un élève</span>
-          </button>
-        </div>
-      </div>
+      <HeroBanner
+        title={`Welcome, ${displayName}!`}
+        description="Here is your daily administrative overview. Manage admissions, student registrations, document validations, and parent requests."
+        buttonText="Review Applications"
+        onButtonClick={() => setActiveView('admissions')}
+        icon={FileCheck}
+      />
 
       {error && (
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
@@ -122,7 +88,7 @@ export default function StaffDashboardView() {
               icon={FileCheck}
               title="Candidatures reçues"
               value={stats ? stats.totalApplications.toString() : '0'}
-              iconBg="bg-[#F4EDE2]"
+              iconBg="bg-[#EEF2FF]"
               iconColor="text-[#16222F]"
               subtitle="Total des dossiers"
             />
@@ -140,7 +106,7 @@ export default function StaffDashboardView() {
               icon={Users}
               title="Élèves inscrits"
               value={stats ? stats.totalStudents.toString() : '0'}
-              iconBg="bg-[#F4EDE2]"
+              iconBg="bg-[#EEF2FF]"
               iconColor="text-[#16222F]"
               subtitle="Dossiers scolarité actifs"
             />
@@ -169,7 +135,7 @@ export default function StaffDashboardView() {
                 </div>
                 <button
                   onClick={() => setActiveView('admissions')}
-                  className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <span>Voir toutes</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -209,7 +175,7 @@ export default function StaffDashboardView() {
 
                       <button
                         onClick={() => setActiveView('admissions')}
-                        className="self-start sm:self-center px-3 py-1 rounded-lg border border-[#EFECE6] text-[11px] font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                        className="self-start sm:self-center px-3 py-1 rounded-lg border border-[#F1F5F9] text-[11px] font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
                       >
                         Consulter
                       </button>
@@ -225,7 +191,7 @@ export default function StaffDashboardView() {
                   <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
                     Actions quotidiennes
                   </h2>
-                  <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#EFECE6]">
+                  <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#F1F5F9]">
                     Accès rapide
                   </span>
                 </div>
@@ -233,10 +199,10 @@ export default function StaffDashboardView() {
                 <div className="space-y-2.5">
                   <button
                     onClick={() => setActiveView('admissions')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <FileCheck className="w-4 h-4" />
                       </div>
                       <div>
@@ -253,10 +219,10 @@ export default function StaffDashboardView() {
 
                   <button
                     onClick={() => setActiveView('documents')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <FolderCheck className="w-4 h-4" />
                       </div>
                       <div>
@@ -273,10 +239,10 @@ export default function StaffDashboardView() {
 
                   <button
                     onClick={() => setActiveView('finances')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <Receipt className="w-4 h-4" />
                       </div>
                       <div>
@@ -293,10 +259,10 @@ export default function StaffDashboardView() {
 
                   <button
                     onClick={() => setActiveView('guardians')}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between hover:border-[#C5A880] transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center shrink-0">
                         <Users className="w-4 h-4" />
                       </div>
                       <div>
@@ -313,7 +279,7 @@ export default function StaffDashboardView() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#EFECE6] mt-4">
+              <div className="pt-4 border-t border-[#F1F5F9] mt-4">
                 <span className="text-[11px] text-[#78716C] block text-center">
                   Session sécurisée • Droits administratifs actifs
                 </span>

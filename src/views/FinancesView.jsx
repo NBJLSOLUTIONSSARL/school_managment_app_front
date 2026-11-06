@@ -9,7 +9,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Receipt,
+  Plus,
 } from 'lucide-react';
+import HeroBanner from '../components/common/HeroBanner';
 import { useAuth } from '../context/AuthContext';
 import { financeService } from '../services/financeService';
 import { studentService } from '../services/studentService';
@@ -125,41 +127,40 @@ export default function FinancesView() {
   };
 
   const tabs = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: Coins },
-    { id: 'invoices', label: 'Factures & Échéancier', icon: FileText, count: invoices.length },
-    { id: 'payments', label: 'Règlements & Reçus', icon: Receipt, count: payments.length },
-    { id: 'fee-types', label: 'Types de frais', icon: Building, count: feeTypes.length },
-    { id: 'expenses', label: 'Dépenses', icon: TrendingDown, count: expenses.length },
+    { id: 'dashboard', label: 'Financial Overview', icon: Coins },
+    { id: 'invoices', label: 'Invoices & Schedule', icon: FileText, count: invoices.length },
+    { id: 'payments', label: 'Payments & Receipts', icon: Receipt, count: payments.length },
+    { id: 'fee-types', label: 'Fee Structures', icon: Building, count: feeTypes.length },
+    { id: 'expenses', label: 'Expenses', icon: TrendingDown, count: expenses.length },
   ];
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 pb-1">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#16222F] tracking-tight">
-            Gestion Financière
-          </h1>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-            Supervision globale des frais de scolarité, factures, encaissements et dépenses
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6 pb-12 select-none">
+      {/* EduTrack Hero Banner */}
+      <HeroBanner
+        title="Finance & Accounting"
+        description="Oversee tuition fees, student invoices, recurring collections, and institutional expenses with real-time accuracy."
+        buttonText={canManage ? '+ Create Invoice' : undefined}
+        onButtonClick={() => setIsInvoiceModalOpen(true)}
+        icon={Coins}
+      />
 
       {successMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 flex items-center gap-3">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs sm:text-sm flex items-center gap-3">
           <AlertCircle className="w-5 h-5 shrink-0" />
-          <p className="text-sm">{error}</p>
+          <p>{error}</p>
         </div>
       )}
 
-      <div className="border-b border-[#E2E8F0] flex items-center gap-2 overflow-x-auto pb-px">
+      {/* EduTrack Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -167,18 +168,18 @@ export default function FinancesView() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? 'border-[#C5A880] text-[#16222F] bg-white rounded-t-xl'
-                  : 'border-transparent text-[#64748B] hover:text-[#16222F] hover:bg-white/50'
+                  ? 'bg-[#4361EE] text-white shadow-2xs'
+                  : 'text-[#64748B] hover:text-[#1E293B] hover:bg-slate-100'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-[#C5A880]' : 'text-[#94A3B8]'}`} />
+              <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full ${
-                    isActive ? 'bg-[#16222F] text-[#DFC2A0]' : 'bg-[#E2E8F0] text-[#64748B]'
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-[#64748B]'
                   }`}
                 >
                   {tab.count}
@@ -190,9 +191,9 @@ export default function FinancesView() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-[#E2E8F0]">
-          <Loader2 className="w-8 h-8 text-[#C5A880] animate-spin mb-3" />
-          <p className="text-sm text-[#64748B]">Chargement des données financières réelles...</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-[#F1F5F9] shadow-xs">
+          <Loader2 className="w-8 h-8 text-[#4361EE] animate-spin mb-3" />
+          <p className="text-xs sm:text-sm text-[#64748B]">Loading financial records from MySQL database...</p>
         </div>
       ) : (
         <>

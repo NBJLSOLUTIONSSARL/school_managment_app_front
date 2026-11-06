@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import StatCard from '../../components/common/StatCard';
+import HeroBanner from '../../components/common/HeroBanner';
 import { useAuth } from '../../context/AuthContext';
 import { statsService } from '../../services/statsService';
 import { evaluationService } from '../../services/evaluationService';
@@ -65,7 +66,7 @@ export default function StudentDashboardView() {
           />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#16222F] text-[#DFC2A0]">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#4361EE] text-white">
                 Espace Élève
               </span>
               <span className="text-xs text-[#64748B]">
@@ -101,7 +102,7 @@ export default function StudentDashboardView() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-[#E2E8F0]">
-          <Loader2 className="w-8 h-8 text-[#C5A880] animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-[#4361EE] animate-spin mb-3" />
           <p className="text-sm text-[#64748B]">Chargement de votre dossier scolaire...</p>
         </div>
       ) : error ? (
@@ -143,14 +144,14 @@ export default function StudentDashboardView() {
             <div className="lg:col-span-2 academy-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#C5A880]" />
+                  <Calendar className="w-5 h-5 text-[#4361EE]" />
                   <h2 className="text-lg font-bold text-[#16222F] font-serif-title">
                     Mes Cours & Emploi du Temps
                   </h2>
                 </div>
                 <button
                   onClick={() => setActiveView('timetable')}
-                  className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors"
+                  className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors"
                 >
                   <span>Vue calendrier</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -179,8 +180,8 @@ export default function StudentDashboardView() {
                             {slot.timeSlotLabel || `${slot.startTime} - ${slot.endTime}`}
                           </td>
                           <td className="py-3 px-3">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#16222F]/5 text-[#16222F]">
-                              <BookOpen className="w-3 h-3 text-[#C5A880]" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#4361EE]/5 text-[#16222F]">
+                              <BookOpen className="w-3 h-3 text-[#4361EE]" />
                               {slot.subject}
                             </span>
                           </td>
@@ -205,14 +206,14 @@ export default function StudentDashboardView() {
             <div className="academy-card p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[#C5A880]" />
+                  <FileText className="w-5 h-5 text-[#4361EE]" />
                   <h2 className="text-lg font-bold text-[#16222F] font-serif-title">
                     Prochaines Évaluations
                   </h2>
                 </div>
                 <button
                   onClick={() => setActiveView('grades')}
-                  className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors"
+                  className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors"
                 >
                   <span>Mes notes</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -230,7 +231,7 @@ export default function StudentDashboardView() {
                         <span className="font-semibold text-xs text-[#16222F]">
                           {ex.title || ex.name || `Évaluation #${ex.id}`}
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#16222F]/10 text-[#16222F]">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#4361EE]/10 text-[#16222F]">
                           Coeff: {ex.coefficient || 1}
                         </span>
                       </div>
@@ -252,7 +253,7 @@ export default function StudentDashboardView() {
                   className="w-full flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE0] border border-[#E8DFC9] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
-                    <Bookmark className="w-4 h-4 text-[#C5A880]" />
+                    <Bookmark className="w-4 h-4 text-[#4361EE]" />
                     <span className="text-xs font-semibold text-[#16222F]">
                       Consulter la bibliothèque
                     </span>
@@ -264,7 +265,7 @@ export default function StudentDashboardView() {
                   className="w-full flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE0] border border-[#E8DFC9] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">
-                    <Award className="w-4 h-4 text-[#C5A880]" />
+                    <Award className="w-4 h-4 text-[#4361EE]" />
                     <span className="text-xs font-semibold text-[#16222F]">
                       Consulter mes bulletins
                     </span>

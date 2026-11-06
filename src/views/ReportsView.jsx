@@ -10,6 +10,8 @@ import {
   DollarSign
 } from 'lucide-react';
 import LineChart from '../components/common/LineChart';
+import HeroBanner from '../components/common/HeroBanner';
+import StatCard from '../components/common/StatCard';
 import { statsService } from '../services/statsService';
 import { evaluationService } from '../services/evaluationService';
 
@@ -71,27 +73,13 @@ export default function ReportsView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-2 pb-4 overflow-hidden">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-0.5 bg-[#C5A880] rounded-full inline-block" />
-            <h1 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#16222F] tracking-tight">
-              Rapports & Statistiques
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-[#475569] mt-2">
-            Synthèse analytique consolidée à partir des données réelles MySQL
-          </p>
-        </div>
-
-        <button
-          onClick={handleDownloadPdf}
-          className="flex items-center gap-2 bg-[#16222F] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-[#203144] shadow-md transition-colors cursor-pointer"
-        >
-          <Download className="w-4 h-4" />
-          <span>Imprimer le rapport officiel</span>
-        </button>
-      </div>
+      <HeroBanner
+        title="Institutional Analytics & Reports"
+        description="Comprehensive academic data, student demographic distribution, tuition revenue tracking, and official report cards."
+        buttonText="Print Official Report"
+        onButtonClick={handleDownloadPdf}
+        icon={BarChart2}
+      />
 
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
@@ -101,9 +89,9 @@ export default function ReportsView() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
                   <Users className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
@@ -116,9 +104,9 @@ export default function ReportsView() {
               <span className="text-xs font-bold text-emerald-600">Actifs</span>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
                   <GraduationCap className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
@@ -128,12 +116,12 @@ export default function ReportsView() {
                   </p>
                 </div>
               </div>
-              <span className="text-xs font-bold text-[#C5A880]">Enseignants</span>
+              <span className="text-xs font-bold text-[#4361EE]">Enseignants</span>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#EFECE6] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#F0E5D3] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
                   <DollarSign className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
@@ -167,7 +155,7 @@ export default function ReportsView() {
                 <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
                   Bulletins scolaires officiels générés
                 </h2>
-                <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#EFECE6]">
+                <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#F1F5F9]">
                   {reportCards.length} bulletins
                 </span>
               </div>
@@ -181,7 +169,7 @@ export default function ReportsView() {
                   {reportCards.map((rc) => (
                     <div
                       key={rc.id}
-                      className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between"
                     >
                       <div>
                         <p className="text-xs font-bold text-[#16222F]">
@@ -193,7 +181,7 @@ export default function ReportsView() {
                       </div>
                       <button
                         onClick={() => handleDownloadCard(rc.id)}
-                        className="p-2 text-[#16222F] hover:bg-white rounded-lg border border-[#EFECE6] transition-colors cursor-pointer"
+                        className="p-2 text-[#16222F] hover:bg-white rounded-lg border border-[#F1F5F9] transition-colors cursor-pointer"
                         title="Télécharger le bulletin PDF officiel"
                       >
                         <Download className="w-3.5 h-3.5" />

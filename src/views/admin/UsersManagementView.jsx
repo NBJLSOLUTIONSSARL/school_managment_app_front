@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { userService } from '../../services/userService';
 import Modal from '../../components/common/Modal';
+import HeroBanner from '../../components/common/HeroBanner';
 
 export default function UsersManagementView() {
   const [users, setUsers] = useState([]);
@@ -113,29 +114,13 @@ export default function UsersManagementView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
-            <Users className="w-6 h-6 stroke-[1.8]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-serif-title font-bold text-[#16222F]">
-              Gestion des utilisateurs et comptes
-            </h1>
-            <p className="text-xs sm:text-sm text-[#78716C] mt-0.5">
-              Supervision globale des accès, habilitations et statuts des comptes réels MySQL.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={fetchUsers}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#EFECE6] text-xs font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Actualiser</span>
-        </button>
-      </div>
+      <HeroBanner
+        title="User & Account Access Management"
+        description="Comprehensive administration of user accounts, authentication credentials, security permissions, and institutional role allocations."
+        buttonText="Refresh Accounts"
+        onButtonClick={fetchUsers}
+        icon={Shield}
+      />
 
       <div className="academy-card p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full max-w-md">
@@ -145,7 +130,7 @@ export default function UsersManagementView() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom, prénom ou email..."
-            className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl pl-9 pr-4 py-2 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            className="w-full bg-white border border-[#F1F5F9] rounded-xl pl-9 pr-4 py-2 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
           />
         </form>
 
@@ -157,7 +142,7 @@ export default function UsersManagementView() {
               setSelectedRole(e.target.value);
               setPage(0);
             }}
-            className="bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-medium text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            className="bg-white border border-[#F1F5F9] rounded-xl px-3 py-2 text-xs font-medium text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
           >
             <option value="">Tous les rôles</option>
             <option value="ROLE_ADMIN">Super Administrateurs</option>
@@ -190,7 +175,7 @@ export default function UsersManagementView() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF7F2] border-b border-[#EFECE6] text-[#78716C] uppercase font-semibold text-[10px] tracking-wider">
+              <thead className="bg-white border-b border-[#F1F5F9] text-[#78716C] uppercase font-semibold text-[10px] tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Utilisateur</th>
                   <th className="py-3.5 px-4">Email</th>
@@ -204,12 +189,12 @@ export default function UsersManagementView() {
                 {users.map((u) => {
                   const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom';
                   return (
-                    <tr key={u.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                    <tr key={u.id} className="hover:bg-white/60 transition-colors">
                       <td className="py-3 px-4 flex items-center gap-3">
                         <img
                           src={u.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
                           alt={fullName}
-                          className="w-8 h-8 rounded-full object-cover border border-[#EFECE6]"
+                          className="w-8 h-8 rounded-full object-cover border border-[#F1F5F9]"
                           onError={(e) => {
                             e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100";
                           }}
@@ -270,20 +255,20 @@ export default function UsersManagementView() {
         )}
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-[#EFECE6] flex items-center justify-between text-xs text-[#78716C]">
+          <div className="p-4 border-t border-[#F1F5F9] flex items-center justify-between text-xs text-[#78716C]">
             <span>Page {page + 1} sur {totalPages}</span>
             <div className="flex gap-2">
               <button
                 disabled={page === 0}
                 onClick={() => setPage(p => Math.max(0, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#EFECE6] disabled:opacity-40 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-[#F1F5F9] disabled:opacity-40 hover:bg-white transition-colors cursor-pointer"
               >
                 Précédent
               </button>
               <button
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded-lg border border-[#EFECE6] disabled:opacity-40 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-[#F1F5F9] disabled:opacity-40 hover:bg-white transition-colors cursor-pointer"
               >
                 Suivant
               </button>
@@ -309,7 +294,7 @@ export default function UsersManagementView() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setUserToDelete(null)}
-              className="px-4 py-2 rounded-xl border border-[#EFECE6] text-xs font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-[#F1F5F9] text-xs font-semibold text-[#16222F] hover:bg-white transition-colors cursor-pointer"
             >
               Annuler
             </button>

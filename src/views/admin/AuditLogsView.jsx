@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { auditLogService } from '../../services/auditLogService';
 import Modal from '../../components/common/Modal';
+import HeroBanner from '../../components/common/HeroBanner';
 
 export default function AuditLogsView() {
   const [logs, setLogs] = useState([]);
@@ -72,29 +73,13 @@ export default function AuditLogsView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="academy-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#16222F] text-[#DFC2A0] flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-6 h-6 stroke-[1.8]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-serif-title font-bold text-[#16222F]">
-              Journaux d'audit et traçabilité
-            </h1>
-            <p className="text-xs sm:text-sm text-[#78716C] mt-0.5">
-              Historique immuable de l'ensemble des actions, modifications et accès du système.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={fetchLogs}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#EFECE6] text-xs font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Actualiser</span>
-        </button>
-      </div>
+      <HeroBanner
+        title="Security & System Audit Logs"
+        description="Immutable chronological trace of all administrative operations, CRUD events, authentication flows, and security checkpoints."
+        buttonText="Refresh Audit Trail"
+        onButtonClick={fetchLogs}
+        icon={ShieldAlert}
+      />
 
       <div className="academy-card p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="flex flex-wrap items-center gap-3 w-full">
@@ -111,7 +96,7 @@ export default function AuditLogsView() {
               setPage(0);
             }}
             placeholder="Action (ex: CREATE, DELETE)..."
-            className="bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-1.5 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            className="bg-white border border-[#F1F5F9] rounded-xl px-3 py-1.5 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
           />
 
           <input
@@ -122,7 +107,7 @@ export default function AuditLogsView() {
               setPage(0);
             }}
             placeholder="Entité (ex: Student, Invoice)..."
-            className="bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3 py-1.5 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+            className="bg-white border border-[#F1F5F9] rounded-xl px-3 py-1.5 text-xs text-[#16222F] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#4361EE]"
           />
         </div>
       </div>
@@ -147,7 +132,7 @@ export default function AuditLogsView() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF7F2] border-b border-[#EFECE6] text-[#78716C] uppercase font-semibold text-[10px] tracking-wider">
+              <thead className="bg-white border-b border-[#F1F5F9] text-[#78716C] uppercase font-semibold text-[10px] tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Date & Heure</th>
                   <th className="py-3.5 px-4">Utilisateur / Auteur</th>
@@ -159,7 +144,7 @@ export default function AuditLogsView() {
               </thead>
               <tbody className="divide-y divide-[#EFECE6]">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                  <tr key={log.id} className="hover:bg-white/60 transition-colors">
                     <td className="py-3 px-4 text-[#78716C] whitespace-nowrap">
                       <div className="flex items-center gap-1.5 font-mono text-[11px]">
                         <Clock className="w-3.5 h-3.5 text-[#A8A29E]" />
@@ -188,7 +173,7 @@ export default function AuditLogsView() {
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="px-2.5 py-1 rounded-lg border border-[#EFECE6] text-[11px] font-semibold text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg border border-[#F1F5F9] text-[11px] font-semibold text-[#16222F] hover:bg-white transition-colors cursor-pointer"
                       >
                         Inspecter
                       </button>
@@ -201,20 +186,20 @@ export default function AuditLogsView() {
         )}
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-[#EFECE6] flex items-center justify-between text-xs text-[#78716C]">
+          <div className="p-4 border-t border-[#F1F5F9] flex items-center justify-between text-xs text-[#78716C]">
             <span>Page {page + 1} sur {totalPages}</span>
             <div className="flex gap-2">
               <button
                 disabled={page === 0}
                 onClick={() => setPage(p => Math.max(0, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#EFECE6] disabled:opacity-40 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-[#F1F5F9] disabled:opacity-40 hover:bg-white transition-colors cursor-pointer"
               >
                 Précédent
               </button>
               <button
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded-lg border border-[#EFECE6] disabled:opacity-40 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-[#F1F5F9] disabled:opacity-40 hover:bg-white transition-colors cursor-pointer"
               >
                 Suivant
               </button>
@@ -230,7 +215,7 @@ export default function AuditLogsView() {
       >
         {selectedLog && (
           <div className="space-y-4 text-xs text-[#16222F]">
-            <div className="grid grid-cols-2 gap-3 p-3 bg-[#FAF7F2] rounded-xl border border-[#EFECE6]">
+            <div className="grid grid-cols-2 gap-3 p-3 bg-white rounded-xl border border-[#F1F5F9]">
               <div>
                 <span className="text-[#78716C] block">Identifiant log :</span>
                 <span className="font-bold">#{selectedLog.id}</span>
