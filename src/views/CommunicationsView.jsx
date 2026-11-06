@@ -14,6 +14,7 @@ import {
   User,
   Search
 } from 'lucide-react';
+import HeroBanner from '../components/common/HeroBanner';
 import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { communicationService } from '../services/communicationService';
@@ -167,36 +168,13 @@ export default function CommunicationsView() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 pb-2 overflow-hidden">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#16222F] tracking-tight">
-            Communications & Messagerie
-          </h1>
-          <p className="text-xs sm:text-sm text-[#475569] mt-2">
-            Envoyez et consultez les messages internes et les annonces scolaires
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Rechercher message ou annonce..."
-              className="w-full bg-white border border-[#EFECE6] rounded-full pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
-            />
-          </div>
-          <button
-            onClick={handleOpenCompose}
-            className="flex items-center justify-center gap-2 bg-[#16222F] hover:bg-[#203144] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Nouveau message</span>
-          </button>
-        </div>
-      </div>
+      <HeroBanner
+        title="Communication & Messaging Center"
+        description="Internal messaging, faculty correspondence, broadcast announcements, and real-time alerts."
+        buttonText="+ New Message"
+        onButtonClick={handleOpenCompose}
+        icon={Mail}
+      />
 
       {successMessage && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3 animate-in fade-in">
@@ -226,8 +204,8 @@ export default function CommunicationsView() {
             onClick={() => setActiveFolder('inbox')}
             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
               activeFolder === 'inbox'
-                ? 'bg-[#16222F] text-white shadow-xs'
-                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+                ? 'bg-[#4361EE] text-white shadow-xs'
+                : 'text-[#1E293B] hover:bg-[#FAF7F2]'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -247,8 +225,8 @@ export default function CommunicationsView() {
             onClick={() => setActiveFolder('sent')}
             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
               activeFolder === 'sent'
-                ? 'bg-[#16222F] text-white shadow-xs'
-                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+                ? 'bg-[#4361EE] text-white shadow-xs'
+                : 'text-[#1E293B] hover:bg-[#FAF7F2]'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -264,8 +242,8 @@ export default function CommunicationsView() {
             onClick={() => setActiveFolder('announcements')}
             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
               activeFolder === 'announcements'
-                ? 'bg-[#16222F] text-white shadow-xs'
-                : 'text-[#16222F] hover:bg-[#FAF7F2]'
+                ? 'bg-[#4361EE] text-white shadow-xs'
+                : 'text-[#1E293B] hover:bg-[#FAF7F2]'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -281,12 +259,12 @@ export default function CommunicationsView() {
         <div className="lg:col-span-3 academy-card overflow-hidden">
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#1E293B]" />
               <span className="text-sm font-medium">Chargement des messages depuis MySQL...</span>
             </div>
           ) : activeFolder === 'announcements' ? (
             <div className="p-6 space-y-4">
-              <h3 className="font-serif-title font-bold text-lg text-[#16222F]">
+              <h3 className="font-serif-title font-bold text-lg text-[#1E293B]">
                 Annonces de l'Académie Lumière
               </h3>
               {filteredAnnouncements.length === 0 ? (
@@ -301,13 +279,13 @@ export default function CommunicationsView() {
                       className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#16222F]">{ann.title}</span>
+                        <span className="text-xs font-bold text-[#1E293B]">{ann.title}</span>
                         <span className="text-[10px] text-[#78716C]">
                           {ann.publishedAt ? new Date(ann.publishedAt).toLocaleDateString('fr-FR') : '-'}
                         </span>
                       </div>
                       <p className="text-xs text-[#64748B] leading-relaxed">{ann.content}</p>
-                      <span className="inline-block text-[9px] font-bold uppercase bg-[#E8DFC9] text-[#16222F] px-2 py-0.5 rounded-full">
+                      <span className="inline-block text-[9px] font-bold uppercase bg-[#EEF2FF] text-[#1E293B] px-2 py-0.5 rounded-full">
                         Cible : {ann.targetRole || 'Tous'}
                       </span>
                     </div>
@@ -337,9 +315,9 @@ export default function CommunicationsView() {
                   ) : (
                     filterMessages(activeFolder === 'inbox' ? inboxMessages : sentMessages).map((msg) => (
                       <tr key={msg.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                        <td className="py-4 px-6 font-semibold text-[#16222F]">
+                        <td className="py-4 px-6 font-semibold text-[#1E293B]">
                           <div className="flex items-center gap-2.5">
-                            <Mail className={`w-4 h-4 ${!msg.isRead && activeFolder === 'inbox' ? 'text-[#C5A880]' : 'text-[#94A3B8]'}`} />
+                            <Mail className={`w-4 h-4 ${!msg.isRead && activeFolder === 'inbox' ? 'text-[#4361EE]' : 'text-[#94A3B8]'}`} />
                             <span className={!msg.isRead && activeFolder === 'inbox' ? 'font-bold' : 'font-normal'}>
                               {msg.subject}
                             </span>
@@ -365,7 +343,7 @@ export default function CommunicationsView() {
                         <td className="py-4 px-6 text-right">
                           <button
                             onClick={() => handleOpenView(msg)}
-                            className="p-1.5 text-[#78716C] hover:text-[#16222F] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[#78716C] hover:text-[#1E293B] hover:bg-[#FAF7F2] rounded-lg transition-colors cursor-pointer"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -393,13 +371,13 @@ export default function CommunicationsView() {
             </div>
           )}
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">
+            <label className="block text-xs font-bold text-[#1E293B] mb-1">
               Destinataire *
             </label>
             <select
               value={messageForm.recipientId}
               onChange={(e) => setMessageForm({ ...messageForm, recipientId: e.target.value })}
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#1E293B] focus:outline-hidden focus:ring-1 focus:ring-[#C5A880]"
               required
             >
               <option value="" disabled>
@@ -436,26 +414,26 @@ export default function CommunicationsView() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Objet *</label>
+            <label className="block text-xs font-bold text-[#1E293B] mb-1">Objet *</label>
             <input
               type="text"
               required
               value={messageForm.subject}
               onChange={(e) => setMessageForm({ ...messageForm, subject: e.target.value })}
               placeholder="Ex: Suivi pédagogique trimestriel"
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl px-3.5 py-2 text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#16222F] mb-1">Message *</label>
+            <label className="block text-xs font-bold text-[#1E293B] mb-1">Message *</label>
             <textarea
               required
               rows={4}
               value={messageForm.content}
               onChange={(e) => setMessageForm({ ...messageForm, content: e.target.value })}
               placeholder="Rédigez votre message ici..."
-              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl p-3 text-sm text-[#16222F] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#EFECE6] rounded-xl p-3 text-sm text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
             />
           </div>
 
@@ -470,7 +448,7 @@ export default function CommunicationsView() {
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#16222F] text-white hover:bg-[#203144] disabled:opacity-50 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#4361EE] text-white hover:bg-[#3451D1] disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
               {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Envoyer le message</span>
@@ -490,7 +468,7 @@ export default function CommunicationsView() {
               <span className="text-[10px] text-[#A8A29E] block">
                 Envoyé le {selectedMessage.sentAt ? new Date(selectedMessage.sentAt).toLocaleString('fr-FR') : '-'}
               </span>
-              <h3 className="text-base font-bold text-[#16222F] mt-1">
+              <h3 className="text-base font-bold text-[#1E293B] mt-1">
                 {selectedMessage.subject}
               </h3>
             </div>
