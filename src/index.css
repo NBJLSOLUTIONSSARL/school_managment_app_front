@@ -83,3 +83,28 @@ body {
   background: #94a3b8;
 }
 
+/* Keyboard-first focus indicator */
+:where(a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
+}
+
+/* Arabic / RTL typography fallback */
+[dir='rtl'] {
+  font-family:
+    'Segoe UI',
+    Tahoma,
+    'Noto Naskh Arabic',
+    'Arabic Typesetting',
+    system-ui,
+    sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
+

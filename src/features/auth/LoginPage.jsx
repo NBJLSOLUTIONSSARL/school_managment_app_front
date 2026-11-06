@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
+import { useI18n } from '@/hooks/useI18n'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 
 export function LoginPage() {
   const { login, isLoading } = useAuth()
   const { success, error: toastError } = useToast()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -17,26 +19,29 @@ export function LoginPage() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (isLoading) return
     setFormError('')
 
     if (!email || !password) {
-      setFormError('Veuillez renseigner votre email et votre mot de passe.')
+      setFormError(t('login.requiredFields'))
       return
     }
 
     try {
       await login({ email, password, role: 'admin', name: 'Administrateur' })
-      success('Connexion réussie. Bienvenue sur SchoolDesk !')
+      success(t('login.success'))
       navigate(from, { replace: true })
     } catch {
-      toastError('Identifiants incorrects ou service indisponible.')
-      setFormError('Identifiants incorrects.')
+      toastError(t('login.invalidCredentials'))
+      setFormError(t('login.invalidCredentialsShort'))
     }
   }
 
   const handleQuickLogin = async (roleName, roleEmail, roleRole) => {
+    if (isLoading) return
+
     try {
       await login({
         email: roleEmail,
@@ -44,53 +49,55 @@ export function LoginPage() {
         role: roleRole,
         name: roleName,
       })
-      success(`Connecté en tant que ${roleName}`)
+      success(t('login.connectedAs', { name: roleName }))
       navigate(from, { replace: true })
     } catch {
-      toastError('Erreur de connexion rapide.')
+      toastError(t('login.quickError'))
     }
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+    <div className="flex flex-1 items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-sm rounded border border-slate-200 bg-white p-6 shadow-2xs">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded bg-slate-900 text-white font-bold text-sm tracking-wider mb-2 shadow-2xs">
+        <div className="mb-6 text-center">
+          <div
+            aria-hidden="true"
+            className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded bg-slate-900 text-sm font-bold tracking-wider text-white shadow-2xs"
+          >
             SD
           </div>
-          <h2 className="text-base font-semibold text-slate-900 tracking-tight">
-            Connexion au Desk Scolaire
-          </h2>
-          <p className="mt-1 text-2xs text-slate-500">
-            Accédez à votre espace de gestion pédagogique et administratif
-          </p>
+          <h1 className="text-base font-semibold tracking-tight text-slate-900">
+            {t('login.title')}
+          </h1>
+          <p className="mt-1 text-2xs text-slate-500">{t('login.subtitle')}</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <Input
-            label="Email académique"
+            label={t('login.emailLabel')}
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="identifiant@school.edu"
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder={t('login.emailPlaceholder')}
             required
             autoComplete="username"
           />
 
           <Input
-            label="Mot de passe"
+            label={t('login.passwordLabel')}
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder={t('login.passwordPlaceholder')}
             required
             autoComplete="current-password"
           />
 
           {formError && (
-            <div className="rounded border border-rose-200 bg-rose-50 p-2 text-2xs text-rose-700 font-medium">
+            <div
+              role="alert"
+              className="rounded border border-rose-200 bg-rose-50 p-2 text-2xs font-medium text-rose-700"
+            >
               {formError}
             </div>
           )}
@@ -102,43 +109,42 @@ export function LoginPage() {
             className="w-full"
             isLoading={isLoading}
           >
-            Se connecter
+            {t('login.submit')}
           </Button>
         </form>
 
-        {/* Quick Demo Logins */}
         <div className="mt-6 border-t border-slate-100 pt-4">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-center mb-2">
-            Comptes de démonstration rapide
+          <div className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            {t('login.quickAccounts')}
           </div>
           <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => handleQuickLogin('Admin Principal', 'admin@school.edu', 'admin')}
-              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-colors"
+              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
             >
-              Admin
+              {t('roles.admin')}
             </button>
             <button
               type="button"
               onClick={() => handleQuickLogin('Prof. Martin', 'professeur@school.edu', 'teacher')}
-              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-colors"
+              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
             >
-              Enseignant
+              {t('roles.teacher')}
             </button>
             <button
               type="button"
               onClick={() => handleQuickLogin('Lucas Bernard', 'eleve@school.edu', 'student')}
-              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-colors"
+              className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
             >
-              Élève
+              {t('roles.student')}
             </button>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <Link to="/showcase" className="text-2xs text-slate-500 hover:text-slate-800 underline">
-            Voir le catalogue de composants sans connexion →
+          <Link to="/showcase" className="text-2xs text-slate-500 underline hover:text-slate-800">
+            {t('login.showcaseLink')}
           </Link>
         </div>
       </div>

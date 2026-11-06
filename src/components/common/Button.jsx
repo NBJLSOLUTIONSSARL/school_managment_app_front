@@ -49,9 +49,10 @@ export const Button = forwardRef(function Button(
       ref={ref}
       type={type}
       disabled={isDisabled}
+      aria-busy={isLoading || undefined}
       className={cn(
         'inline-flex items-center justify-center font-medium rounded transition-colors select-none',
-        'focus:outline-hidden focus:ring-2 focus:ring-offset-1',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
         variantStyles[variant] || variantStyles.secondary,
         sizeStyles[size] || sizeStyles.sm,
         isDisabled && 'opacity-60 cursor-not-allowed pointer-events-none',

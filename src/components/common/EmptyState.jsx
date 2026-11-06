@@ -1,18 +1,23 @@
 import { cn } from '@/utils/classNames'
+import { useI18n } from '@/hooks/useI18n'
 import { Button } from './Button'
 
 export function EmptyState({
-  title = 'Aucun élément',
-  description = 'Il n’y a aucune donnée à afficher pour le moment.',
+  title,
+  description,
   icon,
   action,
   children,
   className = '',
 }) {
+  const { t } = useI18n()
+  const resolvedTitle = title ?? t('common.emptyTitle')
+  const resolvedDescription = description ?? t('common.emptyDescription')
+
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center p-8 text-center max-w-sm mx-auto select-none',
+        'mx-auto flex max-w-sm select-none flex-col items-center justify-center p-8 text-center',
         className
       )}
     >
@@ -24,6 +29,7 @@ export function EmptyState({
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth="1.5"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -34,8 +40,10 @@ export function EmptyState({
         )}
       </div>
 
-      <h4 className="text-xs font-semibold text-slate-800 tracking-tight">{title}</h4>
-      {description && <p className="mt-1 text-2xs text-slate-500 leading-relaxed">{description}</p>}
+      <h3 className="text-xs font-semibold tracking-tight text-slate-800">{resolvedTitle}</h3>
+      {resolvedDescription && (
+        <p className="mt-1 text-2xs leading-relaxed text-slate-500">{resolvedDescription}</p>
+      )}
 
       {action && (
         <div className="mt-4">

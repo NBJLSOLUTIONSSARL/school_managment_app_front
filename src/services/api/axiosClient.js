@@ -2,13 +2,20 @@ import axios from 'axios'
 import { getAccessToken, clearTokens } from '@/utils/tokenStorage'
 
 /**
+ * Base URL of the backend API.
+ * Configurable per environment through VITE_API_BASE_URL, with a
+ * same-origin "/api" proxy fallback for local development.
+ */
+export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '/api'
+
+/**
  * Pre-configured Axios instance for the School Management API.
- * - Base URL: '/api'
+ * - Base URL: VITE_API_BASE_URL or '/api'
  * - Request interceptor: Automatically injects Authorization: Bearer <accessToken>
  * - Response interceptor: Handles 401 Unauthorized globally (purges tokens and redirects to /login)
  */
 export const axiosClient = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,7 +43,17 @@ axiosClient.interceptors.response.use(
     return response
   },
   (error) => {
-    if (error?.response?.status === 401) {
+    const status = error?.response?.status
+
+    if (status === 401) {
+      const requestUrl = error?.config?.url || ''
+      const isAuthEndpoint = requestUrl.includes('/auth/') || requestUrl.includes('login')
+
+      // Do not wipe the session on a failed login attempt.
+      if (isAuthEndpoint) {
+        return Promise.reject(error)
+      }
+
       // 1. Purge tokens and local storage session
       clearTokens()
 
@@ -45,10 +62,15 @@ axiosClient.interceptors.response.use(
         window.dispatchEvent(new CustomEvent('auth:unauthorized'))
 
         // 3. Redirect to /login if not already on the login page
-        const currentPath = window.location.pathname
+        const currentPath = window.location.pathname || ''
         if (!currentPath.startsWith('/login')) {
-          const redirectParam = encodeURIComponent(currentPath + window.location.search)
-          window.location.href = `/login?redirect=${redirectParam}`
+          const redirectParam = encodeURIComponent(currentPath + (window.location.search || ''))
+
+          try {
+            window.location.assign(`/login?redirect=${redirectParam}`)
+          } catch {
+            // Ignore environments where navigation is not implemented (e.g. tests).
+          }
         }
       }
     }
