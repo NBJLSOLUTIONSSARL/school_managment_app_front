@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tailwind v4 compatibility import — used by src/auth/ components */
+@import "tailwindcss";
+
 :root {
   --frappe-bg: #f8fafc;
   --frappe-surface: #ffffff;
@@ -62,3 +65,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
