@@ -9,6 +9,7 @@ import { StudentListPage } from '@/features/students/StudentListPage'
 import { ComponentShowcasePage } from '@/features/showcase/ComponentShowcasePage'
 import { NotFoundPage } from '@/features/errors/NotFoundPage'
 import { ForbiddenPage } from '@/features/errors/ForbiddenPage'
+import ProfilePage from '@/pages/ProfilePage'
 import { RootIndexRedirect } from './RootIndexRedirect'
 
 export const router = createBrowserRouter([
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
       {
         path: '/students',
         element: <StudentListPage />,
+      },
+      {
+        path: '/profile',
+        element: <ProfilePage />,
       },
       {
         path: '/showcase',
