@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { cn } from '@/utils/classNames'
 
 export function PrivateLayout() {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, hasRole } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -23,9 +23,27 @@ export function PrivateLayout() {
   const navItems = [
     { label: 'Tableau de bord', to: '/dashboard', icon: '📊' },
     { label: 'Étudiants', to: '/students', icon: '🎓' },
+    { label: 'Examens', to: '/exams', icon: '📝' },
+    {
+      label: 'Saisie des notes',
+      to: '/grades',
+      icon: '✍️',
+      roles: [
+        'admin',
+        'ROLE_ADMIN',
+        'teacher',
+        'ROLE_TEACHER',
+        'staff',
+        'ROLE_STAFF',
+      ],
+    },
+    { label: 'Devoirs', to: '/homework', icon: '📚' },
+    { label: 'Bulletins', to: '/report-cards', icon: '📄' },
     { label: 'Composants Desk', to: '/showcase', icon: '🧩' },
     { label: 'Zone Admin (Test 403)', to: '/admin-only', icon: '🛡️' },
   ]
+
+  const visibleNavItems = navItems.filter((item) => !item.roles || hasRole(item.roles))
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
@@ -109,7 +127,7 @@ export function PrivateLayout() {
               Modules Scolaires
             </div>
 
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

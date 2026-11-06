@@ -6,6 +6,11 @@ import { RoleGuard } from '@/components/layout/RoleGuard'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { StudentListPage } from '@/features/students/StudentListPage'
+import { ExamListPage } from '@/features/exams/ExamListPage'
+import { ExamFormPage } from '@/features/exams/ExamFormPage'
+import { GradeEntryPage } from '@/features/grades/GradeEntryPage'
+import { HomeworkPage } from '@/features/homework/HomeworkPage'
+import { ReportCardListPage } from '@/features/reportCards/ReportCardListPage'
 import { ComponentShowcasePage } from '@/features/showcase/ComponentShowcasePage'
 import { NotFoundPage } from '@/features/errors/NotFoundPage'
 import { ForbiddenPage } from '@/features/errors/ForbiddenPage'
@@ -77,6 +82,43 @@ export const router = createBrowserRouter([
       {
         path: '/strategies',
         element: <StrategiesPage />,
+      },
+      {
+        path: '/exams',
+        element: <ExamListPage />,
+      },
+      {
+        path: '/exams/new',
+        element: <ExamFormPage key="exam-new" />,
+      },
+      {
+        path: '/exams/:id',
+        element: <ExamFormPage key="exam-edit" />,
+      },
+      {
+        path: '/grades',
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              'admin',
+              'ROLE_ADMIN',
+              'teacher',
+              'ROLE_TEACHER',
+              'staff',
+              'ROLE_STAFF',
+            ]}
+          >
+            <GradeEntryPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/homework',
+        element: <HomeworkPage />,
+      },
+      {
+        path: '/report-cards',
+        element: <ReportCardListPage />,
       },
       {
         path: '/showcase',
