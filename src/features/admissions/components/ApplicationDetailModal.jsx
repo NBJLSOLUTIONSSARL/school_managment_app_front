@@ -62,7 +62,7 @@ export function ApplicationDetailModal({
     setConvertSuccess(null)
     try {
       const student = await onConvertToStudent(application.id)
-      setConvertSuccess(`Élève inscrit avec succès ! Matricule attribué : ${student?.studentNumber || 'Inscrit'}`)
+      setConvertSuccess(`Élève inscrit avec succès. Matricule attribué : ${student?.studentNumber || 'Inscrit'}`)
     } catch (err) {
       setConvertError(err.response?.data?.message || err.message || 'Impossible de convertir en élève.')
     } finally {

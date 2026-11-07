@@ -71,7 +71,7 @@ export function StaffDashboard() {
     <div className="space-y-6 pb-12 select-none">
       {/* Hero Banner */}
       <HeroBanner
-        title={`Bienvenue, ${displayName} !`}
+        title={`Bienvenue, ${displayName}`}
         description="Espace Secrétariat & Administration : suivi des admissions, des inscriptions élèves et des factures scolaires."
         buttonText="Gérer les élèves"
         onButtonClick={() => navigate('/students')}

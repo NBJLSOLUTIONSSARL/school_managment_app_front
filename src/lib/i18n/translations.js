@@ -108,7 +108,7 @@ export const translations = {
       requiredFields: 'Veuillez renseigner votre email et votre mot de passe.',
       invalidCredentials: 'Identifiants incorrects ou service indisponible.',
       invalidCredentialsShort: 'Identifiants incorrects.',
-      success: 'Connexion réussie. Bienvenue sur SchoolDesk !',
+      success: 'Connexion réussie. Bienvenue sur SchoolDesk.',
       connectedAs: 'Connecté en tant que {name}',
       quickError: 'Erreur de connexion rapide.',
       showcaseLink: 'Voir le catalogue de composants sans connexion →',

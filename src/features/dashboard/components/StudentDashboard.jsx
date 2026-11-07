@@ -72,7 +72,7 @@ export function StudentDashboard() {
     <div className="space-y-6 pb-12 select-none">
       {/* Hero Banner */}
       <HeroBanner
-        title={`Bienvenue, ${displayName} !`}
+        title={`Bienvenue, ${displayName}`}
         description="Consultez vos bulletins scolaires, vos évaluations programmées et vos devoirs rendus en temps réel."
         buttonText="Voir mes devoirs"
         onButtonClick={() => navigate('/homework')}

@@ -1,3 +1,4 @@
+import { Mail, Phone } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
@@ -130,9 +131,19 @@ export function StudentDetailsModal({
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 space-y-0.5 border-t border-slate-100 pt-1.5 text-2xs text-slate-600">
-                    {g.guardianEmail && <div>✉ {g.guardianEmail}</div>}
-                    {g.guardianPhone && <div>📞 {g.guardianPhone}</div>}
+                  <div className="mt-2 space-y-1 border-t border-slate-100 pt-1.5 text-xs text-slate-600">
+                    {g.guardianEmail && (
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{g.guardianEmail}</span>
+                      </div>
+                    )}
+                    {g.guardianPhone && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{g.guardianPhone}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

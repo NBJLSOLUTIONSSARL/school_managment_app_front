@@ -225,7 +225,7 @@ export function PrivateLayout() {
   const visibleNavItems = navItems.filter((item) => !item.roles || hasRole(item.roles))
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans text-[#1E293B]">
+    <div className="flex h-screen h-dvh max-h-screen overflow-hidden bg-[#F8FAFC] font-sans text-[#1E293B]">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-xl focus:border focus:border-[#C7D2FE] focus:bg-[#EEF2FF] focus:px-4 focus:py-2 focus:text-xs focus:font-semibold focus:text-[#4361EE]"
@@ -238,7 +238,7 @@ export function PrivateLayout() {
         id="app-sidebar"
         aria-label={t('nav.modules')}
         className={cn(
-          'fixed inset-y-0 start-0 z-40 flex w-60 lg:w-64 flex-col justify-between border-e border-[#F1F5F9] bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 h-screen sticky top-0 shrink-0 select-none',
+          'fixed inset-y-0 start-0 z-40 flex w-60 lg:w-64 flex-col justify-between border-e border-[#F1F5F9] bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 h-full shrink-0 select-none',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full md:translate-x-0'
         )}
       >
@@ -313,7 +313,7 @@ export function PrivateLayout() {
                 setSidebarOpen(false)
                 navigate('/messages')
               }}
-              className="w-full bg-[#4361EE] hover:bg-[#3451D1] text-white text-xs font-semibold py-2 px-3 rounded-xl shadow-xs transition-all cursor-pointer active:scale-98"
+              className="w-full bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white text-xs font-semibold py-2 px-3 rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               Start chat
             </button>
@@ -332,9 +332,9 @@ export function PrivateLayout() {
       )}
 
       {/* Main Column */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
         {/* Top Floating Navbar matching Figma */}
-        <header className="h-18 sm:h-20 bg-[#F8FAFC]/90 backdrop-blur-md px-6 sm:px-8 border-b border-[#F1F5F9] flex items-center justify-between sticky top-0 z-20 select-none">
+        <header className="h-18 sm:h-20 shrink-0 bg-[#F8FAFC]/90 backdrop-blur-md px-6 sm:px-8 border-b border-[#F1F5F9] flex items-center justify-between z-20 select-none">
           {/* Left: Mobile hamburger & Dynamic page title */}
           <div className="flex items-center gap-3">
             <button

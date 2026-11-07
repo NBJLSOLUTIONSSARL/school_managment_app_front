@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 import { guardianService } from '../api/guardianService'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Loader } from '@/components/ui/Loader'
@@ -92,10 +93,10 @@ export function GuardianSearch({
             <button
               type="button"
               onClick={handleClear}
-              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+              className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-600 cursor-pointer"
               aria-label="Désélectionner le tuteur"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Eye, Check, X, Megaphone } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -485,30 +486,31 @@ export function AnalysesView() {
                               <button
                                 type="button"
                                 onClick={() => openDetail(analysis)}
-                                className="h-7 w-7 rounded border border-frappe-border bg-white text-frappe-dark hover:bg-frappe-hover"
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-frappe-border bg-white text-frappe-dark hover:bg-frappe-hover cursor-pointer"
                                 title="Voir le détail"
                               >
-                                👁️
+                                <Eye className="w-3.5 h-3.5 text-slate-600" />
                               </button>
                             )}
                             {canValidateAction(analysis) && (
                               <button
                                 type="button"
                                 onClick={() => handleValidate(analysis.id)}
-                                className="h-7 w-7 rounded border border-amber-200 bg-white text-amber-700 hover:bg-amber-50"
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-amber-200 bg-white text-amber-700 hover:bg-amber-50 cursor-pointer"
                                 title="Valider"
                               >
-                                ✔
+                                <Check className="w-3.5 h-3.5 text-amber-700" />
                               </button>
                             )}
                             {canRejectAction(analysis) && (
                               <button
                                 type="button"
                                 onClick={() => openReject(analysis.id)}
-                                className="h-7 w-7 rounded border border-rose-200 bg-white text-rose-600 hover:bg-rose-50"
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 cursor-pointer"
                                 title="Rejeter"
+                                aria-label="✖"
                               >
-                                ✖
+                                <X className="w-3.5 h-3.5 text-rose-600" />
                               </button>
                             )}
                             {canPublish && (
@@ -516,10 +518,10 @@ export function AnalysesView() {
                                 type="button"
                                 onClick={() => handlePublish(analysis.id)}
                                 disabled={!canPublishAction(analysis) || loading}
-                                className="h-7 w-7 rounded border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                                 title="Publier"
                               >
-                                📢
+                                <Megaphone className="w-3.5 h-3.5 text-emerald-700" />
                               </button>
                             )}
                           </div>

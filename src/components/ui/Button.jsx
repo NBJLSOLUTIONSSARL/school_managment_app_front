@@ -63,11 +63,11 @@ export const Button = forwardRef(function Button(
       aria-busy={isLoading || undefined}
       onClick={resolvedOnClick}
       className={cn(
-        'inline-flex items-center justify-center transition-all select-none cursor-pointer',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 active:scale-[0.98]',
+        'inline-flex items-center justify-center transition select-none cursor-pointer',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
         variantStyles[variant] || variantStyles.secondary,
         sizeStyles[size] || sizeStyles.sm,
-        isDisabled && 'opacity-60 cursor-not-allowed pointer-events-none active:scale-100',
+        isDisabled && 'opacity-60 cursor-not-allowed pointer-events-none',
         className
       )}
       {...props}

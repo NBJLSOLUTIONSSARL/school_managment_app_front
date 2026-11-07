@@ -1,15 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell } from 'lucide-react'
+import { Bell, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
 import { notificationService } from '../api/notificationService'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/classNames'
 
-const TYPE_ICONS = {
-  INFO: 'ℹ️',
-  WARNING: '⚠️',
-  SUCCESS: '✅',
-  ERROR: '❌',
+function NotificationTypeIcon({ type }) {
+  switch (type) {
+    case 'WARNING':
+      return <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+    case 'SUCCESS':
+      return <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+    case 'ERROR':
+      return <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+    case 'INFO':
+    default:
+      return <Info className="w-4 h-4 text-[#4361EE] shrink-0" />
+  }
 }
 
 export function NotificationDropdown() {
@@ -142,7 +149,7 @@ export function NotificationDropdown() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <span className="shrink-0 text-sm">{TYPE_ICONS[n.type] || 'ℹ️'}</span>
+                      <NotificationTypeIcon type={n.type} />
                       <div className="min-w-0 flex-1">
                         <p className={cn('text-xs text-[#1E293B]', !n.read && 'font-semibold')}>
                           {n.content}

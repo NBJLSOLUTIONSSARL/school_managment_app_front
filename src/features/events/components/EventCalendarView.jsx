@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Clock, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/classNames'
 
@@ -293,12 +294,14 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
                         className="cursor-pointer rounded border border-slate-200 bg-slate-50 p-1.5 text-left text-xs hover:border-slate-400 transition-colors"
                       >
                         <div className="font-semibold text-slate-900 truncate">{ev.title}</div>
-                        <div className="text-[10px] text-slate-500">
-                          ⏱ {ev.startAt?.slice(11, 16)} - {ev.endAt?.slice(11, 16)}
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                          <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{ev.startAt?.slice(11, 16)} - {ev.endAt?.slice(11, 16)}</span>
                         </div>
                         {ev.location && (
-                          <div className="text-[10px] text-slate-400 truncate">
-                            📍 {ev.location}
+                          <div className="flex items-center gap-1 text-[10px] text-slate-400 truncate">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{ev.location}</span>
                           </div>
                         )}
                       </div>

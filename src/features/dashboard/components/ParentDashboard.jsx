@@ -72,7 +72,7 @@ export function ParentDashboard() {
     <div className="space-y-6 pb-12 select-none">
       {/* Hero Banner */}
       <HeroBanner
-        title={`Bonjour, ${parentName} !`}
+        title={`Bonjour, ${parentName}`}
         description="Espace Famille : suivez les résultats scolaires, les bulletins officiels et le suivi pédagogique de vos enfants en temps réel."
         buttonText="Consulter les bulletins"
         onButtonClick={() => navigate('/report-cards')}

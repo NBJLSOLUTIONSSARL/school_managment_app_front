@@ -15,18 +15,18 @@ import { useToast } from '@/hooks/useToast'
 
 const STATUS_FILTERS = [
   { value: 'ALL', label: 'Tous les statuts' },
-  { value: 'PENDING', label: '⏳ En attente' },
-  { value: 'APPROVED', label: '✅ Approuvé' },
-  { value: 'REJECTED', label: '❌ Rejeté' },
-  { value: 'CANCELLED', label: '🚫 Annulé' },
+  { value: 'PENDING', label: 'En attente' },
+  { value: 'APPROVED', label: 'Approuvé' },
+  { value: 'REJECTED', label: 'Rejeté' },
+  { value: 'CANCELLED', label: 'Annulé' },
 ]
 
 const TYPE_FILTERS = [
   { value: 'ALL', label: 'Tous les types' },
-  { value: 'ANNUAL', label: '🏖️ Annuel' },
-  { value: 'SICK', label: '🩺 Maladie' },
-  { value: 'ADMINISTRATIVE', label: '📋 Administratif' },
-  { value: 'UNPAID', label: '⏳ Sans solde' },
+  { value: 'ANNUAL', label: 'Annuel' },
+  { value: 'SICK', label: 'Maladie' },
+  { value: 'ADMINISTRATIVE', label: 'Administratif' },
+  { value: 'UNPAID', label: 'Sans solde' },
 ]
 
 const TYPE_LABELS = {

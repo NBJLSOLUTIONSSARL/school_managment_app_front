@@ -1,3 +1,4 @@
+import { Check, X, AlertTriangle, Info } from 'lucide-react'
 import { cn } from '@/utils/classNames'
 import { useI18n } from '@/hooks/useI18n'
 import { useToast } from '@/hooks/useToast'
@@ -6,22 +7,22 @@ const toastTypeStyles = {
   success: {
     container: 'bg-emerald-50 border-emerald-200 text-emerald-900',
     iconColor: 'text-emerald-600',
-    icon: '✓',
+    Icon: Check,
   },
   error: {
     container: 'bg-rose-50 border-rose-200 text-rose-900',
     iconColor: 'text-rose-600',
-    icon: '✕',
+    Icon: X,
   },
   warning: {
     container: 'bg-amber-50 border-amber-200 text-amber-900',
     iconColor: 'text-amber-600',
-    icon: '⚠',
+    Icon: AlertTriangle,
   },
   info: {
     container: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#1E293B]',
     iconColor: 'text-[#4361EE]',
-    icon: 'ℹ',
+    Icon: Info,
   },
 }
 
@@ -29,6 +30,7 @@ export function ToastItem({ toast, onClose }) {
   const { t } = useI18n()
   const { type = 'info', title, message } = toast
   const style = toastTypeStyles[type] || toastTypeStyles.info
+  const IconComponent = style.Icon || Info
 
   return (
     <div
@@ -46,7 +48,7 @@ export function ToastItem({ toast, onClose }) {
           style.iconColor
         )}
       >
-        {style.icon}
+        <IconComponent className="w-4 h-4" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -57,10 +59,10 @@ export function ToastItem({ toast, onClose }) {
       <button
         type="button"
         onClick={() => onClose(toast.id)}
-        className="shrink-0 rounded p-0.5 text-xs text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
+        className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:text-slate-700 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 cursor-pointer"
         aria-label={t('common.close')}
       >
-        <span aria-hidden="true">✕</span>
+        <X className="w-3.5 h-3.5" />
       </button>
     </div>
   )

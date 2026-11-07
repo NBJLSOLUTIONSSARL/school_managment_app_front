@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Check, Search } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useI18n } from '@/hooks/useI18n'
 
@@ -169,9 +170,13 @@ export function AsyncLinkField({
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute end-2 top-2 text-xs text-slate-400"
+          className="pointer-events-none absolute end-2.5 top-2.5 text-slate-400"
         >
-          {value && !disabled ? '✓' : '🔍'}
+          {value && !disabled ? (
+            <Check className="w-3.5 h-3.5 text-emerald-500" />
+          ) : (
+            <Search className="w-3.5 h-3.5" />
+          )}
         </div>
       </div>
 

@@ -29,7 +29,7 @@ export function HeroBanner({
             <button
               type="button"
               onClick={handleButtonClick}
-              className="bg-white text-[#4361EE] hover:bg-slate-50 font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-sm transition-all inline-flex items-center gap-2 cursor-pointer active:scale-95"
+              className="bg-white text-[#4361EE] hover:bg-slate-50 active:bg-slate-100 font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-sm transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               {ButtonIcon && <ButtonIcon className="w-4 h-4 stroke-[2.5]" />}
               <span>{resolvedButtonText}</span>

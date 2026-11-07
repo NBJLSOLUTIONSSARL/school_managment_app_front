@@ -74,7 +74,7 @@ export function AdminDashboard() {
     <div className="space-y-6 pb-12 select-none">
       {/* Hero Banner */}
       <HeroBanner
-        title={`Bonjour, ${greetingName} !`}
+        title={`Bonjour, ${greetingName}`}
         description={`Espace de direction et d'administration de l'établissement. Données en temps réel synchronisées avec le serveur.`}
         buttonText={t('nav.students')}
         onButtonClick={() => navigate('/students')}

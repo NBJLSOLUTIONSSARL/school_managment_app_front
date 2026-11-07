@@ -13,10 +13,10 @@ import { useToast } from '@/hooks/useToast'
 
 const TYPE_OPTIONS = [
   { value: 'ALL', label: 'Tous les types' },
-  { value: 'INFO', label: 'ℹ️ Information' },
-  { value: 'WARNING', label: '⚠️ Avertissement' },
-  { value: 'SUCCESS', label: '✅ Succès' },
-  { value: 'ERROR', label: '❌ Erreur' },
+  { value: 'INFO', label: 'Information' },
+  { value: 'WARNING', label: 'Avertissement' },
+  { value: 'SUCCESS', label: 'Succès' },
+  { value: 'ERROR', label: 'Erreur' },
 ]
 
 const READ_OPTIONS = [

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { List, Calendar } from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { Button } from '@/components/ui/Button'
@@ -258,25 +259,27 @@ export function EventList() {
             type="button"
             onClick={() => setActiveTab('list')}
             className={cn(
-              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-colors cursor-pointer',
               activeTab === 'list'
                 ? 'bg-[#4361EE] text-white shadow-2xs'
                 : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
-            📋 Liste
+            <List className="w-3.5 h-3.5" />
+            <span>Liste</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('calendar')}
             className={cn(
-              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-colors cursor-pointer',
               activeTab === 'calendar'
                 ? 'bg-[#4361EE] text-white shadow-2xs'
                 : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
-            📅 Calendrier
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Calendrier</span>
           </button>
         </div>
       </div>

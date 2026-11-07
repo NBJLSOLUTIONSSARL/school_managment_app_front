@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 
@@ -56,7 +57,10 @@ export function EventDetailsModal({ isOpen, onClose, event, onOpenEdit }) {
           </div>
           <div className="sm:col-span-2 mt-1 pt-1 border-t border-slate-200">
             <span className="block text-2xs font-semibold uppercase text-slate-400">Lieu :</span>
-            <span className="font-medium text-slate-900">📍 {event.location || '-'}</span>
+            <span className="inline-flex items-center gap-1.5 font-medium text-slate-900">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+              <span>{event.location || '-'}</span>
+            </span>
           </div>
           {event.organizerId && (
             <div className="sm:col-span-2">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -360,10 +361,11 @@ export function ConsentsView() {
                               <button
                                 type="button"
                                 onClick={() => handleRevoke(consent.id)}
-                                className="h-7 w-7 rounded border border-rose-200 bg-white text-rose-600 hover:bg-rose-50"
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 cursor-pointer"
                                 title="Révoquer le consentement"
+                                aria-label="🗑️"
                               >
-                                🗑️
+                                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                               </button>
                             )}
                           </div>

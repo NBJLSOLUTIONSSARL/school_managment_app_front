@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
+import { X } from 'lucide-react'
 import { cn } from '@/utils/classNames'
 import { useI18n } from '@/hooks/useI18n'
 
@@ -144,7 +145,7 @@ export function Modal({
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm leading-none text-[#94A3B8] transition-colors hover:text-[#1E293B] hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 cursor-pointer"
             aria-label={t('common.close')}
           >
-            <span aria-hidden="true">✕</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 

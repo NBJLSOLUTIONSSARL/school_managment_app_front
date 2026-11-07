@@ -180,7 +180,7 @@ export function InvoicesPage() {
           <button
             type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#4361EE] hover:bg-[#3451D1] text-white text-xs font-semibold shadow-xs transition cursor-pointer active:scale-98"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             Nouvelle Facture

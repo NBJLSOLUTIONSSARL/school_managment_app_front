@@ -194,7 +194,7 @@ export function ComponentShowcaseView() {
         secondaryActions={[
           {
             label: 'Tester Toast',
-            onClick: () => success('Notification Frappe Desk opérationnelle !'),
+            onClick: () => success('Notification Frappe Desk opérationnelle.'),
           },
         ]}
       />
@@ -478,7 +478,7 @@ export function ComponentShowcaseView() {
                   <Button
                     variant="success"
                     size="sm"
-                    onClick={() => success('Opération complétée avec succès !')}
+                    onClick={() => success('Opération complétée avec succès.')}
                   >
                     Toast Succès
                   </Button>

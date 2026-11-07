@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Search } from 'lucide-react'
 
 export function LinkField({
   label,
@@ -48,7 +49,9 @@ export function LinkField({
           onChange={(e) => setQuery(e.target.value)}
           className="w-full h-8 rounded border border-slate-300 bg-white px-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-slate-800 focus:outline-hidden"
         />
-        <div className="absolute right-2 top-2 pointer-events-none text-slate-400 text-xs">🔍</div>
+        <div className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400">
+          <Search className="w-3.5 h-3.5" />
+        </div>
       </div>
 
       {isOpen && (

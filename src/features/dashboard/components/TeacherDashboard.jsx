@@ -70,7 +70,7 @@ export function TeacherDashboard() {
     <div className="space-y-6 pb-12 select-none">
       {/* Hero Banner */}
       <HeroBanner
-        title={`Bonjour, ${displayName} !`}
+        title={`Bonjour, ${displayName}`}
         description={`Espace enseignant : gérez vos évaluations, saisissez les notes de vos élèves et consultez le calendrier académique.`}
         buttonText="Saisir les notes"
         onButtonClick={() => navigate('/grades')}

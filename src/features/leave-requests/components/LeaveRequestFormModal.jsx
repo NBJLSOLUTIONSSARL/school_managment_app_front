@@ -6,10 +6,10 @@ import { leaveRequestService } from '../api/leaveRequestService'
 import { useToast } from '@/hooks/useToast'
 
 const LEAVE_TYPES = [
-  { value: 'ANNUAL', label: '🏖️ Congé annuel' },
-  { value: 'SICK', label: '🩺 Congé maladie' },
-  { value: 'ADMINISTRATIVE', label: '📋 Congé administratif' },
-  { value: 'UNPAID', label: '⏳ Congé sans solde' },
+  { value: 'ANNUAL', label: 'Congé annuel' },
+  { value: 'SICK', label: 'Congé maladie' },
+  { value: 'ADMINISTRATIVE', label: 'Congé administratif' },
+  { value: 'UNPAID', label: 'Congé sans solde' },
 ]
 
 function getInitialData(item) {

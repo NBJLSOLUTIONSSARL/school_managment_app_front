@@ -261,7 +261,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{t('login.submit', 'Continuer vers le tableau de bord')}</span>
