@@ -72,7 +72,7 @@ export function LoginForm() {
           <p className="mt-1 text-2xs text-slate-500">{t('login.subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit} aria-label="Formulaire de connexion" className="space-y-4" noValidate>
           <Input
             label={t('login.emailLabel')}
             type="email"

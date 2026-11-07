@@ -1,4 +1,4 @@
-import { AuthProvider } from '@/context/AuthProvider'
+import { AuthProvider } from '@/features/auth'
 import { ToastProvider } from '@/context/ToastProvider'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { I18nProvider } from '@/lib/i18n/I18nProvider'

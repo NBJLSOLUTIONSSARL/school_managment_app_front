@@ -2,7 +2,6 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { describe, expect, it, vi } from 'vitest'
 import { AuthContext, useAuth } from '@/features/auth'
 import { AuthProvider } from '@/features/auth'
-import { AuthGate } from '@/features/auth'
 import { ProfileView as ProfilePage } from '@/features/profile/components/ProfileView'
 
 const user = { id: 1, email: 'alice@example.test', firstName: 'Alice', lastName: 'Dupont', phone: '0612345678', language: 'fr', active: true, roles: ['ROLE_TEACHER', 'ROLE_PARENT'], permissions: [] }
@@ -159,7 +158,20 @@ describe('read-only profile and legal documents', () => {
 
 function SessionHarness() {
   const auth = useAuth()
-  return <><button onClick={() => { void auth.login({ email: user.email, password: 'test' }) }}>Start session</button><AuthGate><ProfilePage /></AuthGate></>
+  if (!auth.isAuthenticated) {
+    return (
+      <>
+        <button onClick={() => { void auth.login({ email: user.email, password: 'test' }) }}>Start session</button>
+        <form aria-label="Formulaire de connexion"><button type="submit">Se connecter</button></form>
+      </>
+    )
+  }
+  return (
+    <>
+      <button type="button" onClick={() => { void auth.logout() }}>Se déconnecter</button>
+      <ProfilePage />
+    </>
+  )
 }
 const response = (body, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => body })
 function loginResponse(expiresIn = 3600) {
