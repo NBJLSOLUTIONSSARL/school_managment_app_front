@@ -70,15 +70,15 @@ export default function StudentPortalView() {
       <div className="academy-card p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
         <div className="z-10">
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-6 h-0.5 bg-[#C5A880]"></span>
-            <span className="text-xs uppercase tracking-widest text-[#C5A880] font-bold">
+            <span className="w-6 h-0.5 bg-[#4361EE]"></span>
+            <span className="text-xs uppercase tracking-widest text-[#4361EE] font-bold">
               Portail Pédagogique
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif-title font-bold text-[#16222F]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E293B]">
             Mon espace étudiant
           </h1>
-          <p className="text-sm text-[#78716C] mt-1">
+          <p className="text-sm text-[#64748B] mt-1">
             Bienvenue {displayName} ! Retrouvez vos résultats académiques officiels.
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function StudentPortalView() {
             alt="Books"
             className="w-full h-full object-cover rounded-2xl"
           />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#FAF7F2]/40" />
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/40" />
         </div>
       </div>
 
@@ -109,27 +109,27 @@ export default function StudentPortalView() {
       )}
 
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#64748B]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#4361EE]" />
           <span className="text-sm font-medium">Chargement de votre dossier scolaire...</span>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-            <div className="academy-card p-5 flex items-center gap-4 bg-white border border-[#EFECE6]">
+            <div className="academy-card p-5 flex items-center gap-4 bg-white border border-[#F1F5F9]">
               <img
                 src={currentUser?.photoUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80"}
                 alt={displayName}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#C5A880] shadow-sm shrink-0"
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#4361EE] shadow-sm shrink-0"
                 onError={(e) => {
                   e.currentTarget.src = "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80";
                 }}
               />
               <div className="min-w-0">
-                <h3 className="text-base font-bold text-[#16222F] truncate">
+                <h3 className="text-base font-bold text-[#1E293B] truncate">
                   {displayName}
                 </h3>
-                <p className="text-xs font-semibold text-[#78716C] mt-0.5 truncate">
+                <p className="text-xs font-semibold text-[#64748B] mt-0.5 truncate">
                   {currentUser?.email}
                 </p>
                 <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -143,40 +143,40 @@ export default function StudentPortalView() {
               title="Moyenne générale"
               value={latestReportCard ? `${latestReportCard.average}/20` : 'En attente'}
               subtitle={latestReportCard ? latestReportCard.term : 'Trimestre en cours'}
-              iconBg="bg-[#F4EDE2]"
-              iconColor="text-[#16222F]"
+              iconBg="bg-[#EEF2FF]"
+              iconColor="text-[#4361EE]"
             />
             <StatCard
               icon={Award}
               title="Mention obtenue"
               value={latestReportCard?.mention || 'Non attribuée'}
               subtitle={latestReportCard ? `Rang : ${latestReportCard.rankPosition || 1}` : 'Résultat officiel'}
-              iconBg="bg-[#F4EDE2]"
-              iconColor="text-[#16222F]"
+              iconBg="bg-[#EEF2FF]"
+              iconColor="text-[#4361EE]"
             />
             <StatCard
               icon={FileText}
               title="Devoirs rendus"
               value={submissions.length.toString()}
               subtitle="Travaux enregistrés"
-              iconBg="bg-[#F4EDE2]"
-              iconColor="text-[#16222F]"
+              iconBg="bg-[#EEF2FF]"
+              iconColor="text-[#4361EE]"
             />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="academy-card p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                <h2 className="text-lg font-bold text-[#1E293B]">
                   Derniers travaux & Devoirs
                 </h2>
-                <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#EFECE6]">
+                <span className="text-xs font-semibold text-[#64748B] bg-[#F8FAFC] px-3 py-1 rounded-full border border-[#E2E8F0]">
                   {submissions.length} travaux
                 </span>
               </div>
 
               {submissions.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#78716C]">
+                <div className="py-12 text-center text-xs text-[#64748B]">
                   Aucun devoir soumis pour le moment.
                 </div>
               ) : (
@@ -184,15 +184,15 @@ export default function StudentPortalView() {
                   {submissions.map((sub) => (
                     <div
                       key={sub.id}
-                      className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between"
+                      className="p-4 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-between"
                     >
                       <div>
-                        <p className="text-sm font-bold text-[#16222F]">{sub.title}</p>
-                        <p className="text-xs text-[#78716C] mt-0.5">
+                        <p className="text-sm font-bold text-[#1E293B]">{sub.title}</p>
+                        <p className="text-xs text-[#64748B] mt-0.5">
                           Soumis le {sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString('fr-FR') : 'Date non spécifiée'}
                         </p>
                         {sub.feedback && (
-                          <p className="text-xs text-[#C5A880] mt-1 italic">
+                          <p className="text-xs text-[#4361EE] mt-1 italic">
                             « {sub.feedback} »
                           </p>
                         )}
@@ -210,12 +210,12 @@ export default function StudentPortalView() {
 
             <div className="academy-card p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                <h2 className="text-lg font-bold text-[#1E293B]">
                   Documents justificatifs & GED
                 </h2>
                 <button
                   onClick={() => setActiveView('documents')}
-                  className="text-xs text-[#C5A880] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-[#4361EE] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                 >
                   <span>Gérer</span>
                   <ExternalLink className="w-3 h-3" />
@@ -223,7 +223,7 @@ export default function StudentPortalView() {
               </div>
 
               {documents.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#78716C]">
+                <div className="py-12 text-center text-xs text-[#64748B]">
                   Aucun document déposé pour le moment.
                 </div>
               ) : (
@@ -231,15 +231,15 @@ export default function StudentPortalView() {
                   {documents.map((doc) => (
                     <div
                       key={doc.id}
-                      className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <Folder className="w-4 h-4 text-[#C5A880]" />
+                        <Folder className="w-4 h-4 text-[#4361EE]" />
                         <div>
-                          <p className="text-xs font-bold text-[#16222F]">
+                          <p className="text-xs font-bold text-[#1E293B]">
                             {doc.documentTypeName || 'Document officiel'}
                           </p>
-                          <span className="text-[10px] text-[#78716C]">
+                          <span className="text-[10px] text-[#64748B]">
                             Déposé le {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString('fr-FR') : 'Récemment'}
                           </span>
                         </div>

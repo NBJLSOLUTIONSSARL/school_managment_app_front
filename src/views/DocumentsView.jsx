@@ -49,7 +49,8 @@ export default function DocumentsView() {
     setError(null);
     try {
       const res = await documentService.getMyDocuments();
-      const list = Array.isArray(res) ? res : (res?.data || []);
+      let list = Array.isArray(res) ? res : (res?.data || []);
+      list = [...list].sort((a, b) => (b.id || 0) - (a.id || 0));
       setDocuments(list);
     } catch (err) {
       setError(err.message || 'Impossible de charger les documents.');

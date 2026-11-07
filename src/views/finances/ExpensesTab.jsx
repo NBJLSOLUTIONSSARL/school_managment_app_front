@@ -77,7 +77,7 @@ export default function ExpensesTab({ expenses = [], canManage, onRefresh }) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher dépense..."
-              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl pl-9 pr-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function ExpensesTab({ expenses = [], canManage, onRefresh }) {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880] cursor-pointer"
+              className="bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE] cursor-pointer"
             >
               <option value="ALL">Toutes les catégories</option>
               {categories.map((c) => (

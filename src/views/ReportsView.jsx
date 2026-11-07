@@ -82,8 +82,8 @@ export default function ReportsView() {
       />
 
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#78716C]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#16222F]" />
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#64748B]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#4361EE]" />
           <span className="text-sm font-medium">Calcul des statistiques réelles...</span>
         </div>
       ) : (
@@ -91,12 +91,12 @@ export default function ReportsView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#4361EE] shrink-0">
                   <Users className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#526071] font-medium">Total Élèves</p>
-                  <p className="text-3xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                  <p className="text-xs text-[#64748B] font-medium">Total Élèves</p>
+                  <p className="text-3xl font-bold text-[#1E293B] mt-0.5">
                     {stats?.totalStudents || 0}
                   </p>
                 </div>
@@ -106,12 +106,12 @@ export default function ReportsView() {
 
             <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#4361EE] shrink-0">
                   <GraduationCap className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#526071] font-medium">Corps Professoral</p>
-                  <p className="text-3xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                  <p className="text-xs text-[#64748B] font-medium">Corps Professoral</p>
+                  <p className="text-3xl font-bold text-[#1E293B] mt-0.5">
                     {stats?.totalTeachers || 0}
                   </p>
                 </div>
@@ -121,12 +121,12 @@ export default function ReportsView() {
 
             <div className="bg-white rounded-2xl border border-[#F1F5F9] p-6 shadow-xs relative overflow-hidden flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#16222F] shrink-0">
+                <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[#4361EE] shrink-0">
                   <DollarSign className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#526071] font-medium">Recouvrement Réel</p>
-                  <p className="text-2xl font-serif-title font-bold text-[#16222F] mt-0.5">
+                  <p className="text-xs text-[#64748B] font-medium">Recouvrement Réel</p>
+                  <p className="text-2xl font-bold text-[#1E293B] mt-0.5">
                     {formatAmount(stats?.totalPaid)}
                   </p>
                 </div>
@@ -137,7 +137,7 @@ export default function ReportsView() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="academy-card p-6">
-              <h2 className="text-lg font-bold font-serif-title text-[#16222F] mb-4">
+              <h2 className="text-lg font-bold text-[#1E293B] mb-4">
                 Évolution des effectifs
               </h2>
               <LineChart
@@ -152,16 +152,16 @@ export default function ReportsView() {
 
             <div className="academy-card p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                <h2 className="text-lg font-bold text-[#1E293B]">
                   Bulletins scolaires officiels générés
                 </h2>
-                <span className="text-xs font-semibold text-[#78716C] bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#F1F5F9]">
+                <span className="text-xs font-semibold text-[#64748B] bg-[#F8FAFC] px-3 py-1 rounded-full border border-[#E2E8F0]">
                   {reportCards.length} bulletins
                 </span>
               </div>
 
               {reportCards.length === 0 ? (
-                <div className="py-12 text-center text-xs text-[#78716C]">
+                <div className="py-12 text-center text-xs text-[#64748B]">
                   Aucun bulletin scolaire officiel n'a encore été généré.
                 </div>
               ) : (
@@ -169,19 +169,19 @@ export default function ReportsView() {
                   {reportCards.map((rc) => (
                     <div
                       key={rc.id}
-                      className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#F1F5F9] flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-between"
                     >
                       <div>
-                        <p className="text-xs font-bold text-[#16222F]">
+                        <p className="text-xs font-bold text-[#1E293B]">
                           Bulletin de l'élève #{rc.studentId} • {rc.term || 'Trimestre 1'}
                         </p>
-                        <p className="text-[10px] text-[#78716C]">
+                        <p className="text-[10px] text-[#64748B]">
                           Moyenne : {rc.average}/20 • Mention : {rc.mention} • Rang : {rc.rankPosition}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDownloadCard(rc.id)}
-                        className="p-2 text-[#16222F] hover:bg-white rounded-lg border border-[#F1F5F9] transition-colors cursor-pointer"
+                        className="p-2 text-[#1E293B] hover:bg-white rounded-lg border border-[#F1F5F9] transition-colors cursor-pointer"
                         title="Télécharger le bulletin PDF officiel"
                       >
                         <Download className="w-3.5 h-3.5" />

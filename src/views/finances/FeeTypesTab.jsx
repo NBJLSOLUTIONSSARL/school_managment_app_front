@@ -1,8 +1,28 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Building, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Building,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  AlertTriangle,
+} from 'lucide-react';
 import { financeService } from '../../services/financeService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
+  const { currentUser, hasAnyRole } = useAuth();
+  const isManager = canManage ?? (
+    hasAnyRole(['ROLE_ADMIN', 'ROLE_STAFF']) ||
+    currentUser?.roles?.some((r) => ['ROLE_ADMIN', 'ROLE_STAFF', 'ADMIN', 'STAFF'].includes(r))
+  );
+
+  const [prevFeeTypes, setPrevFeeTypes] = useState(feeTypes);
+  const [items, setItems] = useState(feeTypes);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
   const [name, setName] = useState('');
@@ -11,6 +31,16 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
+
+  // Delete modal state
+  const [deleteConfirmFee, setDeleteConfirmFee] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [generalError, setGeneralError] = useState(null);
+
+  if (prevFeeTypes !== feeTypes) {
+    setPrevFeeTypes(feeTypes);
+    setItems(feeTypes);
+  }
 
   const formatAmount = (val) => `${new Intl.NumberFormat('fr-FR').format(val || 0)} MAD`;
 
@@ -26,7 +56,7 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
   const handleOpenEdit = (ft) => {
     setEditingFee(ft);
     setName(ft.name || '');
-    setAmount(String(ft.amount || ''));
+    setAmount(String(ft.amount ?? ''));
     setFrequency(ft.frequency || 'MONTHLY');
     setError(null);
     setIsModalOpen(true);
@@ -34,27 +64,45 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setError('Le libellé du frais est obligatoire.');
+      return;
+    }
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount < 0) {
+      setError('Veuillez saisir un tarif de référence valide (nombre positif ou nul).');
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
+
+    const payload = {
+      name: cleanName,
+      amount: numAmount,
+      frequency,
+    };
+
     try {
       if (editingFee) {
-        await financeService.updateFeeType(editingFee.id, {
-          name,
-          amount: Number(amount),
-          frequency,
-        });
-        setSuccess('Type de frais mis à jour.');
+        const updated = await financeService.updateFeeType(editingFee.id, payload);
+        const resolvedUpdated = updated?.id ? updated : { ...editingFee, ...payload };
+        setItems((prev) =>
+          prev.map((item) => (item.id === editingFee.id ? resolvedUpdated : item))
+        );
+        setSuccess(`Type de frais "${cleanName}" mis à jour avec succès.`);
       } else {
-        await financeService.createFeeType({
-          name,
-          amount: Number(amount),
-          frequency,
-        });
-        setSuccess('Type de frais créé avec succès.');
+        const created = await financeService.createFeeType(payload);
+        const newItem = created?.id ? created : { id: Date.now(), ...payload };
+        setItems((prev) => [newItem, ...prev]);
+        setSuccess(`Type de frais "${cleanName}" créé avec succès.`);
       }
+
       setIsModalOpen(false);
-      setTimeout(() => setSuccess(''), 3000);
-      onRefresh();
+      setTimeout(() => setSuccess(''), 4000);
+      onRefresh?.(true);
     } catch (err) {
       setError(err.message || 'Erreur lors de l\'enregistrement du type de frais.');
     } finally {
@@ -62,15 +110,35 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce type de frais ?')) return;
+  const confirmDelete = async () => {
+    if (!deleteConfirmFee) return;
+    setDeleting(true);
+    setGeneralError(null);
+
     try {
-      await financeService.deleteFeeType(id);
-      setSuccess('Type de frais supprimé.');
-      setTimeout(() => setSuccess(''), 3000);
-      onRefresh();
+      await financeService.deleteFeeType(deleteConfirmFee.id);
+      setItems((prev) => prev.filter((item) => item.id !== deleteConfirmFee.id));
+      setSuccess(`Le type de frais "${deleteConfirmFee.name}" a été supprimé avec succès.`);
+      setTimeout(() => setSuccess(''), 4000);
+      setDeleteConfirmFee(null);
+      onRefresh?.(true);
     } catch (err) {
-      alert(err.message || 'Impossible de supprimer un type de frais déjà rattaché à des factures.');
+      const msg = err.message || '';
+      if (
+        err.status === 409 ||
+        msg.toLowerCase().includes('utilisé') ||
+        msg.toLowerCase().includes('facture') ||
+        msg.toLowerCase().includes('conflict')
+      ) {
+        setGeneralError(
+          `Impossible de supprimer "${deleteConfirmFee.name}" : ce type de frais est déjà rattaché à des factures existantes dans le système (protection de l'intégrité comptable).`
+        );
+      } else {
+        setGeneralError(msg || 'Impossible de supprimer ce type de frais.');
+      }
+      setDeleteConfirmFee(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -85,9 +153,32 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
   return (
     <div className="space-y-4">
       {success && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{success}</span>
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{success}</span>
+          </div>
+          <button
+            onClick={() => setSuccess('')}
+            className="text-emerald-600 hover:text-emerald-800 p-1 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {generalError && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{generalError}</span>
+          </div>
+          <button
+            onClick={() => setGeneralError(null)}
+            className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -101,7 +192,7 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
           </p>
         </div>
 
-        {canManage && (
+        {isManager && (
           <button
             onClick={handleOpenCreate}
             className="academy-btn-primary flex items-center gap-1.5 text-xs shadow-md cursor-pointer"
@@ -121,16 +212,16 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                 <th className="py-3 px-4">Tarif de référence</th>
                 <th className="py-3 px-4">Fréquence</th>
                 <th className="py-3 px-4">Statut</th>
-                {canManage && <th className="py-3 px-4 text-right">Actions</th>}
+                {isManager && <th className="py-3 px-4 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F1F5F9]">
-              {feeTypes.length > 0 ? (
-                feeTypes.map((ft) => (
+              {items.length > 0 ? (
+                items.map((ft) => (
                   <tr key={ft.id} className="hover:bg-[#FAF7F2] transition-colors">
                     <td className="py-3.5 px-4 font-bold text-[#16222F]">
                       <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-[#C5A880]" />
+                        <Building className="w-4 h-4 text-[#4361EE]" />
                         <span>{ft.name}</span>
                       </div>
                     </td>
@@ -138,24 +229,28 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                       {formatAmount(ft.amount)}
                     </td>
                     <td className="py-3.5 px-4 text-xs font-medium text-[#64748B]">
-                      {frequencyLabel[ft.frequency] || ft.frequency}
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+                        {frequencyLabel[ft.frequency] || ft.frequency}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                         Actif
                       </span>
                     </td>
-                    {canManage && (
+                    {isManager && (
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(ft)}
-                            className="p-1.5 rounded-lg text-[#16222F] hover:bg-white transition-colors cursor-pointer"
+                            title="Modifier ce type de frais"
+                            className="p-1.5 rounded-lg text-[#16222F] hover:bg-white hover:text-[#4361EE] transition-colors cursor-pointer"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(ft.id)}
+                            onClick={() => setDeleteConfirmFee(ft)}
+                            title="Supprimer ce type de frais"
                             className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -177,9 +272,10 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
         </div>
       </div>
 
+      {/* Edit / Create Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E8DFC9] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E2E8F0] flex flex-col overflow-hidden">
             <div className="p-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white">
               <h2 className="text-xl font-bold font-serif-title text-[#16222F]">
                 {editingFee ? 'Modifier le type de frais' : 'Ajouter un type de frais'}
@@ -210,7 +306,7 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ex: Frais de scolarité, Cantine..."
-                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
                 />
               </div>
 
@@ -226,7 +322,7 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="ex: 4500"
-                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
                 />
               </div>
 
@@ -237,7 +333,7 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                 <select
                   value={frequency}
                   onChange={(e) => setFrequency(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880] cursor-pointer"
+                  className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE] cursor-pointer"
                 >
                   <option value="MONTHLY">Mensuel</option>
                   <option value="QUARTERLY">Trimestriel</option>
@@ -261,10 +357,67 @@ export default function FeeTypesTab({ feeTypes = [], canManage, onRefresh }) {
                   className="academy-btn-primary flex items-center gap-2 text-xs shadow-md cursor-pointer disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>{editingFee ? 'Enregistrer' : 'Créer le frais'}</span>
+                  <span>{editingFee ? 'Enregistrer les modifications' : 'Créer le frais'}</span>
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmFee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E2E8F0] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-[#E2E8F0] flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <h2 className="text-lg font-bold font-serif-title text-[#16222F]">
+                  Supprimer le type de frais
+                </h2>
+              </div>
+              <button
+                onClick={() => setDeleteConfirmFee(null)}
+                className="p-2 rounded-xl text-[#94A3B8] hover:text-[#16222F] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-[#475569] leading-relaxed">
+                Êtes-vous sûr de vouloir supprimer le type de frais{' '}
+                <strong className="text-[#16222F] font-semibold">« {deleteConfirmFee.name} »</strong> ({formatAmount(deleteConfirmFee.amount)}) ?
+              </p>
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  Remarque : si ce type de frais est déjà rattaché à des factures existantes dans le système, la suppression sera bloquée pour préserver l'historique comptable.
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#FAF7F2] border-t border-[#E2E8F0] flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmFee(null)}
+                disabled={deleting}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-white transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-md flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>Supprimer définitivement</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

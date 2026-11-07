@@ -31,10 +31,6 @@ export default function FinancesView() {
   const { currentUser, hasAnyRole } = useAuth();
 
   const isParentOrStudent = currentUser?.roles?.includes('ROLE_PARENT') || currentUser?.roles?.includes('ROLE_STUDENT');
-  if (isParentOrStudent) {
-    return <ParentStudentFinanceView />;
-  }
-
   const canManage = hasAnyRole(['ROLE_ADMIN', 'ROLE_STAFF']);
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -54,8 +50,9 @@ export default function FinancesView() {
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const loadAllFinancialData = async () => {
-    setLoading(true);
+  const loadAllFinancialData = async (silent = false) => {
+    if (isParentOrStudent) return;
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const [invRes, expRes, feeRes, stuRes] = await Promise.allSettled([
@@ -67,7 +64,17 @@ export default function FinancesView() {
 
       const invList = invRes.status === 'fulfilled' ? invRes.value?.content || (Array.isArray(invRes.value) ? invRes.value : []) : [];
       const expList = expRes.status === 'fulfilled' ? expRes.value?.content || (Array.isArray(expRes.value) ? expRes.value : []) : [];
-      const feeList = feeRes.status === 'fulfilled' && Array.isArray(feeRes.value) ? feeRes.value : [];
+      let feeList = [];
+      if (feeRes.status === 'fulfilled') {
+        const val = feeRes.value;
+        if (Array.isArray(val)) {
+          feeList = val;
+        } else if (Array.isArray(val?.data)) {
+          feeList = val.data;
+        } else if (Array.isArray(val?.content)) {
+          feeList = val.content;
+        }
+      }
       const stuList = stuRes.status === 'fulfilled' ? stuRes.value?.content || (Array.isArray(stuRes.value) ? stuRes.value : []) : [];
 
       setInvoices(invList);
@@ -96,13 +103,15 @@ export default function FinancesView() {
     } catch (err) {
       setError(err.message || 'Impossible de charger les données financières.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadAllFinancialData();
-  }, []);
+    if (!isParentOrStudent) {
+      loadAllFinancialData();
+    }
+  }, [isParentOrStudent]);
 
   const handleViewInvoice = (inv) => {
     setSelectedInvoice(inv);
@@ -125,6 +134,10 @@ export default function FinancesView() {
       alert(err.message || 'Impossible de supprimer cette facture.');
     }
   };
+
+  if (isParentOrStudent) {
+    return <ParentStudentFinanceView />;
+  }
 
   const tabs = [
     { id: 'dashboard', label: 'Financial Overview', icon: Coins },

@@ -46,119 +46,110 @@ import AdmissionsPage from '../../views/AdmissionsPage';
 import LoginPage from '../../views/LoginPage';
 import { useAuth } from '../../context/AuthContext';
 
+const adminAllowedViews = [
+  'dashboard',
+  'users-management',
+  'students',
+  'teachers',
+  'classes',
+  'admissions-admin',
+  'admissions',
+  'documents',
+  'finances',
+  'grades',
+  'reports',
+  'timetable',
+  'library-catalog',
+  'library-loans',
+  'library-returns',
+  'library-overdue',
+  'library-history',
+  'library-availability',
+  'communications',
+  'audit-logs',
+  'settings',
+  'calendar',
+  'absences',
+];
+
+const staffAllowedViews = [
+  'staff-dashboard',
+  'admissions',
+  'students',
+  'guardians',
+  'documents',
+  'finances',
+  'reports',
+  'timetable',
+  'grades',
+  'communications',
+  'calendar',
+  'settings',
+];
+
+const librarianAllowedViews = [
+  'librarian-dashboard',
+  'library-catalog',
+  'library-loans',
+  'library-returns',
+  'library-overdue',
+  'library-history',
+  'library-availability',
+  'library-students',
+  'library-staff',
+  'settings',
+];
+
+const teacherAllowedViews = [
+  'teacher-dashboard',
+  'classes',
+  'students',
+  'timetable',
+  'grades',
+  'evaluations',
+  'documents',
+  'communications',
+  'settings',
+];
+
+const studentAllowedViews = [
+  'student-dashboard',
+  'student-portal',
+  'timetable',
+  'grades',
+  'reports',
+  'evaluations',
+  'documents',
+  'library-catalog',
+  'communications',
+  'settings',
+];
+
+const parentAllowedViews = [
+  'parent-dashboard',
+  'grades',
+  'reports',
+  'timetable',
+  'finances',
+  'documents',
+  'communications',
+  'settings',
+];
+
 export default function AppLayout() {
   const { currentUser, activeView, setActiveView } = useAuth();
 
-  if (activeView === 'landing') {
-    return <LandingPage />;
-  }
-
-  if (activeView === 'admissions' && (!currentUser || !currentUser.roles)) {
-    return <AdmissionsPage />;
-  }
-
-  if (activeView === 'login' || !currentUser) {
-    return <LoginPage />;
-  }
-
-  const isAdmin = currentUser.roles?.includes('ROLE_ADMIN');
-  const isStaff = currentUser.roles?.includes('ROLE_STAFF');
-  const isLibrarian = currentUser.roles?.includes('ROLE_LIBRARIAN');
-  const isTeacher = currentUser.roles?.includes('ROLE_TEACHER');
-  const isStudent = currentUser.roles?.includes('ROLE_STUDENT');
-  const isParent = currentUser.roles?.includes('ROLE_PARENT');
-
-  const adminAllowedViews = [
-    'dashboard',
-    'users-management',
-    'students',
-    'teachers',
-    'classes',
-    'admissions-admin',
-    'admissions',
-    'documents',
-    'finances',
-    'grades',
-    'reports',
-    'timetable',
-    'library-catalog',
-    'library-loans',
-    'library-returns',
-    'library-overdue',
-    'library-history',
-    'library-availability',
-    'communications',
-    'audit-logs',
-    'settings',
-    'calendar',
-    'absences',
-  ];
-
-  const staffAllowedViews = [
-    'staff-dashboard',
-    'admissions',
-    'students',
-    'guardians',
-    'documents',
-    'finances',
-    'reports',
-    'timetable',
-    'grades',
-    'communications',
-    'calendar',
-    'settings',
-  ];
-
-  const librarianAllowedViews = [
-    'librarian-dashboard',
-    'library-catalog',
-    'library-loans',
-    'library-returns',
-    'library-overdue',
-    'library-history',
-    'library-availability',
-    'library-students',
-    'library-staff',
-    'settings',
-  ];
-
-  const teacherAllowedViews = [
-    'teacher-dashboard',
-    'classes',
-    'students',
-    'timetable',
-    'grades',
-    'evaluations',
-    'documents',
-    'communications',
-    'settings',
-  ];
-
-  const studentAllowedViews = [
-    'student-dashboard',
-    'student-portal',
-    'timetable',
-    'grades',
-    'reports',
-    'evaluations',
-    'documents',
-    'library-catalog',
-    'communications',
-    'settings',
-  ];
-
-  const parentAllowedViews = [
-    'parent-dashboard',
-    'grades',
-    'reports',
-    'timetable',
-    'finances',
-    'documents',
-    'communications',
-    'settings',
-  ];
+  const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN');
+  const isStaff = currentUser?.roles?.includes('ROLE_STAFF');
+  const isLibrarian = currentUser?.roles?.includes('ROLE_LIBRARIAN');
+  const isTeacher = currentUser?.roles?.includes('ROLE_TEACHER');
+  const isStudent = currentUser?.roles?.includes('ROLE_STUDENT');
+  const isParent = currentUser?.roles?.includes('ROLE_PARENT');
 
   useEffect(() => {
+    if (!currentUser) return;
+    if (activeView === 'landing' || activeView === 'login' || activeView === 'admissions') return;
+
     if (isAdmin && !adminAllowedViews.includes(activeView)) {
       setActiveView('dashboard');
     } else if (isStaff && !staffAllowedViews.includes(activeView)) {
@@ -172,7 +163,19 @@ export default function AppLayout() {
     } else if (isParent && !parentAllowedViews.includes(activeView)) {
       setActiveView('parent-dashboard');
     }
-  }, [activeView, isAdmin, isStaff, isLibrarian, isTeacher, isStudent, isParent]);
+  }, [activeView, currentUser, isAdmin, isStaff, isLibrarian, isTeacher, isStudent, isParent, setActiveView]);
+
+  if (activeView === 'landing') {
+    return <LandingPage />;
+  }
+
+  if (activeView === 'admissions' && (!currentUser || !currentUser.roles)) {
+    return <AdmissionsPage />;
+  }
+
+  if (activeView === 'login' || !currentUser) {
+    return <LoginPage />;
+  }
 
   const renderSidebar = () => {
     if (isAdmin) return <AdminSidebar />;

@@ -106,21 +106,24 @@ export const financeService = {
 
   async getFeeTypes() {
     const res = await apiClient.get('/finances/fee-types');
-    return res.data;
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.content)) return res.content;
+    return res?.data ?? res ?? [];
   },
 
   async createFeeType(data) {
     const res = await apiClient.post('/finances/fee-types', data);
-    return res.data;
+    return res?.data ?? res;
   },
 
   async updateFeeType(id, data) {
     const res = await apiClient.put(`/finances/fee-types/${id}`, data);
-    return res.data;
+    return res?.data ?? res;
   },
 
   async deleteFeeType(id) {
     const res = await apiClient.delete(`/finances/fee-types/${id}`);
-    return res.data;
+    return res?.data ?? res;
   },
 };

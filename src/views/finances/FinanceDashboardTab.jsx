@@ -124,14 +124,14 @@ export default function FinanceDashboardTab({
         <div className="lg:col-span-2 academy-card p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#C5A880]" />
+              <FileText className="w-5 h-5 text-[#4361EE]" />
               <h2 className="text-lg font-bold text-[#16222F] font-serif-title">
                 Dernières Factures Émises
               </h2>
             </div>
             <button
               onClick={() => onSelectTab('invoices')}
-              className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Voir tout</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export default function FinanceDashboardTab({
                       <td className="py-3 px-3 text-right">
                         <button
                           onClick={() => onViewInvoice(inv)}
-                          className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] underline cursor-pointer"
+                          className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] underline cursor-pointer"
                         >
                           Détails
                         </button>
@@ -216,14 +216,14 @@ export default function FinanceDashboardTab({
         <div className="academy-card p-6 space-y-5">
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
             <div className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-[#C5A880]" />
+              <TrendingDown className="w-5 h-5 text-[#4361EE]" />
               <h2 className="text-lg font-bold text-[#16222F] font-serif-title">
                 Dépenses par catégorie
               </h2>
             </div>
             <button
               onClick={() => onSelectTab('expenses')}
-              className="text-xs font-semibold text-[#16222F] hover:text-[#C5A880] flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-[#16222F] hover:text-[#4361EE] flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Gérer</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -242,7 +242,7 @@ export default function FinanceDashboardTab({
                     </div>
                     <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-[#C5A880] h-full rounded-full transition-all"
+                        className="bg-[#4361EE] h-full rounded-full transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -262,7 +262,7 @@ export default function FinanceDashboardTab({
               className="w-full flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE0] border border-[#E8DFC9] transition-colors cursor-pointer text-xs font-semibold text-[#16222F]"
             >
               <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-[#C5A880]" />
+                <Building className="w-4 h-4 text-[#4361EE]" />
                 <span>Consulter les types de frais ({feeTypes.length})</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-[#16222F]" />

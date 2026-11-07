@@ -93,7 +93,10 @@ export default function DocumentViewerModal({
     };
   }, [isOpen, onClose]);
 
-  const rawUrl = doc?.downloadUrl || (doc?.fileKey ? `/api/v1/documents/files/${doc.fileKey}` : '');
+  const rawUrl =
+    doc?.fileKey && (doc.fileKey.startsWith('http://') || doc.fileKey.startsWith('https://'))
+      ? doc.fileKey
+      : (doc?.downloadUrl || (doc?.fileKey ? `/api/v1/documents/files/${doc.fileKey}` : ''));
   const fileUrl = rawUrl;
 
   const extension = (() => {
@@ -128,7 +131,10 @@ export default function DocumentViewerModal({
     setFileLoading(true);
     setFileError(null);
 
-    fetch(fileUrl)
+    const token = localStorage.getItem('academie_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    fetch(fileUrl, { headers })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Erreur ${res.status}: Impossible de récupérer le flux du document.`);
@@ -221,7 +227,7 @@ export default function DocumentViewerModal({
         <div className="px-5 py-3.5 border-b border-[#F4EDE2] bg-[#FAF7F2] flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-white border border-[#EFECE6] flex items-center justify-center text-[#16222F] shadow-xs shrink-0">
-              <FileText className="w-5 h-5 text-[#C5A880]" />
+              <FileText className="w-5 h-5 text-[#4361EE]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -370,7 +376,7 @@ export default function DocumentViewerModal({
                   download={doc?.fileKey || 'document'}
                   className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FAF7F2] text-[#16222F] border border-[#EFECE6] rounded-xl text-xs font-medium transition-colors shadow-2xs"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#C5A880]" />
+                  <Download className="w-3.5 h-3.5 text-[#4361EE]" />
                   <span className="hidden sm:inline">Télécharger</span>
                 </a>
               )}
@@ -394,13 +400,26 @@ export default function DocumentViewerModal({
                 <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
                 <h4 className="font-bold text-sm text-[#16222F]">Erreur de visualisation</h4>
                 <p className="text-xs text-[#78716C]">{error || fileError}</p>
-                <button
-                  type="button"
-                  onClick={() => fetchDocument(doc?.id || documentId)}
-                  className="px-4 py-2 bg-[#16222F] text-white rounded-xl text-xs font-semibold hover:bg-[#203144] transition-colors cursor-pointer"
-                >
-                  Réessayer
-                </button>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => fetchDocument(doc?.id || documentId)}
+                    className="px-4 py-2 bg-[#16222F] text-white rounded-xl text-xs font-semibold hover:bg-[#203144] transition-colors cursor-pointer"
+                  >
+                    Réessayer
+                  </button>
+                  {rawUrl && (
+                    <a
+                      href={rawUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-[#4361EE] text-white rounded-xl text-xs font-semibold hover:bg-[#3451D1] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Ouvrir en direct</span>
+                    </a>
+                  )}
+                </div>
               </div>
             ) : isPdf && activePreviewUrl ? (
               <object
@@ -429,7 +448,7 @@ export default function DocumentViewerModal({
               </div>
             ) : (
               <div className="p-8 text-center space-y-4 max-w-md">
-                <div className="w-16 h-16 rounded-3xl bg-white border border-[#EFECE6] flex items-center justify-center mx-auto shadow-xs text-[#C5A880]">
+                <div className="w-16 h-16 rounded-3xl bg-white border border-[#EFECE6] flex items-center justify-center mx-auto shadow-xs text-[#4361EE]">
                   <FileText className="w-8 h-8" />
                 </div>
                 <div>
@@ -459,7 +478,7 @@ export default function DocumentViewerModal({
           <div className="bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl p-4 sm:p-5 shrink-0 space-y-3.5">
             <div className="flex items-center justify-between border-b border-[#F4EDE2] pb-2.5">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#C5A880]" />
+                <ShieldCheck className="w-4 h-4 text-[#4361EE]" />
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#16222F]">
                   Informations du document
                 </h4>
@@ -618,7 +637,7 @@ export default function DocumentViewerModal({
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Précisez la raison administrative du rejet (ex: document illisible, date de validité expirée, document incomplet...)"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] text-xs text-[#16222F] focus:outline-hidden focus:ring-2 focus:ring-[#C5A880]/30 focus:border-[#C5A880] transition-all resize-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#EFECE6] bg-[#FAF7F2] text-xs text-[#16222F] focus:outline-hidden focus:ring-2 focus:ring-[#4361EE]/30 focus:border-[#4361EE] transition-all resize-none"
                     />
                   </div>
 

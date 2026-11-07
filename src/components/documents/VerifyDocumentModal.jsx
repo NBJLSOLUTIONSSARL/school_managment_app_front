@@ -94,7 +94,7 @@ export default function VerifyDocumentModal({
         <div className="flex items-start justify-between pb-4 border-b border-[#F4EDE2]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#EFECE6] flex items-center justify-center text-[#16222F] shadow-xs">
-              <ShieldCheck className="w-5 h-5 text-[#C5A880]" />
+              <ShieldCheck className="w-5 h-5 text-[#4361EE]" />
             </div>
             <div>
               <h3 className="text-xl font-bold font-serif-title text-[#16222F]">
@@ -156,7 +156,7 @@ export default function VerifyDocumentModal({
                     onClose();
                     onOpenPreview(doc);
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#16222F] hover:text-[#C5A880] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#16222F] hover:text-[#4361EE] transition-colors cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>Consulter le document avant de décider</span>

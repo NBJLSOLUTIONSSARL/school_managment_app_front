@@ -105,7 +105,7 @@ export default function ExpenseModal({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="ex: Achat de fournitures de rentrée"
-              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function ExpenseModal({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
               />
             </div>
 
@@ -135,7 +135,7 @@ export default function ExpenseModal({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+                className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function ExpenseModal({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#C5A880] cursor-pointer"
+              className="w-full bg-[#FAF7F2] border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#16222F] focus:outline-none focus:ring-2 focus:ring-[#4361EE] cursor-pointer"
             >
               {PRESET_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
