@@ -2,63 +2,78 @@ import { useState, useEffect, useCallback } from 'react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { DatePicker } from '@/components/ui/DatePicker'
-import { Modal } from '@/components/ui/Modal'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Loader } from '@/components/ui/Loader'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/hooks/useAuth'
 import { useDebounce } from '@/hooks/useDebounce'
-import { exampleService } from '@/features/students/api/exampleService'
+import { studentService } from '../api/studentService'
+import { StudentFormModal } from './StudentFormModal'
+import { StudentDetailsModal } from './StudentDetailsModal'
+import { StudentGuardianModal } from './StudentGuardianModal'
+
+const STATUS_FILTERS = [
+  { value: 'ALL', label: 'Tous les statuts' },
+  { value: 'ACTIVE', label: 'Actifs' },
+  { value: 'INACTIVE', label: 'Inactifs' },
+]
 
 export function StudentList() {
   const { success, error: toastError } = useToast()
+  const { hasRole } = useAuth()
 
-  // State
+  const canCreate = hasRole(['admin', 'staff', 'ROLE_ADMIN', 'ROLE_STAFF'])
+  const canEdit = hasRole(['admin', 'staff', 'ROLE_ADMIN', 'ROLE_STAFF'])
+  const canDelete = hasRole(['admin', 'ROLE_ADMIN'])
+
+  // Data & Pagination state
   const [students, setStudents] = useState([])
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(20)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const debouncedSearch = useDebounce(searchTerm, 300)
 
-  // Create Modal state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    matricule: 'STU-2026-9999',
-    className: 'Terminale S1',
-    birthDate: '2008-05-14',
-  })
+  // Filter state
+  const [nameSearch, setNameSearch] = useState('')
+  const [studentNumberSearch, setStudentNumberSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [sortParam, setSortParam] = useState('id,desc')
 
-  // Delete Confirm Dialog state
+  const debouncedName = useDebounce(nameSearch, 300)
+  const debouncedStudentNumber = useDebounce(studentNumberSearch, 300)
+
+  // Modals state
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingStudent, setEditingStudent] = useState(null)
+  const [detailStudent, setDetailStudent] = useState(null)
+  const [guardianTargetStudent, setGuardianTargetStudent] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Fetch students (single source of truth, cancelled on filter change)
+  // Load students from real backend
   const loadStudents = useCallback(
     async ({ signal } = {}) => {
       setIsLoading(true)
       try {
-        const res = await exampleService.getStudentsSpringPage({
+        const res = await studentService.getStudents({
           page,
           size: pageSize,
-          search: debouncedSearch,
+          name: debouncedName,
+          studentNumber: debouncedStudentNumber,
+          status: statusFilter,
+          sort: sortParam,
         })
 
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setStudents(res.data.items)
-          setTotalItems(res.data.totalItems)
-          setTotalPages(res.data.totalPages)
+          setStudents(res.data.items || [])
+          setTotalItems(res.data.totalItems || 0)
+          setTotalPages(res.data.totalPages || 0)
         } else {
           toastError(res.error?.message || 'Erreur lors du chargement des élèves.')
         }
@@ -68,177 +83,245 @@ export function StudentList() {
         }
       }
     },
-    [page, pageSize, debouncedSearch, toastError]
+    [page, pageSize, debouncedName, debouncedStudentNumber, statusFilter, sortParam, toastError]
   )
 
   useEffect(() => {
     const controller = new AbortController()
-    const pending = Promise.resolve().then(() =>
-      loadStudents({ signal: controller.signal })
-    )
+    const pending = Promise.resolve().then(() => loadStudents({ signal: controller.signal }))
     return () => {
       controller.abort()
       pending.catch(() => {})
     }
   }, [loadStudents])
 
-  // Handle Form Change
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (fieldErrors[field]) {
-      setFieldErrors((prev) => {
-        const next = { ...prev }
-        delete next[field]
-        return next
-      })
-    }
-  }
-
-  // Handle Create Student
-  const handleCreateSubmit = async (e) => {
-    e?.preventDefault?.()
-    if (isSubmitting) return
-
-    setIsSubmitting(true)
-    setFieldErrors({})
-
-    try {
-      const res = await exampleService.createStudentWithValidation(formData)
-
-      if (res.success) {
-        success(`Élève ${res.data.firstName} ${res.data.lastName} créé avec succès.`)
-        setIsCreateModalOpen(false)
-        loadStudents()
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          matricule: 'STU-2026-9999',
-          className: 'Terminale S1',
-          birthDate: '2008-05-14',
-        })
-      } else {
-        toastError(res.error?.message || 'Erreur lors de la validation du formulaire.')
-        if (res.error?.fieldErrors) {
-          setFieldErrors(res.error.fieldErrors)
-        }
-      }
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Handle Delete
+  // Delete action
   const handleDeleteConfirm = async () => {
     if (!deleteTarget || isDeleting) return
     setIsDeleting(true)
-    setTimeout(() => {
-      setStudents((prev) => prev.filter((s) => s.id !== deleteTarget.id))
-      setTotalItems((prev) => Math.max(0, prev - 1))
+    try {
+      const res = await studentService.deleteStudent(deleteTarget.id)
+      if (res.success) {
+        const name = deleteTarget.user
+          ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}`
+          : 'L’élève'
+        success(`${name} a été supprimé avec succès.`)
+        setDeleteTarget(null)
+        loadStudents()
+      } else {
+        toastError(res.error?.message || 'Erreur lors de la suppression de l’élève.')
+      }
+    } finally {
       setIsDeleting(false)
-      setDeleteTarget(null)
-      success(`Élève ${deleteTarget.fullName} supprimé.`)
-    }, 400)
+    }
   }
 
   const columns = [
     {
-      key: 'matricule',
+      key: 'studentNumber',
       label: 'Matricule',
       width: '130px',
+      sortable: true,
       render: (val) => (
-        <span className="font-mono text-2xs font-semibold text-slate-800">{val}</span>
+        <span className="font-mono text-2xs font-semibold text-slate-800">{val || '-'}</span>
       ),
     },
     {
       key: 'fullName',
-      label: 'Nom et Prénom',
+      label: 'Nom & Prénom',
       sortable: true,
-      render: (val, row) => (
-        <div>
-          <div className="font-medium text-slate-900">{val}</div>
-          <div className="text-2xs text-slate-400">{row.email}</div>
-        </div>
-      ),
+      render: (_, row) => {
+        const u = row.user || {}
+        const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom'
+        return (
+          <div>
+            <div className="font-medium text-slate-900">{name}</div>
+            <div className="text-2xs text-slate-400">{u.email}</div>
+          </div>
+        )
+      },
     },
     {
-      key: 'className',
-      label: 'Classe',
-      width: '140px',
-      render: (val) => (
-        <span className="rounded bg-slate-100 px-2 py-0.5 text-2xs text-slate-700">{val}</span>
-      ),
-    },
-    {
-      key: 'averageGrade',
-      label: 'Moyenne / 20',
-      width: '110px',
-      align: 'center',
-      render: (val) => (
-        <span className="font-mono text-xs font-medium text-slate-800">
-          {val ? `${val} / 20` : '-'}
-        </span>
-      ),
+      key: 'phone',
+      label: 'Téléphone',
+      width: '130px',
+      render: (_, row) => <span className="text-xs text-slate-600">{row.user?.phone || '-'}</span>,
     },
     {
       key: 'status',
       label: 'Statut',
       width: '100px',
-      render: (val) => <StatusBadge status={val} showDot />,
+      render: (val, row) => (
+        <StatusBadge status={val || (row.user?.active ? 'ACTIVE' : 'INACTIVE')} showDot />
+      ),
+    },
+    {
+      key: 'guardians',
+      label: 'Tuteurs',
+      width: '110px',
+      align: 'center',
+      render: (guardians) => {
+        const count = Array.isArray(guardians) ? guardians.length : 0
+        return (
+          <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-2xs font-medium text-slate-700">
+            {count} {count > 1 ? 'tuteurs' : 'tuteur'}
+          </span>
+        )
+      },
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '80px',
+      width: '210px',
       align: 'right',
       render: (_, row) => (
-        <Button
-          variant="ghost"
-          size="xs"
-          onClick={(e) => {
-            e.stopPropagation()
-            setDeleteTarget(row)
-          }}
-          className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-        >
-          Supprimer
-        </Button>
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={(e) => {
+              e.stopPropagation()
+              setDetailStudent(row)
+            }}
+          >
+            Détails
+          </Button>
+          {canCreate && (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={(e) => {
+                e.stopPropagation()
+                setGuardianTargetStudent(row)
+              }}
+            >
+              + Tuteur
+            </Button>
+          )}
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={(e) => {
+                e.stopPropagation()
+                setEditingStudent(row)
+                setIsFormOpen(true)
+              }}
+            >
+              Modifier
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={(e) => {
+                e.stopPropagation()
+                setDeleteTarget(row)
+              }}
+            >
+              Supprimer
+            </Button>
+          )}
+        </div>
       ),
     },
   ]
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50">
+    <div className="space-y-4">
+      {/* Top Header */}
       <DocTypePageHead
-        breadcrumbs={['Desk', 'Élèves']}
-        title="Liste des Élèves (Spring Page)"
-        docstatus="Submitted"
-        primaryAction="+ Nouvel Élève"
-        onPrimaryAction={() => setIsCreateModalOpen(true)}
-        secondaryActions={[{ label: 'Actualiser', onClick: loadStudents }]}
+        title="Gestion des Élèves"
+        count={totalItems}
+        searchTerm={nameSearch}
+        onSearchChange={(val) => {
+          setNameSearch(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Rechercher par nom ou prénom..."
+        primaryAction={
+          canCreate
+            ? {
+                label: 'Nouvel Élève',
+                onClick: () => {
+                  setEditingStudent(null)
+                  setIsFormOpen(true)
+                },
+              }
+            : undefined
+        }
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-4">
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded border border-slate-200 shadow-2xs">
-          <div className="w-full sm:w-72">
-            <Input
-              placeholder="Rechercher par nom, email, matricule..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              size="sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 text-2xs text-slate-500">
-            <span>Normalisation active :</span>
-            <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
-              Spring Data Page&lt;T&gt;
-            </span>
-          </div>
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-white p-3 text-xs shadow-2xs">
+        <div className="w-48">
+          <input
+            type="text"
+            value={studentNumberSearch}
+            onChange={(e) => {
+              setStudentNumberSearch(e.target.value)
+              setPage(1)
+            }}
+            placeholder="N° Matricule..."
+            className="w-full rounded border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-slate-800 focus:outline-none"
+          />
         </div>
+        <div className="w-44">
+          <Select
+            value={statusFilter}
+            onChange={(val) => {
+              setStatusFilter(val)
+              setPage(1)
+            }}
+            options={STATUS_FILTERS}
+          />
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-2xs text-slate-400">Trier par :</span>
+          <select
+            value={sortParam}
+            onChange={(e) => {
+              setSortParam(e.target.value)
+              setPage(1)
+            }}
+            className="rounded border border-slate-200 bg-white px-2 py-1 text-2xs text-slate-700 focus:border-slate-800 focus:outline-none"
+          >
+            <option value="id,desc">Récents d'abord</option>
+            <option value="id,asc">Anciens d'abord</option>
+            <option value="studentNumber,asc">Matricule (A-Z)</option>
+            <option value="studentNumber,desc">Matricule (Z-A)</option>
+          </select>
+        </div>
+      </div>
 
-        {/* Table */}
+      {/* Data Table */}
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+          <Loader size="md" />
+        </div>
+      ) : students.length === 0 ? (
+        <EmptyState
+          title="Aucun élève trouvé"
+          description={
+            nameSearch || studentNumberSearch || statusFilter !== 'ALL'
+              ? 'Aucun élève ne correspond aux critères de recherche.'
+              : 'Commencez par inscrire un nouvel élève.'
+          }
+          action={
+            canCreate
+              ? {
+                  label: 'Créer un élève',
+                  onClick: () => {
+                    setEditingStudent(null)
+                    setIsFormOpen(true)
+                  },
+                }
+              : undefined
+          }
+        />
+      ) : (
         <PaginatedTable
           columns={columns}
           data={students}
@@ -247,117 +330,77 @@ export function StudentList() {
           totalItems={totalItems}
           totalPages={totalPages}
           onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          isLoading={isLoading}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setPage(1)
+          }}
+          isLoading={false}
+          onRowClick={(row) => setDetailStudent(row)}
         />
-      </div>
+      )}
 
-      {/* Create Student Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Inscrire un nouvel élève"
-        subtitle="Formulaire validé avec gestion des erreurs ProblemDetail RFC 7807 (invalidParams)"
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsCreateModalOpen(false)}
-              disabled={isSubmitting}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleCreateSubmit}
-              isLoading={isSubmitting}
-            >
-              Enregistrer l&apos;élève
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleCreateSubmit} className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="Prénom"
-              value={formData.firstName}
-              onChange={(e) => handleInputChange('firstName', e.target.value)}
-              error={fieldErrors.firstName}
-              placeholder="Ex: Lucas"
-              required
-            />
-            <Input
-              label="Nom de famille"
-              value={formData.lastName}
-              onChange={(e) => handleInputChange('lastName', e.target.value)}
-              error={fieldErrors.lastName}
-              placeholder="Ex: Bernard"
-              required
-            />
-          </div>
+      {/* Create / Edit Modal */}
+      {isFormOpen && (
+        <StudentFormModal
+          key={editingStudent?.id || 'new'}
+          isOpen={isFormOpen}
+          student={editingStudent}
+          onClose={() => {
+            setIsFormOpen(false)
+            setEditingStudent(null)
+          }}
+          onSuccess={() => loadStudents()}
+        />
+      )}
 
-          <Input
-            label="Email institutionnel"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            error={fieldErrors.email}
-            placeholder="lucas.bernard@school.edu"
-            helperText="Pour tester l'erreur ProblemDetail, saisissez un texte sans @"
-            required
-          />
+      {/* Details Modal */}
+      {detailStudent && (
+        <StudentDetailsModal
+          isOpen={Boolean(detailStudent)}
+          student={detailStudent}
+          onClose={() => setDetailStudent(null)}
+          onOpenAssignGuardian={(stu) => {
+            setDetailStudent(null)
+            setGuardianTargetStudent(stu)
+          }}
+          onOpenEdit={(stu) => {
+            setDetailStudent(null)
+            setEditingStudent(stu)
+            setIsFormOpen(true)
+          }}
+        />
+      )}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="Numéro de Matricule"
-              value={formData.matricule}
-              onChange={(e) => handleInputChange('matricule', e.target.value)}
-              error={fieldErrors.matricule}
-              placeholder="STU-2026-XXXX"
-              required
-            />
-
-            <Select
-              label="Classe assignée"
-              value={formData.className}
-              onChange={(e) => handleInputChange('className', e.target.value)}
-              options={[
-                { value: 'Terminale S1', label: 'Terminale S1' },
-                { value: 'Première A', label: 'Première A' },
-                { value: 'Seconde B', label: 'Seconde B' },
-                { value: '3ème C', label: '3ème C' },
-              ]}
-              required
-            />
-          </div>
-
-          <DatePicker
-            label="Date de naissance"
-            value={formData.birthDate}
-            onChange={(e) => handleInputChange('birthDate', e.target.value)}
-            quickToday
-          />
-        </form>
-      </Modal>
+      {/* Assign Guardian Modal */}
+      {guardianTargetStudent && (
+        <StudentGuardianModal
+          isOpen={Boolean(guardianTargetStudent)}
+          student={guardianTargetStudent}
+          onClose={() => setGuardianTargetStudent(null)}
+          onSuccess={(updatedStudent) => {
+            loadStudents()
+            if (detailStudent && detailStudent.id === updatedStudent.id) {
+              setDetailStudent(updatedStudent)
+            }
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Supprimer l'élève"
-        description={`Êtes-vous sûr de vouloir supprimer l'élève ${deleteTarget?.fullName} (${deleteTarget?.matricule}) ? Cette action est irréversible.`}
-        confirmText="Supprimer définitivement"
-        cancelText="Annuler"
-        confirmVariant="danger"
-        isLoading={isDeleting}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
-      />
+      {deleteTarget && (
+        <ConfirmDialog
+          isOpen={Boolean(deleteTarget)}
+          title="Supprimer cet élève ?"
+          message={`Êtes-vous sûr de vouloir supprimer l'élève ${deleteTarget.user ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}` : ''} (${deleteTarget.studentNumber || ''}) ? Cette action est irréversible.`}
+          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          variant="danger"
+          isLoading={isDeleting}
+          onConfirm={handleDeleteConfirm}
+          onClose={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   )
 }
 
-export const StudentListPage = StudentList
 export default StudentList

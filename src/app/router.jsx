@@ -6,6 +6,10 @@ import { RoleGuard } from '@/components/layout/RoleGuard'
 import { LoginPage } from '@/routes/LoginPage'
 import { DashboardPage } from '@/routes/DashboardPage'
 import { StudentListPage } from '@/routes/StudentListPage'
+import { TeacherListPage } from '@/routes/TeacherListPage'
+import { StaffListPage } from '@/routes/StaffListPage'
+import { GuardianListPage } from '@/routes/GuardianListPage'
+import { DepartmentListPage } from '@/routes/DepartmentListPage'
 import { ExamListPage } from '@/routes/ExamListPage'
 import { ExamFormPage } from '@/routes/ExamFormPage'
 import { GradeEntryPage } from '@/routes/GradeEntryPage'
@@ -62,6 +66,22 @@ export const router = createBrowserRouter([
       {
         path: '/students',
         element: <StudentListPage />,
+      },
+      {
+        path: '/teachers',
+        element: <TeacherListPage />,
+      },
+      {
+        path: '/staff',
+        element: <StaffListPage />,
+      },
+      {
+        path: '/guardians',
+        element: <GuardianListPage />,
+      },
+      {
+        path: '/departments',
+        element: <DepartmentListPage />,
       },
       {
         path: '/profile',

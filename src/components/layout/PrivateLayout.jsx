@@ -26,6 +26,10 @@ export function PrivateLayout() {
   const navItems = [
     { label: t('nav.dashboard'), to: '/dashboard', icon: '📊' },
     { label: t('nav.students'), to: '/students', icon: '🎓' },
+    { label: t('nav.teachers'), to: '/teachers', icon: '👨‍🏫' },
+    { label: t('nav.staff'), to: '/staff', icon: '💼' },
+    { label: t('nav.guardians'), to: '/guardians', icon: '👨‍👩‍👧' },
+    { label: t('nav.departments'), to: '/departments', icon: '🏛️' },
     { label: t('nav.exams'), to: '/exams', icon: '📝' },
     {
       label: t('nav.grades'),

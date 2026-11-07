@@ -12,7 +12,6 @@ import { Pagination } from '@/components/ui/Pagination'
 import { Loader, Spinner, Skeleton } from '@/components/ui/Loader'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/hooks/useToast'
-import { exampleService } from '@/features/students'
 import { parseProblemDetail, parseAiError } from '@/utils/apiHelpers'
 
 export function ComponentShowcaseView() {

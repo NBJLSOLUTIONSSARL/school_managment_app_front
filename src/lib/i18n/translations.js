@@ -55,7 +55,11 @@ export const translations = {
     },
     nav: {
       dashboard: 'Tableau de bord',
-      students: 'Étudiants',
+      students: 'Élèves',
+      teachers: 'Enseignants',
+      staff: 'Personnel',
+      guardians: 'Tuteurs & Parents',
+      departments: 'Départements',
       exams: 'Examens',
       grades: 'Saisie des notes',
       homework: 'Devoirs',
@@ -229,6 +233,10 @@ export const translations = {
     nav: {
       dashboard: 'لوحة التحكم',
       students: 'الطلاب',
+      teachers: 'الأساتذة',
+      staff: 'الموظفون',
+      guardians: 'أولياء الأمور',
+      departments: 'الأقسام',
       exams: 'الامتحانات',
       grades: 'إدخال العلامات',
       homework: 'الواجبات',
