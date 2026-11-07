@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useI18n } from '@/hooks/useI18n'
-import { ToastContainer } from '@/components/common/Toast'
-import { StatusBadge } from '@/components/common/StatusBadge'
-import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
+import { ToastContainer } from '@/components/ui/Toast'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { cn } from '@/utils/classNames'
 
 export function PrivateLayout() {

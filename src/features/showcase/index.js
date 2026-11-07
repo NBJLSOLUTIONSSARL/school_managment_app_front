@@ -1,1 +1,1 @@
-export * from './ComponentShowcasePage'
+export * from './components/ComponentShowcaseView'

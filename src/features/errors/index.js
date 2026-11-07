@@ -1,2 +1,2 @@
-export * from './NotFoundPage'
-export * from './ForbiddenPage'
+export * from './components/NotFoundView'
+export * from './components/ForbiddenView'

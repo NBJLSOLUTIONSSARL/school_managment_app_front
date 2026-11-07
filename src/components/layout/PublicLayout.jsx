@@ -1,6 +1,6 @@
 import { Link, Outlet } from 'react-router-dom'
-import { ToastContainer } from '@/components/common/Toast'
-import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
+import { ToastContainer } from '@/components/ui/Toast'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useI18n } from '@/hooks/useI18n'
 
 const CURRENT_YEAR = new Date().getFullYear()

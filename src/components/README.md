@@ -14,7 +14,7 @@ Bouton compact avec gestion des variantes, tailles, icônes et état de chargeme
 
 ### Usage
 ```jsx
-import { Button } from '@/components/common/Button'
+import { Button } from '@/components/ui/Button'
 
 // Variante primaire (Action principale Desk)
 <Button variant="primary" size="sm" onClick={handleSave}>
@@ -55,7 +55,7 @@ Champ de saisie compact avec support des libellés, erreurs de validation, préf
 
 ### Usage
 ```jsx
-import { Input } from '@/components/common/Input'
+import { Input } from '@/components/ui/Input'
 
 <Input
   label="Email académique"
@@ -77,7 +77,7 @@ Menu déroulant stylisé Desk.
 
 ### Usage
 ```jsx
-import { Select } from '@/components/common/Select'
+import { Select } from '@/components/ui/Select'
 
 <Select
   label="Classe"
@@ -100,7 +100,7 @@ Sélecteur de date compact avec bouton d'action rapide "Aujourd'hui".
 
 ### Usage
 ```jsx
-import { DatePicker } from '@/components/common/DatePicker'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 <DatePicker
   label="Date de naissance"
@@ -119,8 +119,8 @@ Fenêtre modale accessible avec contrôle du clavier (`Échap`), fond flouté et
 
 ### Usage
 ```jsx
-import { Modal } from '@/components/common/Modal'
-import { Button } from '@/components/common/Button'
+import { Modal } from '@/components/ui/Modal'
+import { Button } from '@/components/ui/Button'
 
 <Modal
   isOpen={isOpen}
@@ -146,7 +146,7 @@ Boîte de dialogue de confirmation d'action critique (suppression, validation fi
 
 ### Usage
 ```jsx
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 <ConfirmDialog
   isOpen={isConfirmOpen}
@@ -168,7 +168,7 @@ Pillule de statut standardisée pour documents et entités.
 
 ### Usage
 ```jsx
-import { StatusBadge } from '@/components/common/StatusBadge'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 <StatusBadge status="Draft" />
 <StatusBadge status="Submitted" />
@@ -187,7 +187,7 @@ Tableau paginé data-dense avec tri interactif, sélection du nombre de lignes p
 
 ### Usage
 ```jsx
-import { PaginatedTable } from '@/components/common/PaginatedTable'
+import { PaginatedTable } from '@/components/ui/PaginatedTable'
 
 const columns = [
   { key: 'matricule', label: 'Matricule', width: '120px' },
@@ -243,7 +243,7 @@ Indicateurs de chargement modulaires.
 
 ### Usage
 ```jsx
-import { Spinner, Loader, Skeleton, PageLoader } from '@/components/common/Loader'
+import { Spinner, Loader, Skeleton, PageLoader } from '@/components/ui/Loader'
 
 // Spinner inline
 <Spinner size="sm" />
@@ -266,7 +266,7 @@ Affichage d'un état sans données avec illustration et bouton d'action.
 
 ### Usage
 ```jsx
-import { EmptyState } from '@/components/common/EmptyState'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 <EmptyState
   title="Aucun cours assigné"

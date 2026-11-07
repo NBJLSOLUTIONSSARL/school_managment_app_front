@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Button } from '../common/Button'
-import { Input } from '../common/Input'
-import { Select } from '../common/Select'
-import { Modal } from '../common/Modal'
-import { Pagination } from '../common/Pagination'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Modal } from '@/components/ui/Modal'
+import { Pagination } from '@/components/ui/Pagination'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 

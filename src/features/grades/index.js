@@ -1,1 +1,1 @@
-export * from './GradeEntryPage'
+export * from './components/GradeEntryGrid'

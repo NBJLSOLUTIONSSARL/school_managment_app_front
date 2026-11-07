@@ -1,7 +1,7 @@
 import { useContext } from 'react'
-import { I18nContext } from '@/i18n/i18nContext'
-import { translate } from '@/i18n/translate'
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, translations } from '@/i18n/translations'
+import { I18nContext } from '@/lib/i18n/i18nContext'
+import { translate } from '@/lib/i18n/translate'
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, translations } from '@/lib/i18n/translations'
 
 const fallback = {
   language: DEFAULT_LANGUAGE,

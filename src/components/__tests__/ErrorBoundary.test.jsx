@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ErrorBoundary } from '../common/ErrorBoundary'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
