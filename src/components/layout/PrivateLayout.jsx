@@ -5,6 +5,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { ToastContainer } from '@/components/ui/Toast'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
+import { EduTrackLogo } from '@/components/ui/EduTrackLogo'
 import { NotificationDropdown } from '@/features/notifications'
 import { cn } from '@/utils/classNames'
 
@@ -86,15 +87,7 @@ export function PrivateLayout() {
           </button>
 
           <NavLink to="/dashboard" className="flex items-center gap-2" aria-label={t('app.name')}>
-            <div
-              aria-hidden="true"
-              className="flex h-7 w-7 items-center justify-center rounded bg-slate-900 text-2xs font-bold tracking-wider text-white"
-            >
-              SD
-            </div>
-            <span className="hidden text-xs font-semibold tracking-tight text-slate-900 sm:inline sm:text-sm">
-              {t('app.name')}
-            </span>
+            <EduTrackLogo size="sm" />
           </NavLink>
 
           <span className="mx-1 hidden text-slate-300 sm:inline" aria-hidden="true">

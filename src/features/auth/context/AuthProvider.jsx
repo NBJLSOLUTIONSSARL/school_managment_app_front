@@ -9,7 +9,7 @@ import {
   setCurrentUser,
 } from '@/utils/tokenStorage'
 
-const knownRoles = new Set(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_STAFF'])
+const knownRoles = new Set(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_STAFF', 'ROLE_LIBRARIAN'])
 const expiredMessage = 'Votre session a expiré ou a été révoquée. Reconnectez-vous.'
 
 function normalizeRole(r) {

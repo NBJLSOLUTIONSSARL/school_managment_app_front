@@ -30,6 +30,19 @@
   --frappe-muted: #64748b;
   --frappe-dark: #0f172a;
 
+  /* EduTrack Figma Design Tokens */
+  --primary: #4361EE;
+  --primary-hover: #3451D1;
+  --primary-light: #EEF2FF;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-active-bg: #EEF2FF;
+  --sidebar-active-text: #4361EE;
+  --bg-page: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --card-border: #F1F5F9;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+
   font-family:
     Inter,
     system-ui,
@@ -106,5 +119,21 @@ body {
   *::after {
     scroll-behavior: auto !important;
   }
+}
+
+/* EduTrack Figma Design System Cards and Components */
+.edutrack-card,
+.academy-card {
+  background-color: #FFFFFF;
+  border: 1px solid #F1F5F9;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 4px 16px -2px rgba(67, 97, 238, 0.04);
+}
+
+.edutrack-pill-active,
+.academy-pill-active {
+  background-color: #EEF2FF;
+  color: #4361EE;
+  font-weight: 600;
 }
 
