@@ -23,6 +23,12 @@ import { ObservationsPage } from '@/routes/ObservationsPage'
 import { ConsentsPage } from '@/routes/ConsentsPage'
 import { AnalysesPage } from '@/routes/AnalysesPage'
 import { StrategiesPage } from '@/routes/StrategiesPage'
+import { AnnouncementListPage } from '@/routes/AnnouncementListPage'
+import { EventListPage } from '@/routes/EventListPage'
+import { MessageListPage } from '@/routes/MessageListPage'
+import { NotificationListPage } from '@/routes/NotificationListPage'
+import { LeaveRequestListPage } from '@/routes/LeaveRequestListPage'
+import { AuditLogListPage } from '@/routes/AuditLogListPage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
 
 export const router = createBrowserRouter([
@@ -139,6 +145,34 @@ export const router = createBrowserRouter([
       {
         path: '/report-cards',
         element: <ReportCardListPage />,
+      },
+      {
+        path: '/announcements',
+        element: <AnnouncementListPage />,
+      },
+      {
+        path: '/events',
+        element: <EventListPage />,
+      },
+      {
+        path: '/messages',
+        element: <MessageListPage />,
+      },
+      {
+        path: '/notifications',
+        element: <NotificationListPage />,
+      },
+      {
+        path: '/leave-requests',
+        element: <LeaveRequestListPage />,
+      },
+      {
+        path: '/audit-logs',
+        element: (
+          <RoleGuard allowedRoles={['admin', 'ROLE_ADMIN']}>
+            <AuditLogListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/showcase',

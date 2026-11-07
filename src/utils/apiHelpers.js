@@ -108,14 +108,19 @@ export function normalizePagination(rawPayload, options = {}) {
     }
   }
 
-  // Case 2: Spring Data Page<T>
-  // Detected via `content` array + Spring-specific properties (`totalElements`, `number`, `size`)
+  // Case 2: Spring Data Page<T> or PageResponse<T> (Model B)
+  // Detected via `content` array + Spring / Model B properties (`totalElements`, `number` / `page`, `size`)
   if (Array.isArray(data.content)) {
     const items = data.content
     const totalElements = typeof data.totalElements === 'number' ? data.totalElements : items.length
     const pageSize = typeof data.size === 'number' && data.size > 0 ? data.size : defaultPageSize
     // Spring Data page index is 0-indexed; convert to 1-indexed for standard UI display
-    const springNumber = typeof data.number === 'number' ? data.number : 0
+    const springNumber =
+      typeof data.number === 'number'
+        ? data.number
+        : typeof data.page === 'number'
+          ? data.page
+          : 0
     const page = springNumber + 1
     const totalPages =
       typeof data.totalPages === 'number'

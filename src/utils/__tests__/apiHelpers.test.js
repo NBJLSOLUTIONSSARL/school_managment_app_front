@@ -126,6 +126,25 @@ describe('apiHelpers', () => {
       expect(normalized.hasPrevious).toBe(true)
     })
 
+    it('normalizes PageResponse<T> (Model B) with content, page, size, totalElements, totalPages', () => {
+      const modelB = {
+        content: [{ id: 1, title: 'Item 1' }],
+        page: 2, // 0-indexed page 2 -> UI page 3
+        size: 10,
+        totalElements: 45,
+        totalPages: 5,
+      }
+
+      const normalized = normalizePagination(modelB)
+      expect(normalized.items).toEqual([{ id: 1, title: 'Item 1' }])
+      expect(normalized.page).toBe(3)
+      expect(normalized.pageSize).toBe(10)
+      expect(normalized.totalItems).toBe(45)
+      expect(normalized.totalPages).toBe(5)
+      expect(normalized.hasNext).toBe(true)
+      expect(normalized.hasPrevious).toBe(true)
+    })
+
     it('correctly calculates 0 totalPages for empty PageResponse without totalPages field', () => {
       const emptyResponse = {
         items: [],

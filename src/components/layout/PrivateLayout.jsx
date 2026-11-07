@@ -5,6 +5,7 @@ import { useI18n } from '@/hooks/useI18n'
 import { ToastContainer } from '@/components/ui/Toast'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
+import { NotificationDropdown } from '@/features/notifications'
 import { cn } from '@/utils/classNames'
 
 export function PrivateLayout() {
@@ -46,6 +47,16 @@ export function PrivateLayout() {
     },
     { label: t('nav.homework'), to: '/homework', icon: '📚' },
     { label: t('nav.reportCards'), to: '/report-cards', icon: '📄' },
+    { label: t('nav.announcements'), to: '/announcements', icon: '📢' },
+    { label: t('nav.events'), to: '/events', icon: '📅' },
+    { label: t('nav.messages'), to: '/messages', icon: '✉️' },
+    { label: t('nav.leaveRequests'), to: '/leave-requests', icon: '🏖️' },
+    {
+      label: t('nav.auditLogs'),
+      to: '/audit-logs',
+      icon: '🛡️',
+      roles: ['admin', 'ROLE_ADMIN'],
+    },
     { label: t('nav.showcase'), to: '/showcase', icon: '🧩' },
     { label: t('nav.adminOnly'), to: '/admin-only', icon: '🛡️' },
   ]
@@ -100,6 +111,7 @@ export function PrivateLayout() {
         </div>
 
         <div className="flex min-w-0 items-center gap-2 text-xs sm:gap-3">
+          <NotificationDropdown />
           <LanguageSwitcher size="xs" />
 
           <div className="flex min-w-0 items-center gap-2">
