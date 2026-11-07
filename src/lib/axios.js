@@ -23,9 +23,21 @@ export const axiosClient = axios.create({
   timeout: 30000,
 })
 
-// Request Interceptor: Attach Bearer token
+// Request Interceptor: Attach Bearer token and normalize URL
 axiosClient.interceptors.request.use(
   (config) => {
+    // Prevent duplicate `/api` prefix if caller passes `/api/...` while baseURL already includes `/api`
+    if (config.url && typeof config.url === 'string') {
+      const base = config.baseURL || axiosClient.defaults.baseURL || ''
+      if (base.endsWith('/api') || base.endsWith('/api/')) {
+        if (config.url.startsWith('/api/')) {
+          config.url = config.url.replace(/^\/api\//, '/')
+        } else if (config.url === '/api') {
+          config.url = '/'
+        }
+      }
+    }
+
     const token = getAccessToken()
     if (token) {
       config.headers = config.headers || {}

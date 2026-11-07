@@ -181,14 +181,14 @@ export function AuditLogList() {
   ]
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Journal d'Audit Système (Audit Logs)"
         count={totalItems}
       />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-white p-3 text-xs shadow-2xs">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
         <div className="w-36">
           <Select
             value={actionFilter}

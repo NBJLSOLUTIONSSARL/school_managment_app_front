@@ -246,7 +246,7 @@ export function ConsentsView() {
                 value={studentId}
                 onChange={handleStudentChange}
                 placeholder="Ex: 12"
-                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:opacity-60"
+                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:opacity-60"
               />
               <button
                 type="button"
@@ -294,7 +294,7 @@ export function ConsentsView() {
                   <select
                     value={String(pagination.size)}
                     onChange={(e) => setPagination({ ...pagination, size: Number(e.target.value), page: 0 })}
-                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6]"
+                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
                   >
                     {PAGE_SIZES.map((s) => (
                       <option key={s} value={s}>{s} / page</option>
@@ -419,7 +419,7 @@ export function ConsentsView() {
                     value={formData.studentId}
                     onChange={(e) => handleFormChange('studentId', e.target.value)}
                     disabled
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs disabled:bg-frappe-hover focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs disabled:bg-frappe-hover focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
                   />
                   {formErrors.studentId && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.studentId}</p>
@@ -456,7 +456,7 @@ export function ConsentsView() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="h-8 rounded bg-[#1059DC] px-3.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#084AC3] disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="h-8 rounded bg-[#4361EE] px-3.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#3451D1] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Enregistrement…' : `Enregistrer (Ctrl+S)`}
                   </button>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { Bell } from 'lucide-react'
 import { notificationService } from '../api/notificationService'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/classNames'
@@ -100,34 +101,34 @@ export function NotificationDropdown() {
           setIsOpen((prev) => !prev)
           if (!isOpen) fetchNotifications(true)
         }}
-        className="relative inline-flex h-8 w-8 items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[#64748B] hover:text-[#1E293B] hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 cursor-pointer"
         aria-label="Centre de notifications"
         aria-expanded={isOpen}
       >
-        <span aria-hidden="true" className="text-sm">🔔</span>
+        <Bell className="w-4 h-4 stroke-[2]" />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white shadow-2xs">
+          <span className="absolute 1.5 -top-0.5 right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold text-white shadow-2xs">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded border border-slate-200 bg-white shadow-lg text-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
-            <span className="font-semibold text-slate-800">Notifications</span>
+        <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-[#F1F5F9] bg-white shadow-xl text-xs overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex items-center justify-between border-b border-[#F1F5F9] px-4 py-3 bg-white">
+            <span className="font-bold text-[#1E293B]">Notifications</span>
             {unreadCount > 0 && (
-              <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+              <span className="rounded-full bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-semibold text-[#4361EE]">
                 {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
               </span>
             )}
           </div>
 
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+          <div className="max-h-72 overflow-y-auto divide-y divide-[#F1F5F9]">
             {isLoading && notifications.length === 0 ? (
-              <div className="p-4 text-center text-slate-400">Chargement...</div>
+              <div className="p-4 text-center text-[#94A3B8]">Chargement...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-slate-400">
+              <div className="p-4 text-center text-[#94A3B8]">
                 Aucune notification pour le moment.
               </div>
             ) : (
@@ -136,17 +137,17 @@ export function NotificationDropdown() {
                   key={n.id}
                   className={cn(
                     'p-3 transition-colors',
-                    !n.read ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-slate-50'
+                    !n.read ? 'bg-[#EEF2FF]/40 hover:bg-[#EEF2FF]/70' : 'hover:bg-slate-50'
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
                       <span className="shrink-0 text-sm">{TYPE_ICONS[n.type] || 'ℹ️'}</span>
                       <div className="min-w-0 flex-1">
-                        <p className={cn('text-xs text-slate-800', !n.read && 'font-semibold')}>
+                        <p className={cn('text-xs text-[#1E293B]', !n.read && 'font-semibold')}>
                           {n.content}
                         </p>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-[#94A3B8]">
                           {n.createdAt ? new Date(n.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
@@ -155,7 +156,7 @@ export function NotificationDropdown() {
                       <button
                         type="button"
                         onClick={(e) => handleMarkAsRead(n.id, e)}
-                        className="shrink-0 text-[10px] text-blue-600 hover:underline"
+                        className="shrink-0 text-[11px] font-semibold text-[#4361EE] hover:underline cursor-pointer"
                         title="Marquer comme lu"
                       >
                         Lu
@@ -167,11 +168,11 @@ export function NotificationDropdown() {
             )}
           </div>
 
-          <div className="border-t border-slate-100 p-2 text-center bg-slate-50">
+          <div className="border-t border-[#F1F5F9] p-2.5 text-center bg-slate-50/50">
             <Link
               to="/notifications"
               onClick={() => setIsOpen(false)}
-              className="text-2xs font-semibold text-slate-700 hover:text-slate-900 hover:underline"
+              className="text-xs font-semibold text-[#4361EE] hover:underline"
             >
               Voir toutes les notifications →
             </Link>

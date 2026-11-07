@@ -278,7 +278,7 @@ export function StrategiesView() {
                 value={strategyInputId}
                 onChange={handleIdChange}
                 placeholder="Ex: 1"
-                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10"
+                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
               />
               <button
                 type="button"
@@ -307,7 +307,7 @@ export function StrategiesView() {
                   value={newAnalysisId}
                   onChange={(e) => setNewAnalysisId(e.target.value)}
                   placeholder="Ex: 42"
-                  className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10"
+                  className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
                 />
                 <button
                   type="button"
@@ -394,7 +394,7 @@ export function StrategiesView() {
                       type="button"
                       onClick={handleSave}
                       disabled={saving}
-                      className="inline-flex items-center justify-center rounded border border-[#1958D6] bg-[#1059DC] px-4 py-1.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#084ac3] disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center rounded border border-[#4361EE] bg-[#4361EE] px-4 py-1.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#3451D1] disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {saving ? 'Enregistrement…' : 'Enregistrer (Ctrl+S)'}
                     </button>
@@ -414,7 +414,7 @@ export function StrategiesView() {
                       value={formData.goals}
                       onChange={(e) => handleFieldChange('goals', e.target.value)}
                       placeholder="Ex: Renforcer la régularité du travail personnel et la participation orale."
-                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:bg-slate-50 disabled:text-slate-500"
                     />
                     {formErrors.goals && <p className="mt-1 text-2xs text-rose-600">{formErrors.goals}</p>}
                   </div>
@@ -431,7 +431,7 @@ export function StrategiesView() {
                       value={formData.recommendations}
                       onChange={(e) => handleFieldChange('recommendations', e.target.value)}
                       placeholder="Ex: Mettre en place un plan de travail hebdomadaire avec points de contrôle."
-                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:bg-slate-50 disabled:text-slate-500"
                     />
                     {formErrors.recommendations && (
                       <p className="mt-1 text-2xs text-rose-600">{formErrors.recommendations}</p>
@@ -451,7 +451,7 @@ export function StrategiesView() {
                         value={formData.parentAdvice}
                         onChange={(e) => handleFieldChange('parentAdvice', e.target.value)}
                         placeholder="Ex: Valoriser les progrès, installer un espace de travail calme."
-                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:bg-slate-50 disabled:text-slate-500"
                       />
                       {formErrors.parentAdvice && (
                         <p className="mt-1 text-2xs text-rose-600">{formErrors.parentAdvice}</p>
@@ -470,7 +470,7 @@ export function StrategiesView() {
                         value={formData.studentAdvice}
                         onChange={(e) => handleFieldChange('studentAdvice', e.target.value)}
                         placeholder="Ex: Noter ses devoirs dans l’agenda, demander de l’aide en classe."
-                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:bg-slate-50 disabled:text-slate-500"
                       />
                       {formErrors.studentAdvice && (
                         <p className="mt-1 text-2xs text-rose-600">{formErrors.studentAdvice}</p>
@@ -497,7 +497,7 @@ export function StrategiesView() {
                         aria-label="Filtrer par statut"
                         value={actionFilters.done}
                         onChange={(e) => setActionFilters((prev) => ({ ...prev, done: e.target.value }))}
-                        className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6]"
+                        className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
                       >
                         <option value="">Tous les statuts</option>
                         <option value="false">En cours</option>

@@ -120,20 +120,20 @@ export function Modal({
         aria-describedby={subtitle ? subtitleId : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded border border-slate-200 bg-white text-slate-800 shadow-xl focus:outline-none',
+          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#F1F5F9] bg-white text-[#1E293B] shadow-2xl focus:outline-none animate-in fade-in zoom-in-95 duration-150',
           sizeStyles[size] || sizeStyles.md,
           className
         )}
       >
-        <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
+        <div className="flex items-start justify-between border-b border-[#F1F5F9] bg-white px-6 py-4">
           <div>
             {title && (
-              <h3 id={titleId} className="text-sm font-semibold text-slate-900">
+              <h3 id={titleId} className="text-base font-bold text-[#1E293B] tracking-tight">
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p id={subtitleId} className="mt-0.5 text-2xs text-slate-500">
+              <p id={subtitleId} className="mt-0.5 text-xs text-[#64748B]">
                 {subtitle}
               </p>
             )}
@@ -141,17 +141,17 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-sm leading-none text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm leading-none text-[#94A3B8] transition-colors hover:text-[#1E293B] hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 cursor-pointer"
             aria-label={t('common.close')}
           >
             <span aria-hidden="true">✕</span>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 text-xs">{children}</div>
+        <div className="flex-1 overflow-y-auto p-6 text-xs text-[#1E293B]">{children}</div>
 
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-3">
+          <div className="flex items-center justify-end gap-2.5 border-t border-[#F1F5F9] bg-[#F8FAFC]/70 px-6 py-3.5">
             {footer}
           </div>
         )}

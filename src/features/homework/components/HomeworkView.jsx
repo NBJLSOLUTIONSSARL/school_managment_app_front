@@ -471,7 +471,7 @@ export function HomeworkView() {
     (mode === 'submission' && canViewSubmission)
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50">
+    <div className="flex-1 flex flex-col bg-[#F8FAFC]">
       <DocTypePageHead
         breadcrumbs={['Desk', 'Devoirs']}
         title="Soumissions de devoirs"
@@ -485,14 +485,14 @@ export function HomeworkView() {
         }
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-4">
-        <div className="rounded border border-blue-200 bg-blue-50 px-4 py-3 text-2xs leading-relaxed text-blue-800">
-          <span className="font-semibold">Périmètre API :</span> le backend expose uniquement les
+      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none">
+        <div className="rounded-2xl border border-[#C7D2FE] bg-[#EEF2FF] px-5 py-4 text-xs leading-relaxed text-[#4361EE]">
+          <span className="font-bold">Périmètre API :</span> le backend expose uniquement les
           soumissions de devoirs et leur notation. Il ne fournit ni liste des devoirs, ni création,
           ni échéance, ni classe associée. Cette page ne simule donc pas ces fonctionnalités.
         </div>
 
-        <div className="rounded border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
+        <div className="rounded-2xl border border-[#F1F5F9] bg-white p-5 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end gap-3">
             <div className="w-full sm:w-52">
               <Select

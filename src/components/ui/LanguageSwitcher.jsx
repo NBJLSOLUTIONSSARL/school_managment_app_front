@@ -9,7 +9,7 @@ export function LanguageSwitcher({ className = '', size = 'sm' }) {
       role="group"
       aria-label={t('common.language')}
       className={cn(
-        'inline-flex items-center rounded border border-slate-200 bg-white p-0.5',
+        'inline-flex items-center rounded-full border border-[#E2E8F0] bg-white p-0.5 shadow-2xs',
         className
       )}
     >
@@ -26,11 +26,11 @@ export function LanguageSwitcher({ className = '', size = 'sm' }) {
             lang={item.code}
             dir={item.code === 'ar' ? 'rtl' : 'ltr'}
             className={cn(
-              'rounded font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1',
-              size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-2xs',
+              'rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30',
+              size === 'xs' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs',
               isActive
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                ? 'bg-[#4361EE] text-white shadow-xs'
+                : 'text-[#64748B] hover:text-[#1E293B] hover:bg-slate-100'
             )}
           >
             {item.label}

@@ -50,25 +50,25 @@ export function Pagination({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 select-none sm:flex-row',
+        'flex flex-col items-center justify-between gap-3 border-t border-[#F1F5F9] bg-white px-4 py-3 text-xs text-[#64748B] select-none sm:flex-row',
         className
       )}
     >
       {showSummary && (
-        <div className="text-2xs text-slate-500" aria-live="polite">
+        <div className="text-xs text-[#64748B]" aria-live="polite">
           {t('pagination.summary', { start: startItem, end: endItem, total: totalItems })}
         </div>
       )}
 
       <div className="flex items-center gap-3">
         {showPageSize && onPageSizeChange && (
-          <div className="flex items-center gap-1.5 text-2xs">
-            <span className="text-slate-500">{t('pagination.rows')}</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[#64748B]">{t('pagination.rows')}</span>
             <select
               aria-label={t('pagination.rows')}
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="h-7 rounded border border-slate-300 bg-white px-2 text-2xs text-slate-700 hover:border-slate-400 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+              className="h-8 rounded-lg border border-[#E2E8F0] bg-white px-2.5 text-xs text-[#1E293B] hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE]"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -84,7 +84,7 @@ export function Pagination({
             type="button"
             disabled={page <= 1}
             onClick={() => onPageChange?.(page - 1)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-xs text-[#64748B] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
             title={t('pagination.previousPage')}
             aria-label={t('pagination.previousPage')}
           >
@@ -96,7 +96,7 @@ export function Pagination({
           {pagesList.map((p, idx) => {
             if (p === '...') {
               return (
-                <span key={`dots-${idx}`} className="px-1 text-2xs text-slate-400">
+                <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400">
                   …
                 </span>
               )
@@ -111,10 +111,10 @@ export function Pagination({
                 aria-current={isCurrent ? 'page' : undefined}
                 aria-label={t('pagination.page', { page: p })}
                 className={cn(
-                  'inline-flex h-7 min-w-[28px] items-center justify-center rounded px-1.5 text-2xs font-medium transition-colors',
+                  'inline-flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors cursor-pointer',
                   isCurrent
-                    ? 'bg-slate-900 text-white'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                    ? 'bg-[#4361EE] text-white shadow-2xs'
+                    : 'border border-[#E2E8F0] bg-white text-[#1E293B] hover:border-slate-300 hover:bg-slate-50'
                 )}
               >
                 {p}
@@ -126,7 +126,7 @@ export function Pagination({
             type="button"
             disabled={page >= totalPages || totalPages === 0}
             onClick={() => onPageChange?.(page + 1)}
-            className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-xs text-[#64748B] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
             title={t('pagination.nextPage')}
             aria-label={t('pagination.nextPage')}
           >

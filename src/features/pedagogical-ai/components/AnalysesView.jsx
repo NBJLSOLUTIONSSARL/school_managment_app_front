@@ -322,7 +322,7 @@ export function AnalysesView() {
                 value={studentId}
                 onChange={handleStudentChange}
                 placeholder="Ex: 12"
-                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:opacity-60"
+                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:opacity-60"
               />
               <button
                 type="button"
@@ -350,7 +350,7 @@ export function AnalysesView() {
                 value={termId}
                 onChange={handleTermChange}
                 placeholder="Ex: 1"
-                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10 disabled:opacity-60"
+                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:opacity-60"
               />
               <button
                 type="button"
@@ -376,7 +376,7 @@ export function AnalysesView() {
                   type="button"
                   onClick={handleGenerate}
                   disabled={!canGenerateAnalysis || loading}
-                  className="h-8 w-full items-center justify-center rounded border border-[#1958D6] bg-[#1059DC] px-3 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#084ac3] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="h-8 w-full items-center justify-center rounded border border-[#4361EE] bg-[#4361EE] px-3 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#3451D1] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Génération…' : 'Générer l’analyse'}
                 </button>
@@ -422,7 +422,7 @@ export function AnalysesView() {
                   <select
                     value={String(pagination.size)}
                     onChange={(e) => setPagination({ ...pagination, size: Number(e.target.value), page: 0 })}
-                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6]"
+                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
                   >
                     {PAGE_SIZES.map((s) => (
                       <option key={s} value={s}>{s} / page</option>
@@ -669,7 +669,7 @@ export function AnalysesView() {
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   rows={4}
-                  className="h-24 w-full rounded border border-frappe-border bg-white px-2.5 py-2 text-xs text-frappe-dark shadow-2xs focus:border-[#1958D6] focus:ring-1 focus:ring-[#1958D6]/10"
+                  className="h-24 w-full rounded border border-frappe-border bg-white px-2.5 py-2 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
                 />
                 <p className="mt-1 text-2xs text-frappe-muted">Min 5 caractères, max 1000.</p>
               </div>

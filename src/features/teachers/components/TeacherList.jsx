@@ -129,10 +129,16 @@ export function TeacherList() {
       render: (_, row) => {
         const u = row.user || {}
         const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom'
+        const initials = `${(u.firstName || 'P')[0]}${(u.lastName || 'R')[0]}`.toUpperCase()
         return (
-          <div>
-            <div className="font-medium text-slate-900">{name}</div>
-            <div className="text-2xs text-slate-400">{u.email}</div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#059669] font-bold text-xs shrink-0 shadow-2xs">
+              {initials}
+            </div>
+            <div>
+              <div className="font-semibold text-[#1E293B]">{name}</div>
+              <div className="text-[11px] text-[#64748B]">{u.email}</div>
+            </div>
           </div>
         )
       },
@@ -218,7 +224,7 @@ export function TeacherList() {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Corps Professoral"
         count={filteredTeachers.length}
@@ -239,8 +245,8 @@ export function TeacherList() {
       />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-white p-3 text-xs shadow-2xs">
-        <div className="w-64">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
+        <div className="w-72">
           <Select
             label=""
             value={selectedDepartment}

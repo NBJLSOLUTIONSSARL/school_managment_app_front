@@ -1,62 +1,66 @@
 import { cn } from '@/utils/classNames'
 
 const statusMap = {
-  // Frappe DocType statuses
+  // Frappe DocType statuses & EduTrack Figma statuses
   Draft: {
-    bg: 'bg-slate-100 text-slate-700 border-slate-200',
-    dot: 'bg-slate-500',
+    bg: 'bg-[#EEF2FF] text-[#4361EE] border-[#C7D2FE]',
+    dot: 'bg-[#4361EE]',
   },
   Submitted: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+    dot: 'bg-[#10B981]',
   },
   Completed: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+    dot: 'bg-[#10B981]',
   },
   Active: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+    dot: 'bg-[#10B981]',
   },
   Paid: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+    dot: 'bg-[#10B981]',
   },
   Pending: {
-    bg: 'bg-amber-50 text-amber-700 border-amber-200',
-    dot: 'bg-amber-500',
+    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+    dot: 'bg-[#F59E0B]',
   },
   Warning: {
-    bg: 'bg-amber-50 text-amber-700 border-amber-200',
-    dot: 'bg-amber-500',
+    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+    dot: 'bg-[#F59E0B]',
   },
   Cancelled: {
-    bg: 'bg-rose-50 text-rose-700 border-rose-200',
-    dot: 'bg-rose-500',
+    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+    dot: 'bg-[#EF4444]',
   },
   Overdue: {
-    bg: 'bg-rose-50 text-rose-700 border-rose-200',
-    dot: 'bg-rose-500',
+    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+    dot: 'bg-[#EF4444]',
   },
   Suspended: {
-    bg: 'bg-rose-50 text-rose-700 border-rose-200',
-    dot: 'bg-rose-500',
+    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+    dot: 'bg-[#EF4444]',
+  },
+  'At Risk': {
+    bg: 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]',
+    dot: 'bg-[#F59E0B]',
   },
   Inactive: {
-    bg: 'bg-slate-100 text-slate-600 border-slate-200',
+    bg: 'bg-slate-100 text-[#64748B] border-slate-200',
     dot: 'bg-slate-400',
   },
   Locked: {
-    bg: 'bg-amber-50 text-amber-700 border-amber-200',
-    dot: 'bg-amber-500',
+    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+    dot: 'bg-[#F59E0B]',
   },
   Open: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+    dot: 'bg-[#10B981]',
   },
   Info: {
-    bg: 'bg-blue-50 text-blue-700 border-blue-200',
-    dot: 'bg-blue-500',
+    bg: 'bg-[#EEF2FF] text-[#4361EE] border-[#C7D2FE]',
+    dot: 'bg-[#4361EE]',
   },
 }
 
@@ -67,22 +71,40 @@ export function StatusBadge({
   className = '',
   size = 'sm',
 }) {
-  const normalizedKey = statusMap[status] ? status : 'Draft'
+  const statusKey =
+    typeof status === 'string'
+      ? status
+      : typeof status === 'object' && status !== null
+        ? status.status || status.value || status.label || 'Draft'
+        : 'Draft'
+
+  const normalizedKey = statusMap[statusKey] ? statusKey : 'Draft'
   const current = statusMap[normalizedKey]
 
-  const sizeClasses = size === 'xs' ? 'text-[10px] px-1.5 py-0.2' : 'text-2xs px-2 py-0.5'
+  const resolvedLabel =
+    typeof label === 'string'
+      ? label
+      : typeof label === 'object' && label !== null
+        ? label.label || label.name || String(label)
+        : typeof status === 'string'
+          ? status
+          : typeof status === 'object' && status !== null
+            ? status.label || status.name || status.status || 'Draft'
+            : String(status || 'Draft')
+
+  const sizeClasses = size === 'xs' ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-0.5'
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded font-medium border select-none',
+        'inline-flex items-center gap-1.5 rounded-full font-semibold border select-none',
         current.bg,
         sizeClasses,
         className
       )}
     >
       {showDot && <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', current.dot)} />}
-      <span>{label || status}</span>
+      <span>{resolvedLabel}</span>
     </span>
   )
 }

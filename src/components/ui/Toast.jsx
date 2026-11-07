@@ -19,8 +19,8 @@ const toastTypeStyles = {
     icon: '⚠',
   },
   info: {
-    container: 'bg-blue-50 border-blue-200 text-blue-900',
-    iconColor: 'text-blue-600',
+    container: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#1E293B]',
+    iconColor: 'text-[#4361EE]',
     icon: 'ℹ',
   },
 }
@@ -35,7 +35,7 @@ export function ToastItem({ toast, onClose }) {
       role={type === 'error' ? 'alert' : 'status'}
       aria-live={type === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'flex w-80 select-none items-start gap-3 rounded border px-3.5 py-2.5 text-xs shadow-md transition-all sm:w-96',
+        'flex w-80 select-none items-start gap-3 rounded-2xl border px-4 py-3 text-xs shadow-xl transition-all sm:w-96 backdrop-blur-sm',
         style.container
       )}
     >

@@ -75,11 +75,11 @@ export function PaginatedTable({
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded border border-slate-200 bg-white shadow-2xs',
+        'w-full overflow-hidden rounded-2xl border border-[#F1F5F9] bg-white shadow-2xs',
         className
       )}
     >
-      {toolbar && <div className="border-b border-slate-100 bg-slate-50/50 p-3">{toolbar}</div>}
+      {toolbar && <div className="border-b border-[#F1F5F9] bg-white p-4">{toolbar}</div>}
 
       <div className="relative min-h-[160px] overflow-x-auto">
         {isLoading && (
@@ -90,10 +90,10 @@ export function PaginatedTable({
 
         <table className="w-full border-collapse text-start text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 font-medium text-slate-600">
+            <tr className="border-b border-[#F1F5F9] bg-[#F8FAFC] font-semibold text-[11px] uppercase tracking-wider text-[#64748B]">
               <th
                 scope="col"
-                className="w-10 px-3 py-2.5 text-center text-2xs font-normal text-slate-400"
+                className="w-10 px-4 py-3 text-center text-[10px] font-bold text-[#94A3B8]"
               >
                 #
               </th>
@@ -121,7 +121,7 @@ export function PaginatedTable({
                     }
                     style={{ width: col.width || 'auto' }}
                     className={cn(
-                      'px-3.5 py-2.5 font-medium tracking-tight text-slate-700',
+                      'px-4 py-3 font-bold tracking-tight text-[#64748B]',
                       alignClass
                     )}
                   >
@@ -130,13 +130,13 @@ export function PaginatedTable({
                         type="button"
                         onClick={() => handleHeaderClick(col)}
                         className={cn(
-                          'inline-flex items-center gap-1.5 select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1',
+                          'inline-flex items-center gap-1.5 select-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 cursor-pointer',
                           alignClass === 'text-end' && 'justify-end',
                           alignClass === 'text-center' && 'justify-center'
                         )}
                       >
                         <span>{col.label}</span>
-                        <span className="text-2xs text-slate-400" aria-hidden="true">
+                        <span className="text-[10px] text-[#94A3B8]" aria-hidden="true">
                           {isSorted ? (activeSortDir === 'asc' ? '▲' : '▼') : '↕'}
                         </span>
                       </button>
@@ -156,7 +156,7 @@ export function PaginatedTable({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[#F1F5F9]">
             {displayRows.length > 0 ? (
               displayRows.map((row, index) => {
                 const key = row[rowKey] || index
@@ -177,11 +177,11 @@ export function PaginatedTable({
                     }
                     tabIndex={onRowClick ? 0 : undefined}
                     className={cn(
-                      'transition-colors hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400',
+                      'transition-colors hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#4361EE]/30',
                       onRowClick && 'cursor-pointer'
                     )}
                   >
-                    <td className="px-3 py-2 text-center font-mono text-2xs text-slate-400">
+                    <td className="px-4 py-3 text-center font-mono text-[11px] text-[#94A3B8]">
                       {rowNumber}
                     </td>
                     {columns.map((col) => {
@@ -193,11 +193,17 @@ export function PaginatedTable({
                             : 'text-start'
 
                       return (
-                        <td key={col.key} className={cn('px-3.5 py-2 text-slate-800', alignClass)}>
+                        <td key={col.key} className={cn('px-4 py-3 text-[#1E293B]', alignClass)}>
                           {col.render
                             ? col.render(row[col.key], row, index)
                             : row[col.key] !== undefined && row[col.key] !== null
-                              ? String(row[col.key])
+                              ? typeof row[col.key] === 'object'
+                                ? row[col.key]?.name ||
+                                  row[col.key]?.title ||
+                                  row[col.key]?.label ||
+                                  row[col.key]?.code ||
+                                  '-'
+                                : String(row[col.key])
                               : '-'}
                         </td>
                       )

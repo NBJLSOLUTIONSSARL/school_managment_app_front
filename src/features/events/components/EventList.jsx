@@ -193,7 +193,7 @@ export function EventList() {
   ]
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Calendrier & Événements Scolaires"
         count={totalItems}
@@ -211,10 +211,10 @@ export function EventList() {
       />
 
       {/* Filter and View bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-200 bg-white p-3 text-xs shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-2xs text-slate-500">Du :</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-[#64748B]">Du :</span>
             <input
               type="date"
               value={fromDate}
@@ -222,11 +222,11 @@ export function EventList() {
                 setFromDate(e.target.value)
                 setPage(1)
               }}
-              className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-slate-800 focus:outline-none"
+              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
             />
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-2xs text-slate-500">Au :</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-[#64748B]">Au :</span>
             <input
               type="date"
               value={toDate}
@@ -234,7 +234,7 @@ export function EventList() {
                 setToDate(e.target.value)
                 setPage(1)
               }}
-              className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-slate-800 focus:outline-none"
+              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
             />
           </div>
           {(fromDate || toDate) && (
@@ -245,7 +245,7 @@ export function EventList() {
                 setToDate('')
                 setPage(1)
               }}
-              className="text-2xs text-slate-400 hover:text-slate-600 underline"
+              className="text-xs text-[#4361EE] hover:underline font-semibold cursor-pointer"
             >
               Effacer dates
             </button>
@@ -253,30 +253,30 @@ export function EventList() {
         </div>
 
         {/* Tab switch */}
-        <div className="flex items-center gap-1 rounded bg-slate-100 p-0.5 text-2xs">
+        <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           <button
             type="button"
             onClick={() => setActiveTab('list')}
             className={cn(
-              'rounded px-3 py-1 font-medium transition-colors',
+              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
               activeTab === 'list'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[#4361EE] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
-            Vue Liste
+            📋 Liste
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('calendar')}
             className={cn(
-              'rounded px-3 py-1 font-medium transition-colors',
+              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
               activeTab === 'calendar'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[#4361EE] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
-            Vue Calendrier
+            📅 Calendrier
           </button>
         </div>
       </div>

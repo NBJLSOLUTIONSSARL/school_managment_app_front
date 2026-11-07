@@ -2,15 +2,15 @@
 
 /* Approved SCRUM-58 reference palette, scoped away from the login page. */
 .profile-shell, .profile-page {
-  --profile-bg: #f3f8fe;
+  --profile-bg: #f8fafc;
   --profile-surface: var(--color-frappe-surface);
-  --profile-border: #e1ecfc;
-  --profile-ink: #0c1d51;
-  --profile-muted: #506b9b;
-  --profile-blue: #0062e9;
-  --profile-soft-blue: #eaf3ff;
+  --profile-border: #f1f5f9;
+  --profile-ink: #1e293b;
+  --profile-muted: #64748b;
+  --profile-blue: #4361EE;
+  --profile-soft-blue: #eef2ff;
   color: var(--profile-ink);
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   font-size: 14px;
   line-height: 1.45;
 }

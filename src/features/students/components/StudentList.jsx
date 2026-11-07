@@ -133,10 +133,16 @@ export function StudentList() {
       render: (_, row) => {
         const u = row.user || {}
         const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom'
+        const initials = `${(u.firstName || 'E')[0]}${(u.lastName || 'L')[0]}`.toUpperCase()
         return (
-          <div>
-            <div className="font-medium text-slate-900">{name}</div>
-            <div className="text-2xs text-slate-400">{u.email}</div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center text-[#4361EE] font-bold text-xs shrink-0 shadow-2xs">
+              {initials}
+            </div>
+            <div>
+              <div className="font-semibold text-[#1E293B]">{name}</div>
+              <div className="text-[11px] text-[#64748B]">{u.email}</div>
+            </div>
           </div>
         )
       },
@@ -230,7 +236,7 @@ export function StudentList() {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       {/* Top Header */}
       <DocTypePageHead
         title="Gestion des Élèves"
@@ -254,9 +260,9 @@ export function StudentList() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded border border-slate-200 bg-white p-3 text-xs shadow-2xs">
-        <div className="w-48">
+      {/* Filter Bar matching Figma edutrack card */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
+        <div className="w-52">
           <input
             type="text"
             value={studentNumberSearch}
@@ -265,10 +271,10 @@ export function StudentList() {
               setPage(1)
             }}
             placeholder="N° Matricule..."
-            className="w-full rounded border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-slate-800 focus:outline-none"
+            className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs text-[#1E293B] placeholder-[#94A3B8] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
           />
         </div>
-        <div className="w-44">
+        <div className="w-48">
           <Select
             value={statusFilter}
             onChange={(val) => {
@@ -279,14 +285,14 @@ export function StudentList() {
           />
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-2xs text-slate-400">Trier par :</span>
+          <span className="text-xs font-medium text-[#64748B]">Trier par :</span>
           <select
             value={sortParam}
             onChange={(e) => {
               setSortParam(e.target.value)
               setPage(1)
             }}
-            className="rounded border border-slate-200 bg-white px-2 py-1 text-2xs text-slate-700 focus:border-slate-800 focus:outline-none"
+            className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-medium text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none cursor-pointer"
           >
             <option value="id,desc">Récents d'abord</option>
             <option value="id,asc">Anciens d'abord</option>

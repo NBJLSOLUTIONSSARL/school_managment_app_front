@@ -229,7 +229,7 @@ export function AsyncLinkField({
 
       {error ? (
         <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
-          {error}
+          {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
         <p id={helperId} className="mt-1 text-2xs text-slate-500">

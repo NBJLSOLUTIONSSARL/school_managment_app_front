@@ -29,6 +29,8 @@ import { MessageListPage } from '@/routes/MessageListPage'
 import { NotificationListPage } from '@/routes/NotificationListPage'
 import { LeaveRequestListPage } from '@/routes/LeaveRequestListPage'
 import { AuditLogListPage } from '@/routes/AuditLogListPage'
+import { AdmissionsPage } from '@/routes/AdmissionsPage'
+import { InvoicesPage } from '@/routes/InvoicesPage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
 
 export const router = createBrowserRouter([
@@ -38,14 +40,16 @@ export const router = createBrowserRouter([
     element: <RootIndexRedirect />,
   },
 
+  // Standalone Fullscreen Login Route matching Figma Design
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+
   // Public Layout routes
   {
     element: <PublicLayout />,
     children: [
-      {
-        path: '/login',
-        element: <LoginPage />,
-      },
       {
         path: '/403',
         element: <ForbiddenPage />,
@@ -71,23 +75,67 @@ export const router = createBrowserRouter([
       },
       {
         path: '/students',
-        element: <StudentListPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <StudentListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/teachers',
-        element: <TeacherListPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <TeacherListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/staff',
-        element: <StaffListPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <StaffListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/guardians',
-        element: <GuardianListPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <GuardianListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/departments',
-        element: <DepartmentListPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <DepartmentListPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/admissions',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <AdmissionsPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/finances',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <InvoicesPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/finances/invoices',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <InvoicesPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/profile',
@@ -95,19 +143,35 @@ export const router = createBrowserRouter([
       },
       {
         path: '/observations',
-        element: <ObservationsPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+            <ObservationsPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/consents',
-        element: <ConsentsPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+            <ConsentsPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/analyses',
-        element: <AnalysesPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin']}>
+            <AnalysesPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/strategies',
-        element: <StrategiesPage />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+            <StrategiesPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/exams',
@@ -115,11 +179,19 @@ export const router = createBrowserRouter([
       },
       {
         path: '/exams/new',
-        element: <ExamFormPage key="exam-new" />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
+            <ExamFormPage key="exam-new" />
+          </RoleGuard>
+        ),
       },
       {
         path: '/exams/:id',
-        element: <ExamFormPage key="exam-edit" />,
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
+            <ExamFormPage key="exam-edit" />
+          </RoleGuard>
+        ),
       },
       {
         path: '/grades',
@@ -164,7 +236,22 @@ export const router = createBrowserRouter([
       },
       {
         path: '/leave-requests',
-        element: <LeaveRequestListPage />,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              'ROLE_ADMIN',
+              'admin',
+              'ROLE_TEACHER',
+              'teacher',
+              'ROLE_STAFF',
+              'staff',
+              'ROLE_STUDENT',
+              'student',
+            ]}
+          >
+            <LeaveRequestListPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/audit-logs',

@@ -13,6 +13,7 @@ import { Pagination } from '@/components/ui/Pagination'
 import { Spinner, Loader, Skeleton } from '@/components/ui/Loader'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ToastItem } from '@/components/ui/Toast'
+import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -317,6 +318,115 @@ describe('Reusable Common Components', () => {
         closeBtn.click()
       })
       expect(closedId).toBe(99)
+    })
+  })
+
+  describe('DocTypePageHead and Child Resilience', () => {
+    it('supports object-shaped primaryAction with label and onClick', () => {
+      let created = false
+      act(() => {
+        root.render(
+          <DocTypePageHead
+            title="Gestion des Élèves"
+            count={24}
+            primaryAction={{
+              label: 'Nouvel Élève',
+              onClick: () => (created = true),
+            }}
+          />
+        )
+      })
+      expect(container.textContent).toContain('Gestion des Élèves')
+      expect(container.textContent).toContain('24')
+      expect(container.textContent).toContain('Nouvel Élève')
+
+      const primaryBtn = container.querySelector('button')
+      act(() => {
+        primaryBtn.click()
+      })
+      expect(created).toBe(true)
+    })
+
+    it('supports string primaryAction with onPrimaryAction callback', () => {
+      let saved = false
+      act(() => {
+        root.render(
+          <DocTypePageHead
+            title="Examen #42"
+            docstatus="Draft"
+            primaryAction="Enregistrer"
+            onPrimaryAction={() => (saved = true)}
+          />
+        )
+      })
+      expect(container.textContent).toContain('Examen #42')
+      expect(container.textContent).toContain('Enregistrer')
+
+      const btn = Array.from(container.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Enregistrer'
+      )
+      act(() => {
+        btn.click()
+      })
+      expect(saved).toBe(true)
+    })
+
+    it('renders secondary actions and breadcrumb objects safely', () => {
+      let refreshed = false
+      act(() => {
+        root.render(
+          <DocTypePageHead
+            title="Bulletins"
+            breadcrumbs={['Desk', { label: 'Notes', to: '/grades' }, 'Trimestre 1']}
+            secondaryActions={[{ label: 'Actualiser', onClick: () => (refreshed = true) }]}
+          />
+        )
+      })
+      expect(container.textContent).toContain('Desk')
+      expect(container.textContent).toContain('Notes')
+      expect(container.textContent).toContain('Trimestre 1')
+      expect(container.textContent).toContain('Actualiser')
+
+      const secondaryBtn = Array.from(container.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Actualiser'
+      )
+      act(() => {
+        secondaryBtn.click()
+      })
+      expect(refreshed).toBe(true)
+    })
+
+    it('Button safely extracts label and onClick from object children', () => {
+      let clicked = false
+      act(() => {
+        root.render(<Button>{{ label: 'Action Objet', onClick: () => (clicked = true) }}</Button>)
+      })
+      const btn = container.querySelector('button')
+      expect(btn.textContent).toBe('Action Objet')
+      act(() => {
+        btn.click()
+      })
+      expect(clicked).toBe(true)
+    })
+
+    it('StatusBadge safely extracts label from object status', () => {
+      act(() => {
+        root.render(<StatusBadge status={{ label: 'Payé', status: 'Paid' }} />)
+      })
+      expect(container.textContent).toContain('Payé')
+    })
+
+    it('Input and Select safely display error objects without crashing', () => {
+      act(() => {
+        root.render(
+          <div>
+            <Input label="Nom" error={{ message: 'Champ obligatoire' }} />
+            <Select label="Rôle" error={{ message: 'Sélectionnez un rôle' }} options={[]} />
+          </div>
+        )
+      })
+      expect(container.textContent).toContain('Champ obligatoire')
+      expect(container.textContent).toContain('Sélectionnez un rôle')
     })
   })
 })

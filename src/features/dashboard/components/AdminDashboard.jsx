@@ -6,80 +6,19 @@ import {
   Users,
   Calendar,
   Bell,
-  MoreVertical,
-  FlaskConical,
-  Palette,
   AlertCircle,
-  TrendingUp,
+  Coins,
+  FileCheck,
+  Building2,
 } from 'lucide-react'
 import { HeroBanner } from '@/components/ui/HeroBanner'
 import { StatCard } from '@/components/ui/StatCard'
 import { MiniCalendar } from '@/components/ui/MiniCalendar'
-import { LineChart } from '@/components/ui/LineChart'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { useAuth } from '@/hooks/useAuth'
 import { useI18n } from '@/hooks/useI18n'
 import { statsService } from '../api/statsService'
-
-const defaultEnrollments = [
-  { id: 1, name: 'Emma Johnson', grade: 'Terminale S', status: 'Active' },
-  { id: 2, name: 'Liam Carter', grade: '1ère ES', status: 'Pending' },
-  { id: 3, name: 'Olivia Brown', grade: '3ème A', status: 'Active' },
-  { id: 4, name: 'Noah Williams', grade: 'Seconde B', status: 'Pending' },
-  { id: 5, name: 'Sophia Davis', grade: '6ème C', status: 'Completed' },
-]
-
-const defaultEvents = [
-  {
-    id: 'e1',
-    title: 'Conseil de classe trimestriel',
-    date: '15 Nov · Salle Polyvalente',
-    icon: Users,
-    iconBg: 'bg-[#FFEDD5]',
-    iconColor: 'text-[#EA580C]',
-  },
-  {
-    id: 'e2',
-    title: 'Olympiades de Mathématiques',
-    date: '20 Nov · Labo Sciences',
-    icon: FlaskConical,
-    iconBg: 'bg-[#DCFCE7]',
-    iconColor: 'text-[#16A34A]',
-  },
-  {
-    id: 'e3',
-    title: 'Rencontre Parents-Professeurs',
-    date: '25 Nov · Hall Principal',
-    icon: Users,
-    iconBg: 'bg-[#FCE7F3]',
-    iconColor: 'text-[#DB2777]',
-  },
-  {
-    id: 'e4',
-    title: 'Exposition Artistique Annuelle',
-    date: '02 Déc · Galerie',
-    icon: Palette,
-    iconBg: 'bg-[#FEF3C7]',
-    iconColor: 'text-[#D97706]',
-  },
-  {
-    id: 'e5',
-    title: 'Cérémonie de remise des diplômes',
-    date: '10 Déc · Grand Amphithéâtre',
-    icon: GraduationCap,
-    iconBg: 'bg-[#EDE9FE]',
-    iconColor: 'text-[#7C3AED]',
-  },
-]
-
-const attendanceChartData = [
-  { month: 'Sep', rate: 94 },
-  { month: 'Oct', rate: 96 },
-  { month: 'Nov', rate: 93 },
-  { month: 'Dec', rate: 95 },
-  { month: 'Jan', rate: 97 },
-  { month: 'Feb', rate: 96 },
-]
 
 export function AdminDashboard() {
   const { user } = useAuth()
@@ -87,8 +26,6 @@ export function AdminDashboard() {
   const navigate = useNavigate()
 
   const [stats, setStats] = useState(null)
-  const [events, setEvents] = useState([])
-  const [enrollments, setEnrollments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -98,27 +35,8 @@ export function AdminDashboard() {
     try {
       const data = await statsService.getAdminStats()
       setStats(data)
-      if (data.recentEvents && data.recentEvents.length > 0) {
-        setEvents(data.recentEvents)
-      } else {
-        setEvents(defaultEvents)
-      }
-
-      if (data.applicationsList && data.applicationsList.length > 0) {
-        const mapped = data.applicationsList.slice(0, 5).map((app) => ({
-          id: app.id,
-          name: `${app.firstName || ''} ${app.lastName || ''}`.trim() || 'Élève Candidat',
-          grade: app.applyingForGrade ? `Classe ${app.applyingForGrade}` : 'Seconde',
-          status: app.status || 'Active',
-        }))
-        setEnrollments(mapped)
-      } else {
-        setEnrollments(defaultEnrollments)
-      }
     } catch (err) {
       setError(err.message || 'Erreur lors du chargement des statistiques.')
-      setEnrollments(defaultEnrollments)
-      setEvents(defaultEvents)
     } finally {
       setLoading(false)
     }
@@ -126,35 +44,20 @@ export function AdminDashboard() {
 
   useEffect(() => {
     let ignore = false
-    statsService.getAdminStats().then((data) => {
-      if (!ignore) {
-        setStats(data)
-        if (data.recentEvents?.length > 0) {
-          setEvents(data.recentEvents)
-        } else {
-          setEvents(defaultEvents)
+    statsService
+      .getAdminStats()
+      .then((data) => {
+        if (!ignore) {
+          setStats(data)
+          setLoading(false)
         }
-        if (data.applicationsList?.length > 0) {
-          const mapped = data.applicationsList.slice(0, 5).map((app) => ({
-            id: app.id,
-            name: `${app.firstName || ''} ${app.lastName || ''}`.trim() || 'Élève Candidat',
-            grade: app.applyingForGrade ? `Classe ${app.applyingForGrade}` : 'Seconde',
-            status: app.status || 'Active',
-          }))
-          setEnrollments(mapped)
-        } else {
-          setEnrollments(defaultEnrollments)
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err.message || 'Erreur lors du chargement des statistiques.')
+          setLoading(false)
         }
-        setLoading(false)
-      }
-    }).catch((err) => {
-      if (!ignore) {
-        setError(err.message || 'Erreur lors du chargement des statistiques.')
-        setEnrollments(defaultEnrollments)
-        setEvents(defaultEvents)
-        setLoading(false)
-      }
-    })
+      })
     return () => {
       ignore = true
     }
@@ -162,17 +65,17 @@ export function AdminDashboard() {
 
   const greetingName = user?.lastName
     ? `Directeur ${user.lastName}`
-    : user?.firstName || 'Directeur'
+    : user?.firstName || user?.email || 'Directeur'
 
-  const pendingAppsCount = stats?.totalApplications ?? 16
-  const pendingTeachersCount = 3
+  const applications = stats?.applicationsList || []
+  const events = stats?.recentEvents || []
 
   return (
     <div className="space-y-6 pb-12 select-none">
-      {/* Figma Hero Banner */}
+      {/* Hero Banner */}
       <HeroBanner
         title={`Bonjour, ${greetingName} !`}
-        description={`Vous avez ${pendingAppsCount} nouvelles inscriptions à valider et ${pendingTeachersCount} approbations en attente. Bonne journée de gestion ! 🎯`}
+        description={`Espace de direction et d'administration de l'établissement. Données en temps réel synchronisées avec le serveur.`}
         buttonText={t('nav.students')}
         onButtonClick={() => navigate('/students')}
         icon={School}
@@ -194,141 +97,178 @@ export function AdminDashboard() {
         </div>
       )}
 
+      {/* Main Grid: Overview StatCards */}
+      <div>
+        <div className="flex items-center justify-between mb-3.5">
+          <h2 className="text-base sm:text-lg font-bold text-[#1E293B]">
+            Vue d'ensemble de l'établissement
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigate('/students')}
+            className="text-xs font-semibold text-[#64748B] hover:text-[#4361EE] transition cursor-pointer"
+          >
+            Voir tout
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <StatCard
+            icon={GraduationCap}
+            title="Élèves Inscrits"
+            value={loading ? '...' : (stats?.totalStudents ?? 0).toString()}
+            subtitle="Effectif officiel"
+            progress={100}
+            progressColor="#4361EE"
+            onClick={() => navigate('/students')}
+          />
+          <StatCard
+            icon={Users}
+            title="Corps Enseignant"
+            value={loading ? '...' : (stats?.totalTeachers ?? 0).toString()}
+            subtitle="Professeurs actifs"
+            progress={100}
+            progressColor="#10B981"
+            onClick={() => navigate('/teachers')}
+          />
+          <StatCard
+            icon={Users}
+            title="Personnel"
+            value={loading ? '...' : (stats?.totalStaff ?? 0).toString()}
+            subtitle="Membres du staff"
+            progress={100}
+            progressColor="#6366F1"
+            onClick={() => navigate('/staff')}
+          />
+          <StatCard
+            icon={Building2}
+            title="Départements"
+            value={loading ? '...' : (stats?.totalDepartments ?? 0).toString()}
+            subtitle="Unités académiques"
+            progress={100}
+            progressColor="#F59E0B"
+            onClick={() => navigate('/departments')}
+          />
+          <StatCard
+            icon={FileCheck}
+            title="Candidatures"
+            value={loading ? '...' : (stats?.totalApplications ?? 0).toString()}
+            subtitle="Dossiers d'admission"
+            progress={100}
+            progressColor="#8B5CF6"
+          />
+          <StatCard
+            icon={Coins}
+            title="Facturation"
+            value={loading ? '...' : `${(stats?.totalInvoiced ?? 0).toLocaleString('fr-FR')} €`}
+            subtitle={`Recouvrement : ${stats?.paymentRate ?? 0}%`}
+            progress={stats?.paymentRate ?? 0}
+            progressColor={stats?.paymentRate > 75 ? '#10B981' : '#F59E0B'}
+          />
+        </div>
+      </div>
+
       {/* Main Grid: 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (Span 2): Overview + Chart + Enrollments */}
+        {/* Left Column (Span 2): Financial Summary & Candidatures */}
         <div className="lg:col-span-2 space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <h2 className="text-base sm:text-lg font-bold text-[#1E293B]">
-                Vue d'ensemble de l'établissement
-              </h2>
-              <button
-                type="button"
-                onClick={() => navigate('/students')}
-                className="text-xs font-semibold text-[#64748B] hover:text-[#4361EE] transition cursor-pointer"
-              >
-                Voir tout
-              </button>
-            </div>
-
-            {/* 4 StatCards with Circular Progress */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <StatCard
-                title="Élèves Inscrits"
-                value={loading ? '...' : (stats?.totalStudents?.toString() || '1 248')}
-                subtitle="(+18 ce mois)"
-                progress={88}
-                progressColor="#4361EE"
-                onClick={() => navigate('/students')}
-              />
-              <StatCard
-                title="Corps Enseignant"
-                value={loading ? '...' : (stats?.totalTeachers?.toString() || '84')}
-                subtitle="(3 en congé)"
-                progress={92}
-                progressColor="#EF4444"
-                onClick={() => navigate('/teachers')}
-              />
-              <StatCard
-                title="Départements & Classes"
-                value={loading ? '...' : (stats?.totalDepartments?.toString() || '12')}
-                subtitle="(36 classes actives)"
-                progress={100}
-                progressColor="#10B981"
-                onClick={() => navigate('/departments')}
-              />
-              <StatCard
-                title="Taux de Présence"
-                value={`${stats?.attendanceRate || 95.8}%`}
-                subtitle="(Cette semaine)"
-                progress={Math.round(stats?.attendanceRate || 95.8)}
-                progressColor="#06B6D4"
-              />
-            </div>
-          </div>
-
-          {/* Attendance Trend Line Chart */}
+          {/* Financial Overview Card */}
           <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#4361EE]" />
+                <Coins className="w-4 h-4 text-[#4361EE]" />
                 <h2 className="text-base font-bold text-[#1E293B]">
-                  Évolution de l'Assiduité Scolaire
+                  Situation Financière Globale
                 </h2>
               </div>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                +2.4% ce semestre
+              <span className="text-xs font-semibold text-[#4361EE] bg-[#EEF2FF] px-2.5 py-0.5 rounded-full">
+                Exercice en cours
               </span>
             </div>
-            <LineChart
-              data={attendanceChartData}
-              dataKey="rate"
-              labelKey="month"
-              maxY={100}
-              minY={80}
-              ySuffix="%"
-              lineColor="#4361EE"
-              height={180}
-            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div>
+                <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                  Total Émis
+                </span>
+                <p className="text-lg font-bold text-slate-900 mt-0.5">
+                  {(stats?.totalInvoiced ?? 0).toLocaleString('fr-FR')} €
+                </p>
+              </div>
+              <div>
+                <span className="text-[11px] font-medium text-emerald-600 uppercase tracking-wider">
+                  Total Encaissé
+                </span>
+                <p className="text-lg font-bold text-emerald-700 mt-0.5">
+                  {(stats?.totalPaid ?? 0).toLocaleString('fr-FR')} €
+                </p>
+              </div>
+              <div>
+                <span className="text-[11px] font-medium text-rose-600 uppercase tracking-wider">
+                  Reste à Recouvrer
+                </span>
+                <p className="text-lg font-bold text-rose-700 mt-0.5">
+                  {(stats?.totalUnpaid ?? 0).toLocaleString('fr-FR')} €
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Recent Enrollments Table */}
+          {/* Recent Applications Table */}
           <div className="edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-[#1E293B]">
-                Inscriptions Récentes
-              </h2>
-              <button
-                type="button"
-                onClick={() => navigate('/students')}
-                className="bg-[#4361EE] hover:bg-[#3451D1] text-white text-xs font-semibold px-4 py-1.5 rounded-full transition cursor-pointer shadow-2xs"
-              >
-                Gérer les élèves
-              </button>
+              <div className="flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-[#4361EE]" />
+                <h2 className="text-base font-bold text-[#1E293B]">
+                  Dossiers d'Admission Récents
+                </h2>
+              </div>
+              <span className="text-xs font-semibold text-slate-500">
+                {applications.length} dossier{applications.length > 1 ? 's' : ''}
+              </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-[#F1F5F9] text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
-                    <th className="pb-3 font-semibold">Nom de l'élève</th>
-                    <th className="pb-3 font-semibold">Classe</th>
-                    <th className="pb-3 font-semibold">Statut</th>
-                    <th className="pb-3 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F1F5F9] text-xs">
-                  {enrollments.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3.5 pr-4 font-semibold text-[#1E293B]">
-                        {item.name}
-                      </td>
-                      <td className="py-3.5 pr-4 text-[#64748B]">
-                        {item.grade}
-                      </td>
-                      <td className="py-3.5 pr-4">
-                        <StatusBadge status={item.status} />
-                      </td>
-                      <td className="py-3.5 text-right text-[#94A3B8]">
-                        <button
-                          type="button"
-                          onClick={() => navigate('/students')}
-                          className="p-1 hover:text-[#1E293B] rounded-md transition cursor-pointer"
-                          aria-label="Options"
-                        >
-                          <MoreVertical className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
+            {applications.length === 0 ? (
+              <EmptyState
+                title="Aucun dossier d'admission"
+                description="Tous les dossiers d'admission ont été traités ou aucune candidature n'est en attente."
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-[#F1F5F9] text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                      <th className="pb-3 font-semibold">Candidat</th>
+                      <th className="pb-3 font-semibold">Email</th>
+                      <th className="pb-3 font-semibold">Niveau Souhaité</th>
+                      <th className="pb-3 font-semibold">Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F5F9] text-xs">
+                    {applications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-3.5 pr-4 font-semibold text-[#1E293B]">
+                          {`${app.firstName || ''} ${app.lastName || ''}`.trim() || 'Candidat'}
+                        </td>
+                        <td className="py-3.5 pr-4 text-[#64748B]">
+                          {app.email || '—'}
+                        </td>
+                        <td className="py-3.5 pr-4 text-[#64748B]">
+                          {app.applyingForGrade || 'Non spécifié'}
+                        </td>
+                        <td className="py-3.5 pr-4">
+                          <StatusBadge status={app.status || 'Pending'} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column (Span 1): Mini Calendar + Upcoming Events */}
+        {/* Right Column (Span 1): Mini Calendar + Real Upcoming Events */}
         <div className="space-y-6">
           <MiniCalendar onSelectDate={() => {}} />
 
@@ -347,21 +287,21 @@ export function AdminDashboard() {
               </button>
             </div>
 
-            <div className="space-y-3.5">
-              {events.map((evt, idx) => {
-                const EvtIcon = evt.icon || Calendar
-                return (
+            {events.length === 0 ? (
+              <EmptyState
+                title="Aucun événement programmé"
+                description="Le calendrier scolaire ne contient aucun événement à venir."
+              />
+            ) : (
+              <div className="space-y-3.5">
+                {events.map((evt, idx) => (
                   <div
                     key={evt.id || idx}
-                    className="flex items-center justify-between gap-3 p-1 hover:bg-slate-50 rounded-xl transition"
+                    className="flex items-center justify-between gap-3 p-2 hover:bg-slate-50 rounded-xl transition"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-9 h-9 rounded-full ${evt.iconBg || 'bg-[#FFEDD5]'} ${
-                          evt.iconColor || 'text-[#EA580C]'
-                        } flex items-center justify-center shrink-0 shadow-2xs`}
-                      >
-                        <EvtIcon className="w-4 h-4 stroke-[2]" />
+                      <div className="w-8 h-8 rounded-full bg-[#EEF2FF] text-[#4361EE] flex items-center justify-center shrink-0">
+                        <Calendar className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-xs font-bold text-[#1E293B] truncate">
@@ -372,8 +312,10 @@ export function AdminDashboard() {
                             ? new Date(evt.startAt).toLocaleDateString('fr-FR', {
                                 month: 'short',
                                 day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
                               })
-                            : evt.date || 'À venir'}
+                            : 'Date non définie'}
                           {evt.location ? ` · ${evt.location}` : ''}
                         </p>
                       </div>
@@ -382,14 +324,14 @@ export function AdminDashboard() {
                       type="button"
                       onClick={() => navigate('/events')}
                       className="text-[#94A3B8] hover:text-[#4361EE] p-1.5 rounded-full transition cursor-pointer shrink-0"
-                      aria-label="Rappel"
+                      aria-label="Voir l'événement"
                     >
-                      <Bell className="w-4 h-4" />
+                      <Bell className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                )
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

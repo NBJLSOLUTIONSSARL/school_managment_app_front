@@ -27,12 +27,12 @@ export const Input = forwardRef(function Input(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-8 text-xs' : 'h-9 text-sm'
+  const sizeClass = size === 'sm' ? 'h-9 text-xs px-3 rounded-xl' : 'h-10 text-sm px-3.5 rounded-xl'
 
   return (
     <div className="w-full text-start">
       {label && (
-        <label htmlFor={inputId} className="mb-1 block text-2xs font-medium text-slate-700">
+        <label htmlFor={inputId} className="mb-1.5 block text-xs font-semibold text-[#1E293B]">
           {label}
           {required && (
             <span className="ms-0.5 text-rose-500" aria-hidden="true">
@@ -44,13 +44,13 @@ export const Input = forwardRef(function Input(
 
       <div className="relative flex items-center">
         {prefix && (
-          <span className="inline-flex h-8 items-center rounded-s border border-e-0 border-slate-300 bg-slate-50 px-2.5 text-xs text-slate-500">
+          <span className="inline-flex h-9 items-center rounded-s-xl border border-e-0 border-[#E2E8F0] bg-slate-50 px-3 text-xs text-[#64748B]">
             {prefix}
           </span>
         )}
 
         {leftIcon && (
-          <div className="pointer-events-none absolute start-2.5 flex items-center text-slate-400">
+          <div className="pointer-events-none absolute start-3 flex items-center text-[#94A3B8]">
             {leftIcon}
           </div>
         )}
@@ -64,16 +64,16 @@ export const Input = forwardRef(function Input(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'w-full rounded border bg-white px-2.5 text-slate-800 transition-colors placeholder:text-slate-400',
+            'w-full border bg-white text-[#1E293B] transition-all placeholder:text-[#94A3B8]',
             'focus:outline-hidden focus:ring-2 focus:ring-offset-0',
             sizeClass,
-            leftIcon && 'ps-8',
-            rightIcon && 'pe-8',
+            leftIcon && 'ps-9',
+            rightIcon && 'pe-9',
             prefix && 'rounded-s-none',
             suffix && 'rounded-e-none',
             error
               ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-slate-300 hover:border-slate-400 focus:border-slate-900 focus:ring-slate-200',
+              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-[#4361EE]/20',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}
@@ -81,22 +81,22 @@ export const Input = forwardRef(function Input(
         />
 
         {rightIcon && (
-          <div className="absolute end-2.5 flex items-center text-slate-400">{rightIcon}</div>
+          <div className="absolute end-3 flex items-center text-[#94A3B8]">{rightIcon}</div>
         )}
 
         {suffix && (
-          <span className="inline-flex h-8 items-center rounded-e border border-s-0 border-slate-300 bg-slate-50 px-2.5 text-xs text-slate-500">
+          <span className="inline-flex h-9 items-center rounded-e-xl border border-s-0 border-[#E2E8F0] bg-slate-50 px-3 text-xs text-[#64748B]">
             {suffix}
           </span>
         )}
       </div>
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
-          {error}
+        <p id={errorId} role="alert" className="mt-1 text-xs font-medium text-rose-600">
+          {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
-        <p id={helperId} className="mt-1 text-2xs text-slate-500">
+        <p id={helperId} className="mt-1 text-xs text-[#64748B]">
           {helperText}
         </p>
       ) : null}

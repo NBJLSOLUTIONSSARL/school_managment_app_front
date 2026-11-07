@@ -7,6 +7,9 @@ import { axiosClient } from '@/lib/axios'
 import { extractApiData } from '@/utils/apiHelpers'
 
 export const statsService = {
+  /**
+   * Aggregate live system statistics for School Director / Administrator
+   */
   async getAdminStats() {
     const [studentsRes, teachersRes, staffRes, deptsRes, eventsRes, financesRes, appsRes] =
       await Promise.allSettled([
@@ -15,47 +18,54 @@ export const statsService = {
         staffService.getStaff(),
         departmentService.getDepartments(),
         eventService.getEvents({ page: 1, size: 5 }),
-        axiosClient.get('/v1/finances/invoices', { params: { page: 0, size: 50 } }),
-        axiosClient.get('/v1/admissions/applications', { params: { page: 0, size: 10 } }),
+        axiosClient.get('/v1/finances/invoices', { params: { page: 0, size: 100 } }),
+        axiosClient.get('/v1/applications', { params: { page: 0, size: 5 } }),
       ])
 
     const totalStudents =
       studentsRes.status === 'fulfilled' && studentsRes.value?.success
-        ? studentsRes.value.data?.totalElements ?? 1248
-        : 1248
+        ? studentsRes.value.data?.totalItems ??
+          studentsRes.value.data?.totalElements ??
+          (Array.isArray(studentsRes.value.data?.items) ? studentsRes.value.data.items.length : 0)
+        : 0
 
-    const totalTeachers =
+    const teachersList =
       teachersRes.status === 'fulfilled' && teachersRes.value?.success
-        ? teachersRes.value.data?.length ?? 84
-        : 84
+        ? teachersRes.value.data || []
+        : []
+    const totalTeachers = teachersList.length
 
-    const totalStaff =
+    const staffList =
       staffRes.status === 'fulfilled' && staffRes.value?.success
-        ? staffRes.value.data?.length ?? 32
-        : 32
+        ? staffRes.value.data || []
+        : []
+    const totalStaff = staffList.length
 
     const deptsList =
       deptsRes.status === 'fulfilled' && deptsRes.value?.success
         ? deptsRes.value.data || []
         : []
-    const totalDepartments = deptsList.length || 12
+    const totalDepartments = deptsList.length
 
-    let totalApplications = 16
+    let totalApplications = 0
     let applicationsList = []
     if (appsRes.status === 'fulfilled') {
       try {
         const appsData = extractApiData(appsRes.value)
-        applicationsList = Array.isArray(appsData) ? appsData : appsData?.content || []
-        totalApplications = appsData?.totalElements ?? applicationsList.length ?? 16
+        totalApplications = appsData?.totalElements ?? (Array.isArray(appsData) ? appsData.length : 0)
+        applicationsList = Array.isArray(appsData)
+          ? appsData.slice(0, 5)
+          : appsData?.content?.slice(0, 5) || []
       } catch {
-        // use default fallback
+        totalApplications = 0
+        applicationsList = []
       }
     }
 
     let totalInvoiced = 0
     let totalPaid = 0
     let totalUnpaid = 0
-    let paymentRate = 94
+    let paymentRate = 0
 
     if (financesRes.status === 'fulfilled') {
       try {
@@ -74,7 +84,7 @@ export const statsService = {
           paymentRate = Math.round((totalPaid / totalInvoiced) * 100)
         }
       } catch {
-        // keep default paymentRate
+        // Leave at 0
       }
     }
 
@@ -88,7 +98,6 @@ export const statsService = {
       totalTeachers,
       totalStaff,
       totalDepartments,
-      totalClasses: totalDepartments * 3 || 36,
       totalApplications,
       applicationsList,
       totalInvoiced,
@@ -96,73 +105,76 @@ export const statsService = {
       totalUnpaid,
       paymentRate,
       recentEvents: eventsList,
-      attendanceRate: 95.8,
     }
   },
 
+  /**
+   * Aggregate live administrative and secretarial statistics for Staff
+   */
   async getStaffStats() {
     const [studentsRes, eventsRes, appsRes, financesRes] = await Promise.allSettled([
       studentService.getStudents({ page: 1, size: 5 }),
       eventService.getEvents({ page: 1, size: 5 }),
-      axiosClient.get('/v1/admissions/applications', { params: { page: 0, size: 50 } }),
+      axiosClient.get('/v1/applications', { params: { page: 0, size: 50 } }),
       axiosClient.get('/v1/finances/invoices', { params: { page: 0, size: 50 } }),
     ])
 
-    const studentData = studentsRes.status === 'fulfilled' && studentsRes.value?.success ? studentsRes.value.data : null
-    const totalStudents = studentData?.totalElements ?? 1248
+    const studentData =
+      studentsRes.status === 'fulfilled' && studentsRes.value?.success ? studentsRes.value.data : null
+    const totalStudents =
+      studentData?.totalItems ??
+      studentData?.totalElements ??
+      (Array.isArray(studentData?.items) ? studentData.items.length : 0)
     const recentStudents = studentData?.items || []
 
-    let totalApplications = 24
-    let pendingApplications = 8
-    let acceptedApplications = 14
+    let totalApplications = 0
+    let pendingApplications = 0
+    let acceptedApplications = 0
     let recentApplications = []
 
     if (appsRes.status === 'fulfilled') {
       try {
         const appsData = extractApiData(appsRes.value)
         const apps = Array.isArray(appsData) ? appsData : appsData?.content || []
-        if (apps.length > 0) {
-          totalApplications = appsData?.totalElements ?? apps.length
-          pendingApplications = apps.filter((a) => a.status === 'PENDING' || a.status === 'SUBMITTED').length
-          acceptedApplications = apps.filter((a) => a.status === 'ACCEPTED').length
-          recentApplications = apps.slice(0, 5)
-        }
+        totalApplications = appsData?.totalElements ?? apps.length
+        pendingApplications = apps.filter(
+          (a) => a.status === 'PENDING' || a.status === 'SUBMITTED'
+        ).length
+        acceptedApplications = apps.filter((a) => a.status === 'ACCEPTED').length
+        recentApplications = apps.slice(0, 5)
       } catch {
-        // fallback
+        // Fallback to 0
       }
     }
 
-    let unpaidInvoicesCount = 14
-    let paidInvoicesCount = 186
-    let totalUnpaidAmount = 14200
-    let totalPaidAmount = 186000
+    let unpaidInvoicesCount = 0
+    let paidInvoicesCount = 0
+    let totalUnpaidAmount = 0
+    let totalPaidAmount = 0
 
     if (financesRes.status === 'fulfilled') {
       try {
         const finData = extractApiData(financesRes.value)
         const invoices = Array.isArray(finData) ? finData : finData?.content || []
-        if (invoices.length > 0) {
-          unpaidInvoicesCount = 0
-          paidInvoicesCount = 0
-          totalUnpaidAmount = 0
-          totalPaidAmount = 0
-          invoices.forEach((inv) => {
-            const amount = Number(inv.totalAmount) || 0
-            if (inv.status === 'PAID') {
-              paidInvoicesCount++
-              totalPaidAmount += amount
-            } else {
-              unpaidInvoicesCount++
-              totalUnpaidAmount += amount
-            }
-          })
-        }
+        invoices.forEach((inv) => {
+          const amount = Number(inv.totalAmount) || 0
+          if (inv.status === 'PAID') {
+            paidInvoicesCount++
+            totalPaidAmount += amount
+          } else {
+            unpaidInvoicesCount++
+            totalUnpaidAmount += amount
+          }
+        })
       } catch {
-        // fallback
+        // Fallback to 0
       }
     }
 
-    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.success ? eventsRes.value.data?.items || [] : []
+    const eventsList =
+      eventsRes.status === 'fulfilled' && eventsRes.value?.success
+        ? eventsRes.value.data?.items || []
+        : []
 
     return {
       totalApplications,
@@ -179,152 +191,230 @@ export const statsService = {
     }
   },
 
-  async getTeacherStats(_teacherName = '') {
-    const [studentsRes, eventsRes, examsRes] = await Promise.allSettled([
-      studentService.getStudents({ page: 1, size: 50 }),
+  /**
+   * Aggregate live academic information for a Teacher
+   * @param {number|string} [teacherId]
+   */
+  async getTeacherStats(teacherId) {
+    const [teacherProfileRes, studentsRes, eventsRes, examsRes] = await Promise.allSettled([
+      teacherId ? axiosClient.get(`/v1/teachers/${teacherId}`) : Promise.resolve(null),
+      studentService.getStudents({ page: 1, size: 1 }),
       eventService.getEvents({ page: 1, size: 5 }),
-      axiosClient.get('/v1/exams', { params: { size: 20 } }),
+      axiosClient.get('/v1/exams', { params: { size: 50 } }),
     ])
 
-    const totalStudents = studentsRes.status === 'fulfilled' && studentsRes.value?.success
-      ? studentsRes.value.data?.totalElements ?? 142
-      : 142
+    let teacherProfile = null
+    if (teacherProfileRes.status === 'fulfilled' && teacherProfileRes.value) {
+      try {
+        teacherProfile = extractApiData(teacherProfileRes.value)
+      } catch {
+        teacherProfile = null
+      }
+    }
 
-    let totalExams = 6
+    const totalStudents =
+      studentsRes.status === 'fulfilled' && studentsRes.value?.success
+        ? studentsRes.value.data?.totalItems ??
+          studentsRes.value.data?.totalElements ??
+          (Array.isArray(studentsRes.value.data?.items) ? studentsRes.value.data.items.length : 0)
+        : 0
+
+    let totalExams = 0
+    let upcomingExams = []
+    let teacherExams = []
+
+    if (examsRes.status === 'fulfilled') {
+      try {
+        const examData = extractApiData(examsRes.value)
+        const list = Array.isArray(examData) ? examData : examData?.content || []
+        totalExams = list.length
+        if (teacherId) {
+          teacherExams = list.filter((e) => Number(e.teacherId) === Number(teacherId))
+        }
+        const relevantExams = teacherExams.length > 0 ? teacherExams : list
+        upcomingExams = relevantExams.filter((e) => !e.locked)
+      } catch {
+        totalExams = 0
+        upcomingExams = []
+      }
+    }
+
+    const eventsList =
+      eventsRes.status === 'fulfilled' && eventsRes.value?.success
+        ? eventsRes.value.data?.items || []
+        : []
+
+    return {
+      specialization: teacherProfile?.specialization || 'Enseignement',
+      departmentName: teacherProfile?.department?.name || 'Département Académique',
+      contractType: teacherProfile?.contractType || 'Plein temps',
+      totalStudents,
+      totalExams: teacherExams.length > 0 ? teacherExams.length : totalExams,
+      upcomingExams,
+      events: eventsList,
+    }
+  },
+
+  /**
+   * Aggregate live academic data for an authenticated Student
+   * @param {number|string} studentId
+   */
+  async getStudentStats(studentId) {
+    const [studentProfileRes, reportCardsRes, homeworkRes, examsRes, eventsRes] =
+      await Promise.allSettled([
+        studentId ? axiosClient.get(`/v1/students/${studentId}`) : Promise.resolve(null),
+        axiosClient.get('/v1/report-cards', { params: { studentId } }),
+        studentId
+          ? axiosClient.get(`/v1/homework/students/${studentId}/submissions`)
+          : Promise.resolve(null),
+        axiosClient.get('/v1/exams', { params: { size: 10 } }),
+        eventService.getEvents({ page: 1, size: 5 }),
+      ])
+
+    let studentProfile = null
+    if (studentProfileRes.status === 'fulfilled' && studentProfileRes.value) {
+      try {
+        studentProfile = extractApiData(studentProfileRes.value)
+      } catch {
+        studentProfile = null
+      }
+    }
+
+    let generalAverage = null
+    let termTitle = 'Semestre en cours'
+    let rank = null
+    let mention = null
+    let latestReportCard = null
+
+    if (reportCardsRes.status === 'fulfilled') {
+      try {
+        const rcData = extractApiData(reportCardsRes.value)
+        const list = Array.isArray(rcData) ? rcData : rcData?.content || []
+        if (list.length > 0) {
+          latestReportCard = list[0]
+          if (latestReportCard.average !== undefined) {
+            generalAverage = latestReportCard.average
+          }
+          if (latestReportCard.term) {
+            termTitle = latestReportCard.term
+          }
+          rank = latestReportCard.rank
+          mention = latestReportCard.mention
+        }
+      } catch {
+        // No report cards yet
+      }
+    }
+
+    let submissions = []
+    if (homeworkRes.status === 'fulfilled' && homeworkRes.value) {
+      try {
+        const hwData = extractApiData(homeworkRes.value)
+        submissions = Array.isArray(hwData) ? hwData : hwData?.content || []
+      } catch {
+        submissions = []
+      }
+    }
+
     let upcomingExams = []
     if (examsRes.status === 'fulfilled') {
       try {
         const examData = extractApiData(examsRes.value)
         const list = Array.isArray(examData) ? examData : examData?.content || []
-        if (list.length > 0) {
-          totalExams = list.length
-          upcomingExams = list.filter((e) => !e.locked)
-        }
+        upcomingExams = list.filter((e) => !e.locked)
       } catch {
-        // fallback
+        upcomingExams = []
       }
     }
 
-    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.success
-      ? eventsRes.value.data?.items || []
-      : []
+    const eventsList =
+      eventsRes.status === 'fulfilled' && eventsRes.value?.success
+        ? eventsRes.value.data?.items || []
+        : []
 
     return {
-      totalClasses: 4,
-      totalStudents,
-      totalExams,
-      upcomingExams,
-      events: eventsList,
-      attendanceRate: 96.2,
-      pendingGrades: 12,
-    }
-  },
-
-  async getStudentStats(studentId) {
-    const [eventsRes, reportCardsRes] = await Promise.allSettled([
-      eventService.getEvents({ page: 1, size: 5 }),
-      axiosClient.get(`/v1/report-cards/students/${studentId || 1}`),
-    ])
-
-    let generalAverage = 15.4
-    let termTitle = 'Semestre 1'
-    if (reportCardsRes.status === 'fulfilled') {
-      try {
-        const rcData = extractApiData(reportCardsRes.value)
-        const latest = Array.isArray(rcData) ? rcData[0] : rcData
-        if (latest?.average !== undefined) generalAverage = latest.average
-        if (latest?.term) termTitle = latest.term
-      } catch {
-        // fallback
-      }
-    }
-
-    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.success
-      ? eventsRes.value.data?.items || []
-      : []
-
-    return {
+      studentNumber: studentProfile?.studentNumber || '',
+      status: studentProfile?.status || 'ACTIVE',
       generalAverage,
       termTitle,
-      submissionCount: 8,
-      pendingHomework: 3,
+      rank,
+      mention,
+      latestReportCard,
+      submissionsCount: submissions.length,
+      submissions,
+      upcomingExams,
       events: eventsList,
-      attendanceRate: 98.0,
     }
   },
 
+  /**
+   * Aggregate live data for a Parent / Guardian and their associated children
+   * @param {number|string} guardianId
+   */
   async getParentStats(guardianId) {
-    const [eventsRes, childrenRes] = await Promise.allSettled([
+    const [studentsRes, eventsRes] = await Promise.allSettled([
+      axiosClient.get('/v1/students', { params: { size: 100 } }),
       eventService.getEvents({ page: 1, size: 5 }),
-      axiosClient.get(`/v1/guardians/${guardianId || 1}/students`),
     ])
 
     let children = []
-    if (childrenRes.status === 'fulfilled') {
+    if (studentsRes.status === 'fulfilled') {
       try {
-        const data = extractApiData(childrenRes.value)
-        children = Array.isArray(data) ? data : data?.content || []
-      } catch {
-        // fallback
-      }
-    }
-
-    if (children.length === 0) {
-      children = [
-        { id: 101, firstName: 'Thomas', lastName: 'Dubois', grade: 'Seconde A', average: 15.8, attendance: 97 },
-        { id: 102, firstName: 'Léa', lastName: 'Dubois', grade: '4ème B', average: 14.5, attendance: 99 },
-      ]
-    }
-
-    const eventsList = eventsRes.status === 'fulfilled' && eventsRes.value?.success
-      ? eventsRes.value.data?.items || []
-      : []
-
-    return {
-      children,
-      unpaidInvoices: 1,
-      unpaidAmount: 450,
-      events: eventsList,
-    }
-  },
-
-  async getLibrarianStats() {
-    const [booksRes, loansRes] = await Promise.allSettled([
-      axiosClient.get('/v1/library/books', { params: { size: 1 } }),
-      axiosClient.get('/v1/library/loans', { params: { status: 'ACTIVE' } }),
-    ])
-
-    let totalBooks = 3450
-    let activeLoans = 128
-    let overdueLoans = 14
-
-    if (booksRes.status === 'fulfilled') {
-      try {
-        const data = extractApiData(booksRes.value)
-        totalBooks = data?.totalElements ?? 3450
-      } catch {
-        // fallback
-      }
-    }
-
-    if (loansRes.status === 'fulfilled') {
-      try {
-        const data = extractApiData(loansRes.value)
-        const loans = Array.isArray(data) ? data : data?.content || []
-        if (loans.length > 0) {
-          activeLoans = loans.length
-          overdueLoans = loans.filter((l) => l.overdue || (l.dueDate && new Date(l.dueDate) < new Date())).length
+        const data = extractApiData(studentsRes.value)
+        const allStudents = Array.isArray(data) ? data : data?.content || []
+        if (guardianId) {
+          children = allStudents.filter((s) =>
+            s.guardians?.some((g) => Number(g.guardianId) === Number(guardianId))
+          )
         }
       } catch {
-        // fallback
+        children = []
       }
     }
 
+    // For each child found, load their latest report card if available
+    const enrichedChildren = await Promise.all(
+      children.map(async (child) => {
+        try {
+          const rcRes = await axiosClient.get('/v1/report-cards', {
+            params: { studentId: child.id },
+          })
+          const rcData = extractApiData(rcRes)
+          const cards = Array.isArray(rcData) ? rcData : rcData?.content || []
+          const latest = cards[0] || null
+          return {
+            id: child.id,
+            firstName: child.user?.firstName || child.firstName || 'Élève',
+            lastName: child.user?.lastName || child.lastName || '',
+            studentNumber: child.studentNumber,
+            average: latest?.average ?? null,
+            mention: latest?.mention ?? null,
+            term: latest?.term ?? 'Semestre en cours',
+            status: child.status,
+          }
+        } catch {
+          return {
+            id: child.id,
+            firstName: child.user?.firstName || child.firstName || 'Élève',
+            lastName: child.user?.lastName || child.lastName || '',
+            studentNumber: child.studentNumber,
+            average: null,
+            mention: null,
+            term: 'Semestre en cours',
+            status: child.status,
+          }
+        }
+      })
+    )
+
+    const eventsList =
+      eventsRes.status === 'fulfilled' && eventsRes.value?.success
+        ? eventsRes.value.data?.items || []
+        : []
+
     return {
-      totalBooks,
-      activeLoans,
-      overdueLoans,
-      availableBooks: Math.max(0, totalBooks - activeLoans),
+      children: enrichedChildren,
+      events: eventsList,
     }
   },
 }

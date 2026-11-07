@@ -34,7 +34,8 @@ export function validateDocumentUrl(document, base = (typeof import.meta !== 'un
   let target
   let expected
   try {
-    const apiBase = base.replace(/\/$/, '')
+    const cleanBase = (base || '').replace(/\/$/, '')
+    const apiBase = cleanBase === '/api' ? '' : (cleanBase.endsWith('/api') ? cleanBase.slice(0, -4) : cleanBase)
     expected = new URL(`${apiBase}${endpoint}/files/${document.fileKey}`, window.location.origin)
     target = new URL(raw, `${new URL(apiBase || '/', window.location.origin).origin}/`)
   } catch { return invalid() }

@@ -69,10 +69,16 @@ export function GuardianList() {
       render: (_, row) => {
         const u = row.user || {}
         const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom'
+        const initials = `${(u.firstName || 'P')[0]}${(u.lastName || 'A')[0]}`.toUpperCase()
         return (
-          <div>
-            <div className="font-medium text-slate-900">{name}</div>
-            <div className="text-2xs text-slate-400">{u.email}</div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#FAF5FF] border border-[#E9D5FF] flex items-center justify-center text-[#9333EA] font-bold text-xs shrink-0 shadow-2xs">
+              {initials}
+            </div>
+            <div>
+              <div className="font-semibold text-[#1E293B]">{name}</div>
+              <div className="text-[11px] text-[#64748B]">{u.email}</div>
+            </div>
           </div>
         )
       },
@@ -121,7 +127,7 @@ export function GuardianList() {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Tuteurs & Parents"
         count={guardians.length}

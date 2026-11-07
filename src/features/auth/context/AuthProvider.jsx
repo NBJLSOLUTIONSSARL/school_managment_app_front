@@ -9,7 +9,7 @@ import {
   setCurrentUser,
 } from '@/utils/tokenStorage'
 
-const knownRoles = new Set(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_STAFF', 'ROLE_LIBRARIAN'])
+const knownRoles = new Set(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_STAFF'])
 const expiredMessage = 'Votre session a expiré ou a été révoquée. Reconnectez-vous.'
 
 function normalizeRole(r) {
@@ -176,8 +176,10 @@ export function AuthProvider({ children }) {
           body: JSON.stringify({ email: email.trim(), password }),
         })
       } catch (err) {
-        // If API returned a real HTTP error (401 invalid credentials, 400, etc.), propagate it
-        if (err.status && err.status !== 0 && err.status !== 404 && err.status !== 503) {
+        const isDev = Boolean(import.meta.env?.DEV)
+        // In production/staging, never synthesize mock credentials; always propagate backend errors.
+        // In local development, only fall back if backend server is unreachable (status 0, 404, or 503).
+        if (!isDev || (err.status && err.status !== 0 && err.status !== 404 && err.status !== 503)) {
           throw err
         }
         // Fallback for offline local dev simulation

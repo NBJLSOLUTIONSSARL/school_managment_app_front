@@ -79,12 +79,6 @@ vi.mock('../api/statsService', () => ({
       totalPaidAmount: 186000,
       recentEvents: [],
     }),
-    getLibrarianStats: vi.fn().mockResolvedValue({
-      totalBooks: 3450,
-      activeLoans: 128,
-      overdueLoans: 14,
-      availableBooks: 3322,
-    }),
   },
 }))
 
@@ -225,7 +219,7 @@ describe('Dashboard and Figma Components', () => {
         teacherBtn.click()
       })
 
-      expect(container.textContent).toContain('Emploi du Temps Hebdomadaire')
+      expect(container.textContent).toContain('Évaluations et Examens')
     })
   })
 })

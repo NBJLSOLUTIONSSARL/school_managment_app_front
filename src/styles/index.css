@@ -4,10 +4,15 @@
 @theme {
   --color-frappe-bg: #f8fafc;
   --color-frappe-surface: #ffffff;
-  --color-frappe-border: #e2e8f0;
-  --color-frappe-hover: #f1f5f9;
+  --color-frappe-border: #f1f5f9;
+  --color-frappe-hover: #f8fafc;
   --color-frappe-muted: #64748b;
-  --color-frappe-dark: #0f172a;
+  --color-frappe-dark: #1e293b;
+  --color-brand-primary: #4361EE;
+  --color-brand-hover: #3451D1;
+  --color-brand-active: #2B44B8;
+  --color-brand-light: #EEF2FF;
+  --color-brand-border: #C7D2FE;
   --text-2xs: 11px;
   --text-2xs--line-height: 14px;
 }
@@ -25,10 +30,10 @@
 :root {
   --frappe-bg: #f8fafc;
   --frappe-surface: #ffffff;
-  --frappe-border: #e2e8f0;
-  --frappe-hover: #f1f5f9;
+  --frappe-border: #f1f5f9;
+  --frappe-hover: #f8fafc;
   --frappe-muted: #64748b;
-  --frappe-dark: #0f172a;
+  --frappe-dark: #1e293b;
 
   /* EduTrack Figma Design Tokens */
   --primary: #4361EE;
@@ -96,9 +101,9 @@ body {
   background: #94a3b8;
 }
 
-/* Keyboard-first focus indicator */
+/* Keyboard-first focus indicator matching EduTrack Primary */
 :where(a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible {
-  outline: 2px solid #0f172a;
+  outline: 2px solid #4361EE;
   outline-offset: 2px;
 }
 

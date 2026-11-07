@@ -154,7 +154,7 @@ export function DepartmentList() {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Départements"
         count={filteredDepartments.length}

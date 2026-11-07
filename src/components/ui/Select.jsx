@@ -26,12 +26,12 @@ export const Select = forwardRef(function Select(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-8 text-xs' : 'h-9 text-sm'
+  const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-xl' : 'h-10 text-sm ps-3.5 pe-8 rounded-xl'
 
   return (
     <div className="w-full text-start">
       {label && (
-        <label htmlFor={selectId} className="mb-1 block text-2xs font-medium text-slate-700">
+        <label htmlFor={selectId} className="mb-1.5 block text-xs font-semibold text-[#1E293B]">
           {label}
           {required && (
             <span className="ms-0.5 text-rose-500" aria-hidden="true">
@@ -51,12 +51,12 @@ export const Select = forwardRef(function Select(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'w-full appearance-none rounded border bg-white ps-2.5 pe-8 text-slate-800 transition-colors',
+            'w-full appearance-none border bg-white text-[#1E293B] transition-all cursor-pointer',
             'focus:outline-hidden focus:ring-2 focus:ring-offset-0',
             sizeClass,
             error
               ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-slate-300 hover:border-slate-400 focus:border-slate-900 focus:ring-slate-200',
+              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-[#4361EE]/20',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}
@@ -94,7 +94,7 @@ export const Select = forwardRef(function Select(
 
       {error ? (
         <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
-          {error}
+          {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
         <p id={helperId} className="mt-1 text-2xs text-slate-500">

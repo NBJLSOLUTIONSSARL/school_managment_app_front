@@ -1,3 +1,4 @@
+import { isValidElement } from 'react'
 import { cn } from '@/utils/classNames'
 import { useI18n } from '@/hooks/useI18n'
 import { Button } from './Button'
@@ -13,6 +14,27 @@ export function EmptyState({
   const { t } = useI18n()
   const resolvedTitle = title ?? t('common.emptyTitle')
   const resolvedDescription = description ?? t('common.emptyDescription')
+
+  const renderAction = () => {
+    if (!action) return null
+    if (isValidElement(action)) return action
+    if (typeof action === 'object') {
+      return (
+        <Button
+          variant={action.variant || 'primary'}
+          size="sm"
+          onClick={action.onClick}
+        >
+          {action.label}
+        </Button>
+      )
+    }
+    return (
+      <Button variant="primary" size="sm">
+        {action}
+      </Button>
+    )
+  }
 
   return (
     <div
@@ -45,13 +67,7 @@ export function EmptyState({
         <p className="mt-1 text-2xs leading-relaxed text-slate-500">{resolvedDescription}</p>
       )}
 
-      {action && (
-        <div className="mt-4">
-          <Button variant={action.variant || 'primary'} size="sm" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        </div>
-      )}
+      {action && <div className="mt-4">{renderAction()}</div>}
 
       {children && <div className="mt-4">{children}</div>}
     </div>

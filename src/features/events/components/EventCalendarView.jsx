@@ -139,33 +139,33 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
   }, [calendarMode, currentDate, weekData])
 
   return (
-    <div className="rounded border border-slate-200 bg-white shadow-2xs">
+    <div className="rounded-2xl border border-[#F1F5F9] bg-white shadow-2xs overflow-hidden">
       {/* Calendar Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F1F5F9] p-4 bg-white">
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="xs" onClick={handlePrev}>
+          <Button variant="secondary" size="xs" onClick={handlePrev} className="rounded-xl">
             ◀
           </Button>
-          <Button variant="secondary" size="xs" onClick={handleToday}>
+          <Button variant="secondary" size="xs" onClick={handleToday} className="rounded-xl">
             Aujourd'hui
           </Button>
-          <Button variant="secondary" size="xs" onClick={handleNext}>
+          <Button variant="secondary" size="xs" onClick={handleNext} className="rounded-xl">
             ▶
           </Button>
-          <span className="ml-2 font-semibold capitalize text-xs text-slate-800">
+          <span className="ml-2 font-bold capitalize text-sm text-[#1E293B]">
             {periodLabel}
           </span>
         </div>
 
-        <div className="flex items-center gap-1 rounded bg-slate-100 p-0.5 text-2xs">
+        <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
           <button
             type="button"
             onClick={() => setCalendarMode('month')}
             className={cn(
-              'rounded px-2.5 py-1 font-medium transition-colors',
+              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
               calendarMode === 'month'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[#4361EE] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
             Mois
@@ -174,10 +174,10 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
             type="button"
             onClick={() => setCalendarMode('week')}
             className={cn(
-              'rounded px-2.5 py-1 font-medium transition-colors',
+              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
               calendarMode === 'week'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-[#4361EE] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E293B]'
             )}
           >
             Semaine
@@ -186,7 +186,7 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
       </div>
 
       {/* Days of week header */}
-      <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-2xs font-semibold text-slate-500">
+      <div className="grid grid-cols-7 border-b border-[#F1F5F9] bg-[#F8FAFC] text-center text-xs font-semibold text-[#64748B]">
         {WEEK_DAYS.map((day) => (
           <div key={day} className="py-2 border-r last:border-r-0 border-slate-200">
             {day}

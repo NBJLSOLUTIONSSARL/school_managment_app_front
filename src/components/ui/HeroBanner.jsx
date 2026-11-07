@@ -7,6 +7,10 @@ export function HeroBanner({
   icon: RightIcon,
   className = '',
 }) {
+  const isButtonObject = typeof buttonText === 'object' && buttonText !== null
+  const resolvedButtonText = isButtonObject ? buttonText.label : buttonText
+  const handleButtonClick = isButtonObject ? buttonText.onClick || onButtonClick : onButtonClick
+
   return (
     <div
       className={`relative overflow-hidden bg-[#4361EE] rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 ${className}`}
@@ -20,15 +24,15 @@ export function HeroBanner({
             {description}
           </p>
         )}
-        {buttonText && (
+        {resolvedButtonText && (
           <div className="mt-4 sm:mt-5">
             <button
               type="button"
-              onClick={onButtonClick}
+              onClick={handleButtonClick}
               className="bg-white text-[#4361EE] hover:bg-slate-50 font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-sm transition-all inline-flex items-center gap-2 cursor-pointer active:scale-95"
             >
               {ButtonIcon && <ButtonIcon className="w-4 h-4 stroke-[2.5]" />}
-              <span>{buttonText}</span>
+              <span>{resolvedButtonText}</span>
             </button>
           </div>
         )}

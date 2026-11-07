@@ -264,7 +264,7 @@ export function ExamList() {
   ]
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50">
+    <div className="flex-1 flex flex-col bg-[#F8FAFC]">
       <DocTypePageHead
         breadcrumbs={['Desk', 'Examens']}
         title="Gestion des examens"
@@ -274,22 +274,22 @@ export function ExamList() {
         secondaryActions={[{ label: 'Actualiser', onClick: handleRefresh }]}
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded border border-slate-200 bg-white px-4 py-3 shadow-2xs"
+              className="rounded-2xl border border-[#F1F5F9] bg-white p-5 shadow-2xs"
             >
-              <div className="text-2xs font-medium uppercase tracking-wider text-slate-500">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
                 {stat.label}
               </div>
-              <div className="mt-1 text-lg font-semibold text-slate-900">{stat.value}</div>
+              <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-[#1E293B]">{stat.value}</div>
             </div>
           ))}
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 rounded border border-slate-200 bg-white p-3 shadow-2xs">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 rounded-2xl border border-[#F1F5F9] bg-white p-4 sm:p-5 shadow-2xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:max-w-3xl">
             <Input
               label="Rechercher"
