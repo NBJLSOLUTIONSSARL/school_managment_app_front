@@ -3,8 +3,8 @@ import { cn } from '@/utils/classNames'
 const statusMap = {
   // Frappe DocType statuses & EduTrack Figma statuses
   Draft: {
-    bg: 'bg-[#EEF2FF] text-[#4361EE] border-[#C7D2FE]',
-    dot: 'bg-[#4361EE]',
+    bg: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
+    dot: 'bg-[#0F172A]',
   },
   Submitted: {
     bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
@@ -59,8 +59,8 @@ const statusMap = {
     dot: 'bg-[#10B981]',
   },
   Info: {
-    bg: 'bg-[#EEF2FF] text-[#4361EE] border-[#C7D2FE]',
-    dot: 'bg-[#4361EE]',
+    bg: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
+    dot: 'bg-[#0F172A]',
   },
 }
 

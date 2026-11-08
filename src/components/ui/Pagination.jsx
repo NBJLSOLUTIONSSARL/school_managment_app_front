@@ -50,7 +50,7 @@ export function Pagination({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-3 border-t border-[#F1F5F9] bg-white px-4 py-3 text-xs text-[#64748B] select-none sm:flex-row',
+        'flex flex-col items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 py-3 text-xs text-[#64748B] select-none sm:flex-row',
         className
       )}
     >
@@ -68,7 +68,7 @@ export function Pagination({
               aria-label={t('pagination.rows')}
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="h-8 rounded-lg border border-[#E2E8F0] bg-white px-2.5 text-xs text-[#1E293B] hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE]"
+              className="h-8 rounded-lg border border-[#E2E8F0] bg-white px-2.5 text-xs text-[#0F172A] hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A]"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -113,8 +113,8 @@ export function Pagination({
                 className={cn(
                   'inline-flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors cursor-pointer',
                   isCurrent
-                    ? 'bg-[#4361EE] text-white shadow-2xs'
-                    : 'border border-[#E2E8F0] bg-white text-[#1E293B] hover:border-slate-300 hover:bg-slate-50'
+                    ? 'bg-[#0F172A] text-white shadow-2xs'
+                    : 'border border-[#E2E8F0] bg-white text-[#0F172A] hover:border-slate-300 hover:bg-slate-50'
                 )}
               >
                 {p}

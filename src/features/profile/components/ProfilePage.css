@@ -3,12 +3,12 @@
 /* Approved SCRUM-58 reference palette, scoped away from the login page. */
 .profile-shell, .profile-page {
   --profile-bg: #f8fafc;
-  --profile-surface: var(--color-frappe-surface);
-  --profile-border: #f1f5f9;
-  --profile-ink: #1e293b;
+  --profile-surface: #ffffff;
+  --profile-border: #e2e8f0;
+  --profile-ink: #0f172a;
   --profile-muted: #64748b;
-  --profile-blue: #4361EE;
-  --profile-soft-blue: #eef2ff;
+  --profile-blue: #0f172a;
+  --profile-soft-blue: #f1f5f9;
   color: var(--profile-ink);
   font-family: inherit;
   font-size: 14px;

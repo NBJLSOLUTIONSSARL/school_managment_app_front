@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import { SummarySubheader } from '@/components/ui/SummarySubheader'
+import { StatCard } from '@/components/ui/StatCard'
 import { Alert } from '@/components/ui/Alert'
 import { admissionsService } from '../api/admissionsService'
 import { ApplicationDetailModal } from './ApplicationDetailModal'
@@ -14,6 +15,8 @@ import {
   Eye,
   RefreshCw,
   UserCheck,
+  FileCheck,
+  Users,
 } from 'lucide-react'
 
 export function AdmissionsPage() {
@@ -125,24 +128,103 @@ export function AdmissionsPage() {
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EEF2FF] text-[#4361EE] border border-[#C7D2FE]">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]">
             {status || 'SUBMITTED'}
           </span>
         )
     }
   }
 
+  const underReviewCount = applications.filter((a) => a.status === 'UNDER_REVIEW').length
+  const acceptedCount = applications.filter((a) => a.status === 'ACCEPTED').length
+  const waitlistedCount = applications.filter((a) => a.status === 'WAITLISTED').length
+
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
-      <DocTypePageHead
+    <div className="p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
+      {/* Property Wallet Subheader matching Image 1 */}
+      <SummarySubheader
         title="Gestion des Admissions & Candidatures"
-        breadcrumbs={['Accueil', 'Admissions']}
+        subtitle="Examen des dossiers scolaires, décisions du comité pédagogique et conversion en inscriptions"
+        tabs={[
+          { id: 'ALL', label: `Toutes les candidatures (${totalElements})` },
+          { id: 'UNDER_REVIEW', label: "En cours d'examen" },
+          { id: 'ACCEPTED', label: 'Admis' },
+          { id: 'WAITLISTED', label: "Liste d'attente" },
+          { id: 'REJECTED', label: 'Refusés' },
+        ]}
+        activeTab={statusFilter}
+        onTabChange={(tabId) => {
+          setStatusFilter(tabId)
+          setPage(0)
+        }}
+        actionLabel="Exporter la liste"
+        onAction={() => window.print()}
       />
 
       {error && <Alert variant="error" message={error} />}
 
+      {/* 4 StatCards with Live Admission Data */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <StatCard
+          icon={FileCheck}
+          title="Total Candidatures"
+          value={totalElements.toString()}
+          subtitle="Campagne 2026 - 2027"
+          trend="Inscriptions"
+          trendType="neutral"
+          subMetrics={[
+            { label: 'Affichées', value: filteredApplications.length.toString() },
+            { label: 'Total Global', value: `${totalElements} dossiers` },
+          ]}
+          progress={100}
+          progressColor="#0F172A"
+        />
+        <StatCard
+          icon={Clock}
+          title="Dossiers en Examen"
+          value={underReviewCount.toString()}
+          subtitle="En cours d'instruction"
+          trend="Commission"
+          trendType="neutral"
+          subMetrics={[
+            { label: 'En attente', value: underReviewCount.toString() },
+            { label: 'Liste d\'attente', value: waitlistedCount.toString() },
+          ]}
+          progress={totalElements ? Math.round((underReviewCount / totalElements) * 100) : 0}
+          progressColor="#D97706"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          title="Admissions Prononcées"
+          value={acceptedCount.toString()}
+          subtitle="Avis d'admission favorables"
+          trend="Validés"
+          trendType="up"
+          subMetrics={[
+            { label: 'Admis', value: acceptedCount.toString() },
+            { label: 'Inscrits', value: `${acceptedCount} élèves` },
+          ]}
+          progress={totalElements ? Math.round((acceptedCount / totalElements) * 100) : 0}
+          progressColor="#059669"
+        />
+        <StatCard
+          icon={Users}
+          title="Taux d'Admission"
+          value={totalElements ? `${Math.round((acceptedCount / totalElements) * 100)}%` : '0%'}
+          subtitle="Sélectivité de la promotion"
+          trend="Taux"
+          trendType="up"
+          subMetrics={[
+            { label: 'Admissibilité', value: totalElements ? `${Math.round((acceptedCount / totalElements) * 100)}%` : '0%' },
+            { label: 'Statut', value: 'Conforme' },
+          ]}
+          progress={totalElements ? Math.round((acceptedCount / totalElements) * 100) : 0}
+          progressColor="#0F172A"
+        />
+      </div>
+
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#F1F5F9] shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
         <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
@@ -151,7 +233,7 @@ export function AdmissionsPage() {
               placeholder="Rechercher par candidat ou tuteur..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE] text-[#1E293B]"
+              className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A]"
             />
           </div>
         </div>
@@ -161,7 +243,7 @@ export function AdmissionsPage() {
             type="button"
             onClick={fetchApplications}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#1E293B] hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 transition cursor-pointer shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
@@ -175,7 +257,7 @@ export function AdmissionsPage() {
                 setStatusFilter(e.target.value)
                 setPage(0)
               }}
-              className="text-xs px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE] text-[#1E293B] cursor-pointer"
+              className="text-xs px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A] cursor-pointer"
             >
               <option value="ALL">Tous les statuts ({totalElements})</option>
               <option value="SUBMITTED">Nouveaux (SUBMITTED)</option>
@@ -189,16 +271,16 @@ export function AdmissionsPage() {
       </div>
 
       {/* Applications Data Table */}
-      <div className="bg-white rounded-2xl border border-[#F1F5F9] shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs text-[#94A3B8]">
-            <div className="inline-block w-6 h-6 border-2 border-[#4361EE] border-t-transparent rounded-full animate-spin mb-2" />
+            <div className="inline-block w-6 h-6 border-2 border-[#0F172A] border-t-transparent rounded-full animate-spin mb-2" />
             <p>Chargement des dossiers d'admission...</p>
           </div>
         ) : filteredApplications.length === 0 ? (
           <div className="p-12 text-center text-xs text-[#94A3B8]">
             <UserCheck className="w-8 h-8 text-[#94A3B8] mx-auto mb-2 opacity-40" />
-            <p className="font-bold text-[#1E293B] text-sm">Aucun dossier trouvé</p>
+            <p className="font-bold text-[#0F172A] text-sm">Aucun dossier trouvé</p>
             <p className="mt-1">
               {searchQuery || statusFilter !== 'ALL'
                 ? 'Aucune candidature ne correspond à vos filtres de recherche.'
@@ -209,7 +291,7 @@ export function AdmissionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#F8FAFC] border-b border-[#F1F5F9] text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
                   <th className="py-3 px-4"># ID</th>
                   <th className="py-3 px-4">Candidat</th>
                   <th className="py-3 px-4">Date de Naissance</th>
@@ -219,16 +301,16 @@ export function AdmissionsPage() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F1F5F9]">
+              <tbody className="divide-y divide-[#E2E8F0]">
                 {filteredApplications.map((app) => (
                   <tr
                     key={app.id}
-                    className="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
                     onClick={() => handleOpenDetail(app)}
                   >
                     <td className="py-3 px-4 font-mono text-[11px] text-[#94A3B8]">#{app.id}</td>
                     <td className="py-3 px-4">
-                      <span className="font-bold text-[#1E293B] hover:text-[#4361EE]">
+                      <span className="font-bold text-[#0F172A] hover:underline">
                         {app.candidateName}
                       </span>
                       {app.student && (

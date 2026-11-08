@@ -16,7 +16,7 @@ export function EduTrackLogo({ size = 'md', variant = 'dark', className = '' }) 
       <div
         className={`${
           iconSizes[size] || iconSizes.md
-        } bg-[#4361EE] flex items-center justify-center shrink-0 shadow-sm`}
+        } bg-[#0F172A] flex items-center justify-center shrink-0 shadow-xs`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -26,15 +26,20 @@ export function EduTrackLogo({ size = 'md', variant = 'dark', className = '' }) 
           <path d="M6 12v5c3 3 9 3 12 0v-5" />
         </svg>
       </div>
-      <span
-        className={`${
-          textSizes[size] || textSizes.md
-        } font-bold tracking-tight ${
-          variant === 'light' ? 'text-white' : 'text-[#1E2238]'
-        }`}
-      >
-        EduTrack
-      </span>
+      <div className="flex flex-col">
+        <span
+          className={`${
+            textSizes[size] || textSizes.md
+          } font-bold tracking-tight leading-tight ${
+            variant === 'light' ? 'text-white' : 'text-[#0F172A]'
+          }`}
+        >
+          EduTrack
+        </span>
+        <span className="text-[10px] font-semibold text-[#94A3B8] tracking-wider uppercase leading-none mt-0.5">
+          School Management
+        </span>
+      </div>
     </div>
   )
 }

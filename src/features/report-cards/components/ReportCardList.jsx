@@ -455,14 +455,14 @@ export function ReportCardList() {
         ]}
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none">
-        <div className="rounded-2xl border border-[#C7D2FE] bg-[#EEF2FF] px-5 py-4 text-xs leading-relaxed text-[#4361EE]">
+      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-[#F1F5F9] px-5 py-4 text-xs leading-relaxed text-[#0F172A]">
           <span className="font-bold">Calcul backend :</span> les moyennes pondérées, rangs,
           mentions et décisions sont calculés exclusivement par le backend. L’API ne fournit pas le
           détail par matière ni d’appréciation libre en dehors du PDF officiel.
         </div>
 
-        <div className="rounded-2xl border border-[#F1F5F9] bg-white p-5 shadow-2xs space-y-4">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-2xs space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             <Input
               label="Période"

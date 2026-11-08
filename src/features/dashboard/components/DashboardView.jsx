@@ -34,29 +34,29 @@ export function DashboardView() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div className="p-4 sm:p-6 space-y-6 select-none bg-white min-h-screen">
       <DocTypePageHead
         breadcrumbs={[t('app.name'), t('nav.dashboard')]}
         title={t('nav.dashboard')}
         docstatus="Active"
       />
 
-      {/* Role Preview Bar for Admin */}
+      {/* Role Preview Bar for Admin with Blue Palette */}
       {isAdmin && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 bg-white p-3 rounded-2xl border border-[#F1F5F9] shadow-2xs">
-          <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider px-2 shrink-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider px-2 shrink-0">
             Aperçu Rôle :
           </span>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {roleLabels.map((r) => (
               <button
                 type="button"
                 key={r.key}
                 onClick={() => setActiveRoleView(r.key)}
-                className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   activeRoleView === r.key
-                    ? 'bg-[#4361EE] text-white shadow-2xs'
-                    : 'text-[#64748B] hover:bg-slate-100 hover:text-[#1E293B]'
+                    ? 'bg-[#2563EB] text-white shadow-xs'
+                    : 'text-[#64748B] hover:bg-[#EFF6FF] hover:text-[#2563EB]'
                 }`}
               >
                 {r.label}

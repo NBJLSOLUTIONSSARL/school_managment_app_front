@@ -3,8 +3,8 @@ export function CircularProgress({
   max = 100,
   size = 48,
   strokeWidth = 4,
-  color = '#4361EE',
-  trackColor = '#F1F5F9',
+  color = '#0F172A',
+  trackColor = '#E2E8F0',
   label,
   className = '',
 }) {

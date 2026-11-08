@@ -2,17 +2,29 @@
 @import "tailwindcss";
 
 @theme {
-  --color-frappe-bg: #f8fafc;
+  --color-frappe-bg: #ffffff;
   --color-frappe-surface: #ffffff;
-  --color-frappe-border: #f1f5f9;
-  --color-frappe-hover: #f8fafc;
+  --color-frappe-border: #e2e8f0;
+  --color-frappe-hover: #eff6ff;
   --color-frappe-muted: #64748b;
-  --color-frappe-dark: #1e293b;
-  --color-brand-primary: #4361EE;
-  --color-brand-hover: #3451D1;
-  --color-brand-active: #2B44B8;
-  --color-brand-light: #EEF2FF;
-  --color-brand-border: #C7D2FE;
+  --color-frappe-dark: #0f172a;
+
+  /* Blue Palette Design Tokens */
+  --color-primary-blue: #2563eb;
+  --color-dark-blue: #1d4ed8;
+  --color-deep-blue: #1e40af;
+  --color-medium-blue: #3b82f6;
+  --color-light-blue: #dbeafe;
+  --color-pale-blue: #eff6ff;
+  --color-sky-blue: #7dd3fc;
+  --color-blue-gray: #64748b;
+
+  --color-brand-primary: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-active: #1e40af;
+  --color-brand-light: #eff6ff;
+  --color-brand-border: #dbeafe;
+
   --text-2xs: 11px;
   --text-2xs--line-height: 14px;
 }
@@ -28,25 +40,50 @@
 }
 
 :root {
-  --frappe-bg: #f8fafc;
+  --frappe-bg: #ffffff;
   --frappe-surface: #ffffff;
-  --frappe-border: #f1f5f9;
-  --frappe-hover: #f8fafc;
+  --frappe-border: #e2e8f0;
+  --frappe-hover: #eff6ff;
   --frappe-muted: #64748b;
-  --frappe-dark: #1e293b;
+  --frappe-dark: #0f172a;
 
-  /* EduTrack Figma Design Tokens */
-  --primary: #4361EE;
-  --primary-hover: #3451D1;
-  --primary-light: #EEF2FF;
-  --sidebar-bg: #FFFFFF;
-  --sidebar-active-bg: #EEF2FF;
-  --sidebar-active-text: #4361EE;
-  --bg-page: #F8FAFC;
-  --card-bg: #FFFFFF;
-  --card-border: #F1F5F9;
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
+  /* Blue Palette & White Foundation Tokens */
+  --primary-blue: #2563eb;
+  --dark-blue: #1d4ed8;
+  --deep-blue: #1e40af;
+  --medium-blue: #3b82f6;
+  --light-blue: #dbeafe;
+  --pale-blue: #eff6ff;
+  --sky-blue: #7dd3fc;
+  --blue-gray: #64748b;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --sidebar-bg: #ffffff;
+  --sidebar-active-bg: #eff6ff;
+  --sidebar-active-text: #2563eb;
+  --bg-page: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  /* shadcn/ui Theme HSL Variables */
+  --background: 0 0% 100%;
+  --foreground: 222.2 47.4% 11.2%;
+  --primary-hsl: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 214 95% 93%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --accent: 214 100% 97%;
+  --accent-foreground: 221.2 83.2% 53.3%;
+  --ring: 221.2 83.2% 53.3%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
 
   font-family:
     Inter,
@@ -62,7 +99,7 @@
   line-height: 1.4;
   font-weight: 400;
   color: #1e293b;
-  background-color: var(--frappe-bg);
+  background-color: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -71,8 +108,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 #root {
@@ -101,9 +138,9 @@ body {
   background: #94a3b8;
 }
 
-/* Keyboard-first focus indicator matching EduTrack Primary */
+/* Keyboard-first focus indicator with Primary Blue Accent */
 :where(a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible {
-  outline: 2px solid #4361EE;
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
 
@@ -126,19 +163,19 @@ body {
   }
 }
 
-/* EduTrack Figma Design System Cards and Components */
+/* Clean Cards and Components */
 .edutrack-card,
 .academy-card {
-  background-color: #FFFFFF;
-  border: 1px solid #F1F5F9;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 4px 16px -2px rgba(67, 97, 238, 0.04);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
 }
 
 .edutrack-pill-active,
 .academy-pill-active {
-  background-color: #EEF2FF;
-  color: #4361EE;
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-color: #dbeafe;
   font-weight: 600;
 }
-

@@ -47,7 +47,7 @@ export function DocTypePageHead({
     : []
 
   return (
-    <div className="sticky top-0 z-30 flex min-h-16 w-full flex-wrap items-center justify-between gap-3 border-b border-[#F1F5F9] bg-white/95 backdrop-blur-md px-4 py-3 sm:px-6 md:flex-nowrap md:py-0 shadow-2xs">
+    <div className="sticky top-0 z-30 flex min-h-12 w-full flex-wrap items-center justify-between gap-2.5 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md px-3.5 py-2 sm:px-5 md:flex-nowrap md:py-0 shadow-2xs">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
         {breadcrumbs.length > 0 && (
           <>
@@ -65,12 +65,12 @@ export function DocTypePageHead({
                 return (
                   <Fragment key={key}>
                     {idx > 0 && (
-                      <span className="text-slate-300" aria-hidden="true">
+                      <span className="text-[#94A3B8]" aria-hidden="true">
                         /
                       </span>
                     )}
                     <span
-                      className="font-medium hover:text-[#1E293B] transition-colors"
+                      className="font-medium hover:text-[#0F172A] transition-colors"
                       aria-current={isLast ? 'page' : undefined}
                     >
                       {label}
@@ -79,18 +79,18 @@ export function DocTypePageHead({
                 )
               })}
             </nav>
-            <span className="hidden text-slate-300 lg:inline" aria-hidden="true">
+            <span className="hidden text-[#CBD5E1] lg:inline" aria-hidden="true">
               |
             </span>
           </>
         )}
 
-        <h1 className="truncate text-base sm:text-lg font-bold tracking-tight text-[#1E293B]">
+        <h1 className="truncate text-base sm:text-lg font-bold tracking-tight text-[#0F172A]">
           {title}
         </h1>
 
         {count !== undefined && count !== null && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#EEF2FF] text-[#4361EE] border border-[#C7D2FE]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]">
             {count}
           </span>
         )}
@@ -106,7 +106,7 @@ export function DocTypePageHead({
               value={searchTerm ?? ''}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder || t('common.search', 'Rechercher...')}
-              className="h-8 w-44 lg:w-56 rounded-xl border border-[#E2E8F0] bg-white px-3 text-xs text-[#1E293B] placeholder-[#94A3B8] focus:border-[#4361EE] focus:outline-none focus:ring-2 focus:ring-[#4361EE]/20 shadow-2xs"
+              className="h-8 w-44 lg:w-56 rounded-xl border border-[#E2E8F0] bg-white px-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 shadow-2xs"
             />
           </div>
         )}
@@ -140,7 +140,7 @@ export function DocTypePageHead({
           <button
             type="button"
             onClick={onMenuAction}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-xs text-[#64748B] hover:bg-slate-50 hover:text-[#1E293B] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 transition-all cursor-pointer shadow-2xs"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-xs text-[#64748B] hover:bg-slate-50 hover:text-[#0F172A] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0F172A]/20 transition-all cursor-pointer shadow-2xs"
             title={t('common.moreOptions')}
             aria-label={t('common.moreOptions')}
           >

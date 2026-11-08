@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import { SummarySubheader } from '@/components/ui/SummarySubheader'
+import { StatCard } from '@/components/ui/StatCard'
 import { Alert } from '@/components/ui/Alert'
 import { invoiceService } from '../api/invoiceService'
 import { InvoiceDetailModal } from './InvoiceDetailModal'
@@ -114,7 +115,7 @@ export function InvoicesPage() {
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EEF2FF] text-[#4361EE] border border-[#C7D2FE]">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]">
             Non payée
           </span>
         )
@@ -122,38 +123,91 @@ export function InvoicesPage() {
   }
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
-      <DocTypePageHead
+    <div className="p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
+      {/* Property Wallet Subheader matching Image 1 */}
+      <SummarySubheader
         title="Gestion Financière — Facturation & Règlements"
-        breadcrumbs={['Accueil', 'Factures']}
+        subtitle="Suivi des bordereaux, paiements échelonnés et états de recouvrement des familles"
+        tabs={[
+          { id: 'ALL', label: `Toutes les factures (${totalElements})` },
+          { id: 'UNPAID', label: 'Non payées' },
+          { id: 'PARTIAL', label: 'Partielles' },
+          { id: 'PAID', label: 'Payées' },
+          { id: 'OVERDUE', label: 'En retard' },
+        ]}
+        activeTab={statusFilter}
+        onTabChange={(tabId) => {
+          setStatusFilter(tabId)
+          setPage(0)
+        }}
+        actionLabel="Nouvelle Facture"
+        onAction={() => setCreateModalOpen(true)}
       />
 
       {error && <Alert variant="error" message={error} />}
 
-      {/* Top Financial KPI summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Total Émis (Page)</span>
-          <div className="mt-1.5 font-mono text-xl sm:text-2xl font-extrabold text-[#1E293B]">
-            {Number(totalBilled).toLocaleString()} €
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Encaissé (Page)</span>
-          <div className="mt-1.5 font-mono text-xl sm:text-2xl font-extrabold text-[#059669]">
-            {Number(totalPaid).toLocaleString()} €
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Reste à Recouvrer</span>
-          <div className="mt-1.5 font-mono text-xl sm:text-2xl font-extrabold text-[#DC2626]">
-            {Number(totalDue).toLocaleString()} €
-          </div>
-        </div>
+      {/* 4 StatCards with Live Financial Data */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <StatCard
+          icon={Receipt}
+          title="Total Facturé (Page)"
+          value={`${Number(totalBilled).toLocaleString()} €`}
+          subtitle="Montant cumulé émis"
+          trend="Émis"
+          trendType="neutral"
+          subMetrics={[
+            { label: 'Factures affichées', value: filteredInvoices.length.toString() },
+            { label: 'Total Global', value: `${totalElements} dossiers` },
+          ]}
+          progress={100}
+          progressColor="#0F172A"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          title="Règlements Encaissés"
+          value={`${Number(totalPaid).toLocaleString()} €`}
+          subtitle="Paiements confirmés"
+          trend="Encaissé"
+          trendType="up"
+          subMetrics={[
+            { label: 'Soldées', value: invoices.filter((i) => i.status === 'PAID').length.toString() },
+            { label: 'Acomptes', value: invoices.filter((i) => i.status === 'PARTIAL').length.toString() },
+          ]}
+          progress={totalBilled ? Math.round((totalPaid / totalBilled) * 100) : 0}
+          progressColor="#059669"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          title="Reste à Recouvrer"
+          value={`${Number(totalDue).toLocaleString()} €`}
+          subtitle="Solde exigible"
+          trend="À percevoir"
+          trendType="neutral"
+          subMetrics={[
+            { label: 'En retard', value: invoices.filter((i) => i.status === 'OVERDUE').length.toString() },
+            { label: 'Partielles', value: invoices.filter((i) => i.status === 'PARTIAL').length.toString() },
+          ]}
+          progress={totalBilled ? Math.round((totalDue / totalBilled) * 100) : 0}
+          progressColor="#0F172A"
+        />
+        <StatCard
+          icon={CreditCard}
+          title="Taux de Recouvrement"
+          value={totalBilled ? `${Math.round((totalPaid / totalBilled) * 100)}%` : '0%'}
+          subtitle="Performance financière"
+          trend="Ratio"
+          trendType="up"
+          subMetrics={[
+            { label: 'Objectif', value: '95%' },
+            { label: 'Statut', value: totalDue === 0 ? 'Optimal' : 'En cours' },
+          ]}
+          progress={totalBilled ? Math.round((totalPaid / totalBilled) * 100) : 0}
+          progressColor="#0F172A"
+        />
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#F1F5F9] shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
         <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
@@ -162,7 +216,7 @@ export function InvoicesPage() {
               placeholder="Rechercher par numéro de facture ou élève..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE] text-[#1E293B]"
+              className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A]"
             />
           </div>
         </div>
@@ -172,7 +226,7 @@ export function InvoicesPage() {
             type="button"
             onClick={fetchInvoices}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#1E293B] hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 transition cursor-pointer shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
@@ -180,7 +234,7 @@ export function InvoicesPage() {
           <button
             type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] active:bg-[#020617] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             Nouvelle Facture
@@ -194,7 +248,7 @@ export function InvoicesPage() {
                 setStatusFilter(e.target.value)
                 setPage(0)
               }}
-              className="text-xs px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE]/20 focus:border-[#4361EE] text-[#1E293B] cursor-pointer"
+              className="text-xs px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A] cursor-pointer"
             >
               <option value="ALL">Toutes les factures ({totalElements})</option>
               <option value="UNPAID">Non payées (UNPAID)</option>
@@ -207,16 +261,16 @@ export function InvoicesPage() {
       </div>
 
       {/* Invoices Table Card */}
-      <div className="bg-white rounded-2xl border border-[#F1F5F9] shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-xs text-text-muted">
-            <div className="inline-block w-6 h-6 border-2 border-primary-default border-t-transparent rounded-full animate-spin mb-2" />
+          <div className="p-8 text-center text-xs text-[#64748B]">
+            <div className="inline-block w-6 h-6 border-2 border-[#0F172A] border-t-transparent rounded-full animate-spin mb-2" />
             <p>Chargement des factures...</p>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-xs text-text-muted">
-            <Receipt className="w-8 h-8 text-text-muted mx-auto mb-2 opacity-40" />
-            <p className="font-semibold text-text-default">Aucune facture trouvée</p>
+          <div className="p-8 text-center text-xs text-[#64748B]">
+            <Receipt className="w-8 h-8 text-[#94A3B8] mx-auto mb-2 opacity-40" />
+            <p className="font-semibold text-[#0F172A]">Aucune facture trouvée</p>
             <p className="mt-1">
               {searchQuery || statusFilter !== 'ALL'
                 ? 'Aucune facture ne correspond à vos filtres de recherche.'
@@ -227,7 +281,7 @@ export function InvoicesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-fill-neutral-subtle border-b border-border-default text-2xs font-bold uppercase tracking-wider text-text-muted">
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-2xs font-bold uppercase tracking-wider text-[#64748B]">
                   <th className="py-2.5 px-3">Numéro</th>
                   <th className="py-2.5 px-3">Élève</th>
                   <th className="py-2.5 px-3">Date d'Échéance</th>
@@ -237,25 +291,25 @@ export function InvoicesPage() {
                   <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-default">
+              <tbody className="divide-y divide-[#E2E8F0]">
                 {filteredInvoices.map((inv) => {
                   const remaining = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0))
                   return (
                     <tr
                       key={inv.id}
-                      className="hover:bg-fill-neutral-hover transition-colors cursor-pointer"
+                      className="hover:bg-slate-50 transition-colors cursor-pointer"
                       onClick={() => handleOpenDetail(inv)}
                     >
-                      <td className="py-2 px-3 font-mono font-semibold text-primary-default">
+                      <td className="py-2 px-3 font-mono font-semibold text-[#0F172A]">
                         {inv.number || `#${inv.id}`}
                       </td>
-                      <td className="py-2 px-3 font-medium text-text-default">
+                      <td className="py-2 px-3 font-medium text-[#0F172A]">
                         {inv.studentName || `Élève #${inv.studentId}`}
                       </td>
-                      <td className="py-2 px-3 text-text-muted">
+                      <td className="py-2 px-3 text-[#64748B]">
                         {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td className="py-2 px-3 text-right font-mono font-medium text-text-default">
+                      <td className="py-2 px-3 text-right font-mono font-medium text-[#0F172A]">
                         {Number(inv.totalAmount || 0).toLocaleString()} €
                       </td>
                       <td className="py-2 px-3 text-right font-mono font-bold">

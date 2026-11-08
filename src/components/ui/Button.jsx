@@ -3,11 +3,11 @@ import { cn } from '@/utils/classNames'
 
 const variantStyles = {
   primary:
-    'bg-[#4361EE] text-white hover:bg-[#3451D1] active:bg-[#2B44B8] focus:ring-[#4361EE]/40 shadow-xs font-semibold',
+    'bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:bg-[#1E40AF] focus:ring-[#2563EB]/30 shadow-xs font-semibold',
   secondary:
-    'bg-white text-[#1E293B] border border-[#E2E8F0] hover:bg-slate-50 focus:ring-[#4361EE]/20 shadow-2xs font-medium',
+    'bg-white text-[#2563EB] border border-[#DBEAFE] hover:bg-[#EFF6FF] hover:border-[#2563EB] focus:ring-[#2563EB]/20 shadow-2xs font-medium',
   subtle:
-    'bg-[#EEF2FF] text-[#4361EE] hover:bg-[#E0E7FF] focus:ring-[#4361EE]/20 font-semibold',
+    'bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE] focus:ring-[#2563EB]/20 font-semibold',
   danger:
     'bg-[#EF4444] text-white hover:bg-[#DC2626] focus:ring-rose-500 shadow-xs font-semibold',
   dangerSubtle:
@@ -15,9 +15,9 @@ const variantStyles = {
   success:
     'bg-[#10B981] text-white hover:bg-[#059669] focus:ring-emerald-500 shadow-xs font-semibold',
   ghost:
-    'bg-transparent text-[#64748B] hover:bg-slate-100 hover:text-[#1E293B] focus:ring-slate-300 font-medium',
+    'bg-transparent text-[#2563EB] hover:bg-[#EFF6FF] hover:text-[#1D4ED8] focus:ring-[#2563EB]/20 font-medium',
   outline:
-    'bg-transparent text-[#1E293B] border border-[#E2E8F0] hover:bg-slate-50 focus:ring-[#4361EE]/20 font-medium',
+    'bg-transparent text-[#2563EB] border border-[#2563EB] hover:bg-[#EFF6FF] focus:ring-[#2563EB]/20 font-medium',
 }
 
 const sizeStyles = {
@@ -28,7 +28,7 @@ const sizeStyles = {
 }
 
 /**
- * Reusable Frappe Desk / EduTrack Button component.
+ * Reusable Button component with Blue Palette tokens.
  */
 export const Button = forwardRef(function Button(
   {
@@ -60,47 +60,41 @@ export const Button = forwardRef(function Button(
       ref={ref}
       type={type}
       disabled={isDisabled}
+      aria-disabled={isDisabled || undefined}
       aria-busy={isLoading || undefined}
       onClick={resolvedOnClick}
       className={cn(
-        'inline-flex items-center justify-center transition select-none cursor-pointer',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
+        'inline-flex items-center justify-center font-sans tracking-tight transition-all select-none',
+        'focus:outline-hidden focus:ring-2 focus:ring-offset-1',
         variantStyles[variant] || variantStyles.secondary,
         sizeStyles[size] || sizeStyles.sm,
-        isDisabled && 'opacity-60 cursor-not-allowed pointer-events-none',
+        isDisabled && 'cursor-not-allowed opacity-50 shadow-none pointer-events-none',
+        !isDisabled && 'cursor-pointer',
         className
       )}
       {...props}
     >
       {isLoading ? (
         <>
-          <svg
-            className="animate-spin h-3.5 w-3.5 text-current"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-          <span>{loadingText || resolvedChildren}</span>
+          <span
+            className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+            aria-hidden="true"
+          />
+          {loadingText ? <span>{loadingText}</span> : resolvedChildren}
         </>
       ) : (
         <>
-          {leftIcon && <span className="shrink-0">{leftIcon}</span>}
+          {leftIcon && (
+            <span className="shrink-0" aria-hidden="true">
+              {leftIcon}
+            </span>
+          )}
           {resolvedChildren}
-          {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+          {rightIcon && (
+            <span className="shrink-0" aria-hidden="true">
+              {rightIcon}
+            </span>
+          )}
         </>
       )}
     </button>

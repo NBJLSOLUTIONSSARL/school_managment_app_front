@@ -73,7 +73,7 @@ export const Input = forwardRef(function Input(
             suffix && 'rounded-e-none',
             error
               ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-[#4361EE]/20',
+              : 'border-[#E2E8F0] hover:border-[#93C5FD] focus:border-[#2563EB] focus:ring-[#2563EB]/20',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}

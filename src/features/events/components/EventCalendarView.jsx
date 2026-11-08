@@ -158,15 +158,15 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
+        <div className="flex items-center gap-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] p-1 text-xs">
           <button
             type="button"
             onClick={() => setCalendarMode('month')}
             className={cn(
-              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
+              'rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer',
               calendarMode === 'month'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#0F172A]'
             )}
           >
             Mois
@@ -175,10 +175,10 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
             type="button"
             onClick={() => setCalendarMode('week')}
             className={cn(
-              'rounded-full px-3 py-1 font-semibold transition-all cursor-pointer',
+              'rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer',
               calendarMode === 'week'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#0F172A]'
             )}
           >
             Semaine
@@ -187,7 +187,7 @@ export function EventCalendarView({ events = [], onSelectEvent }) {
       </div>
 
       {/* Days of week header */}
-      <div className="grid grid-cols-7 border-b border-[#F1F5F9] bg-[#F8FAFC] text-center text-xs font-semibold text-[#64748B]">
+      <div className="grid grid-cols-7 border-b border-[#E2E8F0] bg-[#F8FAFC] text-center text-xs font-semibold text-[#64748B]">
         {WEEK_DAYS.map((day) => (
           <div key={day} className="py-2 border-r last:border-r-0 border-slate-200">
             {day}

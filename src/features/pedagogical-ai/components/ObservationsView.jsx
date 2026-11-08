@@ -345,7 +345,7 @@ export function ObservationsView() {
                 value={studentId}
                 onChange={handleStudentChange}
                 placeholder="Ex: 12"
-                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10 disabled:opacity-60"
+                className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:opacity-60"
               />
               <button
                 type="button"
@@ -393,7 +393,7 @@ export function ObservationsView() {
                   <select
                     value={String(pagination.size)}
                     onChange={(e) => setPagination({ ...pagination, size: Number(e.target.value), page: 0 })}
-                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   >
                     {PAGE_SIZES.map((s) => (
                       <option key={s} value={s}>{s} / page</option>
@@ -410,7 +410,7 @@ export function ObservationsView() {
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
                     placeholder="Toutes"
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
                 </div>
                 <div>
@@ -418,7 +418,7 @@ export function ObservationsView() {
                   <select
                     value={filters.level}
                     onChange={(e) => handleFilterChange('level', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   >
                     <option value="">Tous</option>
                     <option value="POSITIVE">Positif</option>
@@ -431,7 +431,7 @@ export function ObservationsView() {
                   <select
                     value={filters.source}
                     onChange={(e) => handleFilterChange('source', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   >
                     <option value="">Toutes</option>
                     <option value="TEACHER">Enseignant</option>
@@ -461,7 +461,7 @@ export function ObservationsView() {
                     type="date"
                     value={filters.from}
                     onChange={(e) => handleFilterChange('from', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   />
                 </div>
                 <div>
@@ -470,7 +470,7 @@ export function ObservationsView() {
                     type="date"
                     value={filters.to}
                     onChange={(e) => handleFilterChange('to', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   />
                 </div>
               </div>
@@ -605,7 +605,7 @@ export function ObservationsView() {
                     value={formData.studentId}
                     onChange={(e) => handleFormChange('studentId', e.target.value)}
                     disabled={formMode === 'edit'}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs disabled:bg-frappe-hover focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs disabled:bg-frappe-hover focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
                   {formErrors.studentId && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.studentId}</p>
@@ -619,7 +619,7 @@ export function ObservationsView() {
                     value={formData.subjectId}
                     onChange={(e) => handleFormChange('subjectId', e.target.value)}
                     placeholder="ID matière"
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
                   {formErrors.subjectId && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.subjectId}</p>
@@ -633,7 +633,7 @@ export function ObservationsView() {
                     type="text"
                     value={formData.category}
                     onChange={(e) => handleFormChange('category', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
                   {formErrors.category && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.category}</p>
@@ -646,7 +646,7 @@ export function ObservationsView() {
                     id="form-level"
                     value={formData.level}
                     onChange={(e) => handleFormChange('level', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   >
                     <option value="">—</option>
                     <option value="POSITIVE">Positif</option>
@@ -665,7 +665,7 @@ export function ObservationsView() {
                     type="date"
                     value={formData.date}
                     onChange={(e) => handleFormChange('date', e.target.value)}
-                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE]"
+                    className="h-8 w-full rounded border border-frappe-border bg-white px-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A]"
                   />
                   {formErrors.date && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.date}</p>
@@ -679,7 +679,7 @@ export function ObservationsView() {
                     value={formData.content}
                     onChange={(e) => handleFormChange('content', e.target.value)}
                     rows={4}
-                    className="h-24 w-full rounded border border-frappe-border bg-white px-2.5 py-2 text-xs text-frappe-dark shadow-2xs focus:border-[#4361EE] focus:ring-1 focus:ring-[#4361EE]/10"
+                    className="h-24 w-full rounded border border-frappe-border bg-white px-2.5 py-2 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
                   <p className="mt-1 text-2xs text-frappe-muted">Max 5000 caractères</p>
                   {formErrors.content && (
@@ -699,7 +699,7 @@ export function ObservationsView() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="h-8 rounded bg-[#4361EE] px-3.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#3451D1] disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="h-8 rounded bg-[#0F172A] px-3.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#1E293B] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Enregistrement…' : `Enregistrer (Ctrl+S)`}
                   </button>

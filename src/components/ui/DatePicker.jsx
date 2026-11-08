@@ -56,7 +56,7 @@ export const DatePicker = forwardRef(function DatePicker(
           <button
             type="button"
             onClick={handleSetToday}
-            className="cursor-pointer text-xs font-semibold text-[#4361EE] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30"
+            className="cursor-pointer text-xs font-semibold text-[#0F172A] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/20"
           >
             {t('common.today')}
           </button>
@@ -81,7 +81,7 @@ export const DatePicker = forwardRef(function DatePicker(
             sizeClass,
             error
               ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-[#4361EE]/20',
+              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#0F172A] focus:ring-[#0F172A]/15',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}

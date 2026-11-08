@@ -54,23 +54,23 @@ export function MiniCalendar({ onSelectDate, className = '' }) {
   }
 
   return (
-    <div className={`edutrack-card bg-white p-5 rounded-2xl border border-[#F1F5F9] shadow-xs ${className}`}>
+    <div className={`edutrack-card bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-2xs ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={handlePrevMonth}
-          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#1E293B] cursor-pointer"
+          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
           aria-label="Previous month"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-bold text-[#1E293B]">
+        <span className="text-sm font-bold text-[#0F172A]">
           {monthNames[month]} {year}
         </span>
         <button
           type="button"
           onClick={handleNextMonth}
-          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#1E293B] cursor-pointer"
+          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
           aria-label="Next month"
         >
           <ChevronRight className="w-4 h-4" />
@@ -96,14 +96,14 @@ export function MiniCalendar({ onSelectDate, className = '' }) {
               key={index}
               onClick={() => handleDayClick(d)}
               disabled={!d.isCurrentMonth}
-              className={`h-8 w-8 mx-auto flex items-center justify-center rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`h-8 w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 !d.isCurrentMonth
                   ? 'text-[#CBD5E1] cursor-default'
                   : isSelected
-                  ? 'bg-[#4361EE] text-white shadow-xs'
+                  ? 'bg-[#0F172A] text-white shadow-2xs'
                   : isToday
-                  ? 'bg-[#EEF2FF] text-[#4361EE]'
-                  : 'text-[#1E293B] hover:bg-slate-100'
+                  ? 'bg-[#F1F5F9] text-[#0F172A] font-bold border border-[#E2E8F0]'
+                  : 'text-[#0F172A] hover:bg-slate-100'
               }`}
             >
               {d.day}

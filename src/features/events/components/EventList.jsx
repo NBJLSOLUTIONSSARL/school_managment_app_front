@@ -223,7 +223,7 @@ export function EventList() {
                 setFromDate(e.target.value)
                 setPage(1)
               }}
-              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
+              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#0F172A] focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 focus:outline-none"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export function EventList() {
                 setToDate(e.target.value)
                 setPage(1)
               }}
-              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
+              className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#0F172A] focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 focus:outline-none"
             />
           </div>
           {(fromDate || toDate) && (
@@ -246,7 +246,7 @@ export function EventList() {
                 setToDate('')
                 setPage(1)
               }}
-              className="text-xs text-[#4361EE] hover:underline font-semibold cursor-pointer"
+              className="text-xs text-[#0F172A] hover:underline font-semibold cursor-pointer"
             >
               Effacer dates
             </button>
@@ -254,15 +254,15 @@ export function EventList() {
         </div>
 
         {/* Tab switch */}
-        <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1 text-xs">
+        <div className="flex items-center gap-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] p-1 text-xs">
           <button
             type="button"
             onClick={() => setActiveTab('list')}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-colors cursor-pointer',
+              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-colors cursor-pointer',
               activeTab === 'list'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#0F172A]'
             )}
           >
             <List className="w-3.5 h-3.5" />
@@ -272,10 +272,10 @@ export function EventList() {
             type="button"
             onClick={() => setActiveTab('calendar')}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-colors cursor-pointer',
+              'inline-flex items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-colors cursor-pointer',
               activeTab === 'calendar'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:text-[#0F172A]'
             )}
           >
             <Calendar className="w-3.5 h-3.5" />

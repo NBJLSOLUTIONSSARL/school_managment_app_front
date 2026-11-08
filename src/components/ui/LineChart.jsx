@@ -7,7 +7,7 @@ export function LineChart({
   maxY = 100,
   minY = 0,
   ySuffix = '%',
-  lineColor = '#C5A880',
+  lineColor = '#0F172A',
   height = 220,
 }) {
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -65,14 +65,14 @@ export function LineChart({
                 y1={yPos}
                 x2={width - paddingX}
                 y2={yPos}
-                stroke="#EFECE6"
+                stroke="#E2E8F0"
                 strokeWidth="1"
               />
               <text
                 x={paddingX - 10}
                 y={yPos + 4}
                 textAnchor="end"
-                className="text-[11px] fill-[#A8A29E] font-medium"
+                className="text-[11px] fill-[#94A3B8] font-medium"
               >
                 {labelVal}{ySuffix}
               </text>

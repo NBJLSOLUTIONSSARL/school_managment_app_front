@@ -121,15 +121,15 @@ export function Modal({
         aria-describedby={subtitle ? subtitleId : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#F1F5F9] bg-white text-[#1E293B] shadow-2xl focus:outline-none animate-in fade-in zoom-in-95 duration-150',
+          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white text-[#1E293B] shadow-2xl focus:outline-none animate-in fade-in zoom-in-95 duration-150',
           sizeStyles[size] || sizeStyles.md,
           className
         )}
       >
-        <div className="flex items-start justify-between border-b border-[#F1F5F9] bg-white px-6 py-4">
+        <div className="flex items-start justify-between border-b border-[#E2E8F0] bg-white px-6 py-4">
           <div>
             {title && (
-              <h3 id={titleId} className="text-base font-bold text-[#1E293B] tracking-tight">
+              <h3 id={titleId} className="text-base font-bold text-[#0F172A] tracking-tight">
                 {title}
               </h3>
             )}
@@ -142,7 +142,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-sm leading-none text-[#94A3B8] transition-colors hover:text-[#1E293B] hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30 cursor-pointer"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm leading-none text-[#94A3B8] transition-colors hover:text-[#0F172A] hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/20 cursor-pointer"
             aria-label={t('common.close')}
           >
             <X className="w-4 h-4" />
@@ -152,7 +152,7 @@ export function Modal({
         <div className="flex-1 overflow-y-auto p-6 text-xs text-[#1E293B]">{children}</div>
 
         {footer && (
-          <div className="flex items-center justify-end gap-2.5 border-t border-[#F1F5F9] bg-[#F8FAFC]/70 px-6 py-3.5">
+          <div className="flex items-center justify-end gap-2.5 border-t border-[#E2E8F0] bg-[#F8FAFC]/70 px-6 py-3.5">
             {footer}
           </div>
         )}

@@ -13,7 +13,7 @@ const QUICK_ACCOUNTS = [
     name: 'Admin Principal',
     email: 'admin@school.edu',
     role: 'admin',
-    badge: 'bg-[#EEF2FF] text-[#4361EE] border border-[#C7D2FE]',
+    badge: 'bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]',
   },
   {
     roleKey: 'roles.teacher',
@@ -29,7 +29,7 @@ const QUICK_ACCOUNTS = [
     name: 'Lucas Bernard',
     email: 'eleve@school.edu',
     role: 'student',
-    badge: 'bg-[#EEF2FF] text-[#4361EE] border border-[#C7D2FE]',
+    badge: 'bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]',
   },
   {
     roleKey: 'roles.parent',
@@ -145,7 +145,7 @@ export function LoginForm() {
         <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 border-t border-white/10">
           <div className="bg-white rounded-2xl p-4 text-[#1E293B] shadow-lg flex flex-col justify-between min-h-[90px]">
             <div className="flex items-center justify-between">
-              <span className="w-6 h-6 rounded-full bg-[#4361EE] text-white text-xs font-bold flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-[#0F172A] text-white text-xs font-bold flex items-center justify-center">
                 01
               </span>
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
@@ -182,10 +182,10 @@ export function LoginForm() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white overflow-y-auto">
         <div className="w-full max-w-md space-y-6">
           <div>
-            <span className="text-[11px] font-bold text-[#4361EE] uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-[#0F172A] uppercase tracking-wider">
               {t('app.name', 'EduTrack System')}
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E293B] tracking-tight mt-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight mt-1">
               {t('login.title', 'Connexion')}
             </h2>
             <p className="text-xs sm:text-sm text-[#64748B] mt-1.5">
@@ -211,7 +211,7 @@ export function LoginForm() {
                   placeholder={t('login.emailPlaceholder', 'exemple@school.edu')}
                   required
                   autoComplete="username"
-                  className="w-full h-11 ps-10 pe-4 bg-white border border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-[#94A3B8] transition-all focus:outline-none"
+                  className="w-full h-11 ps-10 pe-4 bg-white border border-[#E2E8F0] hover:border-slate-300 focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-[#94A3B8] transition-all focus:outline-none"
                 />
               </div>
             </div>
@@ -233,7 +233,7 @@ export function LoginForm() {
                   placeholder={t('login.passwordPlaceholder', 'Votre mot de passe')}
                   required
                   autoComplete="current-password"
-                  className="w-full h-11 ps-10 pe-11 bg-white border border-[#E2E8F0] hover:border-slate-300 focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-[#94A3B8] transition-all focus:outline-none"
+                  className="w-full h-11 ps-10 pe-11 bg-white border border-[#E2E8F0] hover:border-slate-300 focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 rounded-xl text-xs sm:text-sm text-[#1E293B] placeholder:text-[#94A3B8] transition-all focus:outline-none"
                 />
                 <button
                   type="button"
@@ -261,7 +261,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#4361EE] hover:bg-[#3451D1] active:bg-[#2B44B8] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-[#0F172A] hover:bg-[#1E293B] active:bg-[#020617] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{t('login.submit', 'Continuer vers le tableau de bord')}</span>
@@ -281,7 +281,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShowQuickLogins(!showQuickLogins)}
-              className="w-full text-center text-xs text-[#4361EE] hover:underline font-semibold cursor-pointer"
+              className="w-full text-center text-xs text-[#0F172A] hover:underline font-semibold cursor-pointer"
             >
               {showQuickLogins
                 ? '▲ Masquer les comptes de test'
@@ -289,18 +289,18 @@ export function LoginForm() {
             </button>
 
             {showQuickLogins && (
-              <div className="mt-3 p-3 bg-slate-50/80 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in">
+              <div className="mt-3 p-3 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0] grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in">
                 {QUICK_ACCOUNTS.map((acc) => (
                   <button
                     key={acc.email}
                     type="button"
                     onClick={() => handleQuickLogin(acc)}
-                    className="text-start p-2.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#4361EE] hover:shadow-2xs transition-all cursor-pointer"
+                    className="text-start p-2.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#0F172A] hover:shadow-2xs transition-all cursor-pointer"
                   >
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.badge} inline-block`}>
                       {t(acc.roleKey, acc.defaultRole)}
                     </span>
-                    <p className="text-xs font-bold text-[#1E293B] mt-1 truncate">{acc.name}</p>
+                    <p className="text-xs font-bold text-[#0F172A] mt-1 truncate">{acc.name}</p>
                     <p className="text-[10px] text-[#64748B] truncate">{acc.email}</p>
                   </button>
                 ))}
@@ -311,11 +311,11 @@ export function LoginForm() {
           {/* Legal / Terms */}
           <p className="text-[11px] text-center text-[#94A3B8] leading-relaxed pt-2">
             En vous connectant, vous confirmez accepter les{' '}
-            <a href="#" className="underline hover:text-[#4361EE]">
+            <a href="#" className="underline hover:text-[#0F172A]">
               Conditions d&apos;utilisation
             </a>{' '}
             et la{' '}
-            <a href="#" className="underline hover:text-[#4361EE]">
+            <a href="#" className="underline hover:text-[#0F172A]">
               Politique de confidentialité
             </a>{' '}
             d&apos;EduTrack.

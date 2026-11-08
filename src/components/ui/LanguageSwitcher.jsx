@@ -26,11 +26,11 @@ export function LanguageSwitcher({ className = '', size = 'sm' }) {
             lang={item.code}
             dir={item.code === 'ar' ? 'rtl' : 'ltr'}
             className={cn(
-              'rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4361EE]/30',
+              'rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/30',
               size === 'xs' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs',
               isActive
-                ? 'bg-[#4361EE] text-white shadow-xs'
-                : 'text-[#64748B] hover:text-[#1E293B] hover:bg-slate-100'
+                ? 'bg-[#0F172A] text-white shadow-xs'
+                : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100'
             )}
           >
             {item.label}

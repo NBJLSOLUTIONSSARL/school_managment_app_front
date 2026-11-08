@@ -20,8 +20,8 @@ const toastTypeStyles = {
     Icon: AlertTriangle,
   },
   info: {
-    container: 'bg-[#EEF2FF] border-[#C7D2FE] text-[#1E293B]',
-    iconColor: 'text-[#4361EE]',
+    container: 'bg-[#F1F5F9] border-[#E2E8F0] text-[#0F172A]',
+    iconColor: 'text-[#0F172A]',
     Icon: Info,
   },
 }

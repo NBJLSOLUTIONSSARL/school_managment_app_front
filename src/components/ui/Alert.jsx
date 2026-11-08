@@ -12,7 +12,7 @@ export function Alert({ variant = 'info', message, children, className = '' }) {
     error: 'bg-rose-50 text-rose-800 border-rose-200',
     success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    info: 'bg-[#EEF2FF] text-[#1E293B] border-[#C7D2FE]',
+    info: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
   }
 
   return (

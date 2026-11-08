@@ -238,15 +238,15 @@ export function MessageInbox() {
               setPage(1)
             }}
             className={cn(
-              'flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
+              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
               activeTab === 'inbox'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#0F172A]'
             )}
           >
             <span>Boîte de réception</span>
             {unreadCount > 0 && (
-              <span className="inline-flex items-center justify-center rounded-full bg-[#EF4444] px-1.5 text-[10px] font-bold text-white shadow-xs">
+              <span className="inline-flex items-center justify-center rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white shadow-xs">
                 {unreadCount}
               </span>
             )}
@@ -258,10 +258,10 @@ export function MessageInbox() {
               setPage(1)
             }}
             className={cn(
-              'flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
+              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
               activeTab === 'sent'
-                ? 'bg-[#4361EE] text-white shadow-2xs'
-                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#1E293B]'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#0F172A]'
             )}
           >
             <span>Messages envoyés</span>

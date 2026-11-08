@@ -136,11 +136,11 @@ export function StudentList() {
         const initials = `${(u.firstName || 'E')[0]}${(u.lastName || 'L')[0]}`.toUpperCase()
         return (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center text-[#4361EE] font-bold text-xs shrink-0 shadow-2xs">
+            <div className="w-8 h-8 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#0F172A] font-bold text-xs shrink-0 shadow-2xs">
               {initials}
             </div>
             <div>
-              <div className="font-semibold text-[#1E293B]">{name}</div>
+              <div className="font-semibold text-[#0F172A]">{name}</div>
               <div className="text-[11px] text-[#64748B]">{u.email}</div>
             </div>
           </div>
@@ -271,7 +271,7 @@ export function StudentList() {
               setPage(1)
             }}
             placeholder="N° Matricule..."
-            className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs text-[#1E293B] placeholder-[#94A3B8] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none"
+            className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 focus:outline-none"
           />
         </div>
         <div className="w-48">
@@ -292,7 +292,7 @@ export function StudentList() {
               setSortParam(e.target.value)
               setPage(1)
             }}
-            className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-medium text-[#1E293B] focus:border-[#4361EE] focus:ring-2 focus:ring-[#4361EE]/20 focus:outline-none cursor-pointer"
+            className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-medium text-[#0F172A] focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15 focus:outline-none cursor-pointer"
           >
             <option value="id,desc">Récents d'abord</option>
             <option value="id,asc">Anciens d'abord</option>
