@@ -4,6 +4,9 @@ import { PrivateLayout } from '@/components/layout/PrivateLayout'
 import { RoleGuard } from '@/components/layout/RoleGuard'
 
 import { LoginPage } from '@/routes/LoginPage'
+import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/routes/ResetPasswordPage'
+import { GoogleCallbackPage } from '@/routes/GoogleCallbackPage'
 import { DashboardPage } from '@/routes/DashboardPage'
 import { StudentListPage } from '@/routes/StudentListPage'
 import { TeacherListPage } from '@/routes/TeacherListPage'
@@ -40,10 +43,22 @@ export const router = createBrowserRouter([
     element: <RootIndexRedirect />,
   },
 
-  // Standalone Fullscreen Login Route matching Figma Design
+  // Standalone Fullscreen Auth Routes matching EduTrack Design
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
+  },
+  {
+    path: '/auth/google/callback',
+    element: <GoogleCallbackPage />,
   },
 
   // Public Layout routes

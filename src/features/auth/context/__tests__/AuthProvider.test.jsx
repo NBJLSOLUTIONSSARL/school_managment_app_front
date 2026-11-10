@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { useState } from 'react'
 import { AuthProvider } from '@/features/auth/context/AuthProvider'
 import { useAuth } from '@/features/auth/context/AuthContext'
+
+import { clearTokens } from '@/utils/tokenStorage'
 
 // A well-formed access token (header.payload.signature) whose payload decodes to a JWT claim set.
 const token = (exp, type = 'ACCESS') => {
@@ -73,6 +75,10 @@ function renderAuth() {
 }
 
 beforeEach(() => {
+  localStorage.clear()
+  sessionStorage.clear()
+  clearTokens()
+  document.cookie = 'edutrack_session=; path=/; max-age=0'
   vi.stubGlobal('fetch', vi.fn())
 })
 
@@ -153,6 +159,79 @@ describe('AuthProvider (SCRUM-70)', () => {
     fireEvent.click(screen.getByTestId('login-btn'))
     await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('yes'))
     fireEvent.click(screen.getByTestId('request-btn'))
+    await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('no'))
+  })
+
+  it('never stores tokens or user data in localStorage or sessionStorage during login', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => loginBody() })
+    renderAuth()
+    fireEvent.click(screen.getByTestId('login-btn'))
+    await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('yes'))
+
+    // Verify localStorage & sessionStorage are strictly empty of credentials
+    expect(localStorage.getItem('school_app_current_user')).toBeNull()
+    expect(localStorage.getItem('school_app_access_token')).toBeNull()
+    expect(localStorage.getItem('school_app_refresh_token')).toBeNull()
+    expect(localStorage.getItem('school_app_language')).toBeNull()
+    expect(localStorage.getItem('academie_lang')).toBeNull()
+    expect(sessionStorage.getItem('school_app_current_user')).toBeNull()
+    expect(sessionStorage.getItem('school_app_access_token')).toBeNull()
+    expect(sessionStorage.getItem('school_app_refresh_token')).toBeNull()
+    expect(localStorage.length).toBe(0)
+    expect(sessionStorage.length).toBe(0)
+  })
+
+  it('restores user profile from /api/v1/auth/me upon page reload when session cookie exists', async () => {
+    document.cookie = 'edutrack_session=1; path=/'
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          id: 10,
+          email: 'reloaded@school.edu',
+          firstName: 'Reloaded',
+          lastName: 'User',
+          language: 'ar',
+          roles: ['ROLE_TEACHER'],
+          permissions: ['classes:read'],
+          active: true,
+        },
+      }),
+    })
+
+    renderAuth()
+    await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('yes'))
+    expect(screen.getByTestId('user-email').textContent).toBe('reloaded@school.edu')
+    expect(screen.getByTestId('roles').textContent).toBe('ROLE_TEACHER')
+    expect(screen.getByTestId('permissions').textContent).toBe('classes:read')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/me', expect.objectContaining({ method: 'GET' }))
+  })
+
+  it('gracefully handles 401 on /api/v1/auth/me during session reload by clearing session cookie and staying unauthenticated', async () => {
+    document.cookie = 'edutrack_session=1; path=/'
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'Session expired' }),
+    })
+
+    renderAuth()
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('no'))
+    expect(screen.getByTestId('authenticated').textContent).toBe('no')
+    expect(document.cookie).not.toContain('edutrack_session=1')
+  })
+
+  it('handles auth:unauthorized event by terminating the current session', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => loginBody() })
+    renderAuth()
+    fireEvent.click(screen.getByTestId('login-btn'))
+    await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('yes'))
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+    })
     await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('no'))
   })
 })

@@ -10,7 +10,7 @@ const fallback = {
   isRTL: false,
   languages: SUPPORTED_LANGUAGES,
   setLanguage: () => {},
-  t: (key, vars) => translate(DEFAULT_LANGUAGE, key, vars),
+  t: (key, vars, fb) => translate(DEFAULT_LANGUAGE, key, vars, fb),
 }
 
 /**

@@ -35,9 +35,10 @@ import { EduTrackLogo } from '@/components/ui/EduTrackLogo'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { NotificationDropdown } from '@/features/notifications'
 import { cn } from '@/utils/classNames'
+import { PageLoader } from '@/components/ui/Loader'
 
 export function PrivateLayout() {
-  const { user, logout, isAuthenticated, hasRole } = useAuth()
+  const { user, logout, isAuthenticated, hasRole, isLoading } = useAuth()
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
@@ -56,6 +57,10 @@ export function PrivateLayout() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  if (isLoading) {
+    return <PageLoader />
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -125,90 +130,90 @@ export function PrivateLayout() {
             : 'User'
 
   const navItems = [
-    { label: t('nav.dashboard'), to: '/dashboard', icon: LayoutDashboard, section: 'TABLEAU DE BORD' },
+    { label: t('nav.dashboard'), to: '/dashboard', icon: LayoutDashboard, section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase() },
     {
       label: t('nav.students'),
       to: '/students',
       icon: GraduationCap,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
-      section: 'TABLEAU DE BORD',
+      section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase(),
     },
     {
       label: t('nav.teachers'),
       to: '/teachers',
       icon: UserCheck,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
-      section: 'TABLEAU DE BORD',
+      section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase(),
     },
     {
       label: t('nav.staff'),
       to: '/staff',
       icon: Briefcase,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
-      section: 'TABLEAU DE BORD',
+      section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase(),
     },
     {
       label: t('nav.guardians'),
       to: '/guardians',
       icon: Users,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
-      section: 'TABLEAU DE BORD',
+      section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase(),
     },
     {
       label: t('nav.departments'),
       to: '/departments',
       icon: Building2,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
-      section: 'TABLEAU DE BORD',
+      section: t('nav.dashboard', 'TABLEAU DE BORD').toUpperCase(),
     },
     {
       label: t('nav.admissions', 'Admissions'),
       to: '/admissions',
       icon: ClipboardCheck,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
-      section: 'GESTION SCOLAIRE',
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
     {
       label: t('nav.finances', 'Facturation'),
       to: '/finances/invoices',
       icon: CreditCard,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
-      section: 'GESTION SCOLAIRE',
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
-    { label: t('nav.exams'), to: '/exams', icon: FileSpreadsheet, section: 'GESTION SCOLAIRE' },
+    { label: t('nav.exams'), to: '/exams', icon: FileSpreadsheet, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
     {
       label: t('nav.grades'),
       to: '/grades',
       icon: Award,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff'],
-      section: 'GESTION SCOLAIRE',
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
-    { label: t('nav.homework'), to: '/homework', icon: BookOpen, section: 'GESTION SCOLAIRE' },
-    { label: t('nav.reportCards'), to: '/report-cards', icon: FileText, section: 'GESTION SCOLAIRE' },
+    { label: t('nav.homework'), to: '/homework', icon: BookOpen, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
+    { label: t('nav.reportCards'), to: '/report-cards', icon: FileText, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
     {
       label: t('nav.observations'),
       to: '/observations',
       icon: Eye,
       roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin'],
-      section: 'IA PÉDAGOGIQUE',
+      section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
     {
       label: t('nav.consents'),
       to: '/consents',
       icon: ShieldCheck,
       roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin'],
-      section: 'IA PÉDAGOGIQUE',
+      section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
     {
       label: t('nav.analyses'),
       to: '/analyses',
       icon: Brain,
       roles: ['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin'],
-      section: 'IA PÉDAGOGIQUE',
+      section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
-    { label: t('nav.announcements'), to: '/announcements', icon: Megaphone, section: 'COMMUNICATION & ADMIN' },
-    { label: t('nav.events'), to: '/events', icon: Calendar, section: 'COMMUNICATION & ADMIN' },
-    { label: t('nav.messages'), to: '/messages', icon: Mail, section: 'COMMUNICATION & ADMIN' },
+    { label: t('nav.announcements'), to: '/announcements', icon: Megaphone, section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase() },
+    { label: t('nav.events'), to: '/events', icon: Calendar, section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase() },
+    { label: t('nav.messages'), to: '/messages', icon: Mail, section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase() },
     {
       label: t('nav.leaveRequests'),
       to: '/leave-requests',
@@ -223,14 +228,14 @@ export function PrivateLayout() {
         'ROLE_STUDENT',
         'student',
       ],
-      section: 'COMMUNICATION & ADMIN',
+      section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase(),
     },
     {
       label: t('nav.auditLogs'),
       to: '/audit-logs',
       icon: ShieldAlert,
       roles: ['ROLE_ADMIN', 'admin'],
-      section: 'COMMUNICATION & ADMIN',
+      section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase(),
     },
   ]
 
@@ -327,13 +332,13 @@ export function PrivateLayout() {
             <div className="w-8 h-8 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] flex items-center justify-center mx-auto mb-2 shadow-2xs">
               <GraduationCap className="w-4 h-4 stroke-[2]" />
             </div>
-            <h4 className="text-xs font-bold text-[#0F172A]">Espace Scolaire</h4>
-            <p className="text-[11px] text-[#64748B] mt-0.5 mb-2.5">Assistance & Messagerie</p>
+            <h4 className="text-xs font-bold text-[#0F172A]">{t('nav.space', 'Espace Scolaire')}</h4>
+            <p className="text-[11px] text-[#64748B] mt-0.5 mb-2.5">{t('nav.messages', 'Assistance & Messagerie')}</p>
             <button
               type="button"
               className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white text-xs font-semibold py-1.5 px-3 rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              Ouvrir le chat
+              {t('common.details', 'Ouvrir')}
             </button>
           </div>
         </div>
@@ -365,7 +370,7 @@ export function PrivateLayout() {
             </button>
             <div>
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#0F172A] leading-tight">
-                Bonjour, {displayName}
+                {t('login.greeting', { name: displayName }, `Bonjour, ${displayName}`)}
               </h1>
               <p className="text-[11px] font-medium text-[#64748B]">
                 {userRoleLabel} • {getPageTitle(location.pathname)}
@@ -380,7 +385,7 @@ export function PrivateLayout() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher une information, élève, classe..."
+              placeholder={t('nav.searchPlaceholder', 'Rechercher une information, élève, classe...')}
               className="w-full bg-transparent text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none"
             />
           </div>
@@ -404,14 +409,14 @@ export function PrivateLayout() {
             <LanguageSwitcher size="xs" />
 
             {/* User Avatar Circle & Dropdown */}
-            <div ref={userMenuRef} className="relative ml-1">
+            <div ref={userMenuRef} className="relative ms-1">
               <button
                 type="button"
                 onClick={() => setShowUserMenu((prev) => !prev)}
                 className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#2563EB]/30 transition-all cursor-pointer"
                 aria-expanded={showUserMenu}
                 aria-haspopup="true"
-                aria-label="Menu utilisateur"
+                aria-label={t('common.menu', 'Menu utilisateur')}
               >
                 <div className="w-9 h-9 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center text-[#2563EB] text-xs font-bold shadow-2xs">
                   {getInitials()}
@@ -419,7 +424,7 @@ export function PrivateLayout() {
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-2 z-50 animate-in fade-in zoom-in-95">
+                <div className="absolute end-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-2 z-50 animate-in fade-in zoom-in-95">
                   <div className="px-3.5 py-3 border-b border-[#F1F5F9]">
                     <p className="text-xs font-bold text-[#0F172A] truncate">{displayName}</p>
                     <p className="text-[11px] text-[#64748B] truncate mt-0.5">{user?.email}</p>
