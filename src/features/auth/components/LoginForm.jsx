@@ -10,40 +10,40 @@ const QUICK_ACCOUNTS = [
   {
     roleKey: 'roles.admin',
     defaultRole: 'Admin',
-    name: 'Admin Principal',
-    email: 'admin@school.edu',
+    name: 'Marc Dupont',
+    email: 'admin@school.com',
     role: 'admin',
     badge: 'bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]',
   },
   {
     roleKey: 'roles.teacher',
     defaultRole: 'Enseignant',
-    name: 'Prof. Martin',
-    email: 'professeur@school.edu',
+    name: 'Claire Martin',
+    email: 'claire.martin@school.com',
     role: 'teacher',
     badge: 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]',
   },
   {
     roleKey: 'roles.student',
     defaultRole: 'Élève',
-    name: 'Lucas Bernard',
-    email: 'eleve@school.edu',
+    name: 'Léo Leroy',
+    email: 'leo.leroy@student.com',
     role: 'student',
     badge: 'bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]',
   },
   {
     roleKey: 'roles.parent',
     defaultRole: 'Parent',
-    name: 'Claire Johnson',
-    email: 'parent@school.edu',
+    name: 'Alain Leroy',
+    email: 'alain.leroy@parent.com',
     role: 'parent',
     badge: 'bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF]',
   },
   {
     roleKey: 'roles.staff',
     defaultRole: 'Personnel',
-    name: 'Robert Dupont',
-    email: 'staff@school.edu',
+    name: 'Lucas Petit',
+    email: 'lucas.petit@school.com',
     role: 'staff',
     badge: 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]',
   },
@@ -56,8 +56,8 @@ export function LoginForm() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [email, setEmail] = useState('admin@school.edu')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('admin@school.com')
+  const [password, setPassword] = useState('Password123')
   const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState('')
   const [showQuickLogins, setShowQuickLogins] = useState(false)
@@ -87,13 +87,13 @@ export function LoginForm() {
   const handleQuickLogin = async (acc) => {
     if (isLoading) return
     setEmail(acc.email)
-    setPassword('password123')
+    setPassword('Password123')
     setFormError('')
 
     try {
       await login({
         email: acc.email,
-        password: 'password123',
+        password: 'Password123',
         role: acc.role,
         name: acc.name,
       })
