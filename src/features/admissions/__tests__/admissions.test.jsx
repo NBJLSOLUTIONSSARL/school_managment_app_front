@@ -382,3 +382,90 @@ describe('Student conversion', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('Admissions error handling', () => {
+  beforeEach(() => {
+    api.getApplications.mockResolvedValue(page([alice, karim]))
+    api.recordDecision.mockResolvedValue({})
+    api.convertToStudent.mockResolvedValue({ id: 201, studentNumber: 'STU-2026-201' })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function openKarimDetail() {
+    renderPage()
+    await screen.findByText('Karim Bensaid')
+    fireEvent.click(screen.getByText('Karim Bensaid'))
+    return screen.findByRole('dialog')
+  }
+
+  it('shows the backend message when the conversion fails', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const dialog = await openKarimDetail()
+    api.convertToStudent.mockRejectedValue({
+      response: { data: { message: 'Le candidat doit être admis avant conversion.' } },
+    })
+
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    )
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Le candidat doit être admis avant conversion.'
+    )
+    expect(api.convertToStudent).toHaveBeenCalledWith(102)
+    expect(
+      within(dialog).getByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    ).toBeEnabled()
+  })
+
+  it('falls back to a generic message when the conversion error is empty', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const dialog = await openKarimDetail()
+    api.convertToStudent.mockRejectedValue({})
+
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    )
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Impossible de convertir en élève.'
+    )
+  })
+
+  it('keeps the decision modal open and reports a failed transition', async () => {
+    renderPage()
+    await screen.findByText('Alice Tremblay')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Décision' })[0])
+    const dialog = await screen.findByRole('dialog')
+    api.recordDecision.mockRejectedValue({
+      response: { data: { message: 'Transition non autorisée.' } },
+    })
+
+    fireEvent.change(within(dialog).getByRole('combobox'), {
+      target: { value: 'ACCEPTED' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Valider la décision' }))
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Transition non autorisée.'
+    )
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Valider la décision' })).toBeEnabled()
+  })
+
+  it('reports a failure while loading the applications list', async () => {
+    api.getApplications.mockRejectedValue({
+      response: { data: { message: 'Service admission indisponible.' } },
+    })
+
+    renderPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Service admission indisponible.'
+    )
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+})
