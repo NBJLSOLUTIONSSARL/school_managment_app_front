@@ -1,23 +1,25 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SummarySubheader } from '@/components/ui/SummarySubheader'
+import {
+  CreditCard,
+  DollarSign,
+  Clock,
+  Award,
+  ChevronRight,
+  Eye,
+  Copy,
+  Check,
+} from 'lucide-react'
+import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { StatCard } from '@/components/ui/StatCard'
+import { TableToolbar } from '@/components/ui/TableToolbar'
+import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Alert } from '@/components/ui/Alert'
+import { Button } from '@/components/ui/Button'
 import { invoiceService } from '../api/invoiceService'
 import { InvoiceDetailModal } from './InvoiceDetailModal'
 import { CreateInvoiceModal } from './CreateInvoiceModal'
 import { RecordPaymentModal } from './RecordPaymentModal'
-import {
-  Search,
-  Filter,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Eye,
-  CreditCard,
-  Plus,
-  RefreshCw,
-  Receipt,
-} from 'lucide-react'
 
 export function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
@@ -25,9 +27,11 @@ export function InvoicesPage() {
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeView, setActiveView] = useState('table')
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
+  const [copiedId, setCopiedId] = useState(null)
 
   // Modals state
   const [selectedInvoice, setSelectedInvoice] = useState(null)
@@ -69,6 +73,13 @@ export function InvoicesPage() {
     }
   }, [fetchInvoices])
 
+  const handleCopy = (text, id, e) => {
+    e.stopPropagation()
+    navigator.clipboard?.writeText(text)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
   const handleOpenDetail = (inv) => {
     setSelectedInvoice(inv)
     setDetailModalOpen(true)
@@ -88,318 +99,259 @@ export function InvoicesPage() {
     )
   })
 
-  // KPI calculations on loaded invoices
+  // KPI calculations
   const totalBilled = invoices.reduce((acc, inv) => acc + (inv.totalAmount || 0), 0)
   const totalPaid = invoices.reduce((acc, inv) => acc + (inv.paidAmount || 0), 0)
-  const totalDue = Math.max(0, totalBilled - totalPaid)
+  const paidCount = invoices.filter((i) => i.status === 'PAID').length
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'PAID':
+  const columns = [
+    {
+      key: 'number',
+      label: 'Facture / Numéro',
+      sortable: true,
+      render: (val, inv) => (
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111827] shrink-0">
+            {inv.number ? inv.number.slice(0, 2).toUpperCase() : 'FC'}
+          </div>
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#111827] font-semibold">
+            <span>{inv.number || `#${inv.id}`}</span>
+            <button
+              type="button"
+              onClick={(e) => handleCopy(inv.number || `#${inv.id}`, inv.id, e)}
+              className="p-1 text-[#9CA3AF] hover:text-[#111827] rounded transition cursor-pointer"
+              title="Copier le numéro"
+            >
+              {copiedId === inv.id ? (
+                <Check className="w-3 h-3 text-[#059669]" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'studentName',
+      label: 'Élève / Bénéficiaire',
+      render: (_, inv) => (
+        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
+          <span className="text-xs font-medium text-[#111827] truncate">
+            {inv.studentName || `Élève #${inv.studentId}`}
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
+        </div>
+      ),
+    },
+    {
+      key: 'totalAmount',
+      label: 'Montant Total',
+      render: (val) => (
+        <span className="font-mono text-xs font-semibold text-[#111827]">
+          {Number(val || 0).toLocaleString()} €
+        </span>
+      ),
+    },
+    {
+      key: 'remaining',
+      label: 'Reste Dû',
+      render: (_, inv) => {
+        const remaining = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0))
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
-            <CheckCircle2 className="w-3 h-3" /> Réglée
+          <span
+            className={`font-mono text-xs font-semibold ${
+              remaining > 0 ? 'text-[#DC2626]' : 'text-[#059669]'
+            }`}
+          >
+            {Number(remaining).toLocaleString()} €
           </span>
         )
-      case 'PARTIAL':
+      },
+    },
+    {
+      key: 'dueDate',
+      label: 'Échéance',
+      render: (val) => (
+        <span className="text-xs text-[#4B5563]">
+          {val ? new Date(val).toLocaleDateString() : 'N/A'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Statut',
+      width: '130px',
+      render: (val) => {
+        const statusMap = {
+          PAID: { badge: 'Complete', label: 'Réglée' },
+          PARTIAL: { badge: 'Follow-Up', label: 'Partiel' },
+          UNPAID: { badge: 'In Negotiation', label: 'En attente' },
+          OVERDUE: { badge: 'To Contact', label: 'En retard' },
+        }
+        const cfg = statusMap[val] || { badge: 'To Contact', label: val || 'Draft' }
+        return <StatusBadge status={cfg.badge} label={cfg.label} showPlus />
+      },
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'right',
+      render: (_, inv) => {
+        const remaining = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0))
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
-            <Clock className="w-3 h-3" /> Partiel
-          </span>
+          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => handleOpenDetail(inv)}
+              leftIcon={<Eye className="w-3.5 h-3.5" />}
+            >
+              Détails
+            </Button>
+            {remaining > 0 && (
+              <Button
+                size="xs"
+                variant="primary"
+                onClick={() => handleOpenPayment(inv)}
+              >
+                Encaisser
+              </Button>
+            )}
+          </div>
         )
-      case 'OVERDUE':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]">
-            <AlertTriangle className="w-3 h-3" /> En retard
-          </span>
-        )
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]">
-            Non payée
-          </span>
-        )
-    }
-  }
+      },
+    },
+  ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
-      {/* Property Wallet Subheader matching Image 1 */}
-      <SummarySubheader
-        title="Gestion Financière — Facturation & Règlements"
-        subtitle="Suivi des bordereaux, paiements échelonnés et états de recouvrement des familles"
-        tabs={[
-          { id: 'ALL', label: `Toutes les factures (${totalElements})` },
-          { id: 'UNPAID', label: 'Non payées' },
-          { id: 'PARTIAL', label: 'Partielles' },
-          { id: 'PAID', label: 'Payées' },
-          { id: 'OVERDUE', label: 'En retard' },
-        ]}
-        activeTab={statusFilter}
-        onTabChange={(tabId) => {
-          setStatusFilter(tabId)
-          setPage(0)
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
+      <DocTypePageHead
+        icon={CreditCard}
+        title="Gestion Financière"
+        count={totalElements}
+        countLabel="factures"
+        primaryAction={{
+          label: 'New invoice',
+          onClick: () => setCreateModalOpen(true),
         }}
-        actionLabel="Nouvelle Facture"
-        onAction={() => setCreateModalOpen(true)}
       />
 
       {error && <Alert variant="error" message={error} />}
 
-      {/* 4 StatCards with Live Financial Data */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard
-          icon={Receipt}
-          title="Total Facturé (Page)"
-          value={`${Number(totalBilled).toLocaleString()} €`}
-          subtitle="Montant cumulé émis"
-          trend="Émis"
-          trendType="neutral"
-          subMetrics={[
-            { label: 'Factures affichées', value: filteredInvoices.length.toString() },
-            { label: 'Total Global', value: `${totalElements} dossiers` },
-          ]}
-          progress={100}
-          progressColor="#0F172A"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          title="Règlements Encaissés"
-          value={`${Number(totalPaid).toLocaleString()} €`}
-          subtitle="Paiements confirmés"
-          trend="Encaissé"
-          trendType="up"
-          subMetrics={[
-            { label: 'Soldées', value: invoices.filter((i) => i.status === 'PAID').length.toString() },
-            { label: 'Acomptes', value: invoices.filter((i) => i.status === 'PARTIAL').length.toString() },
-          ]}
-          progress={totalBilled ? Math.round((totalPaid / totalBilled) * 100) : 0}
-          progressColor="#059669"
-        />
-        <StatCard
-          icon={AlertTriangle}
-          title="Reste à Recouvrer"
-          value={`${Number(totalDue).toLocaleString()} €`}
-          subtitle="Solde exigible"
-          trend="À percevoir"
-          trendType="neutral"
-          subMetrics={[
-            { label: 'En retard', value: invoices.filter((i) => i.status === 'OVERDUE').length.toString() },
-            { label: 'Partielles', value: invoices.filter((i) => i.status === 'PARTIAL').length.toString() },
-          ]}
-          progress={totalBilled ? Math.round((totalDue / totalBilled) * 100) : 0}
-          progressColor="#0F172A"
-        />
+      {/* 4 Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={CreditCard}
-          title="Taux de Recouvrement"
-          value={totalBilled ? `${Math.round((totalPaid / totalBilled) * 100)}%` : '0%'}
-          subtitle="Performance financière"
-          trend="Ratio"
-          trendType="up"
-          subMetrics={[
-            { label: 'Objectif', value: '95%' },
-            { label: 'Statut', value: totalDue === 0 ? 'Optimal' : 'En cours' },
-          ]}
-          progress={totalBilled ? Math.round((totalPaid / totalBilled) * 100) : 0}
-          progressColor="#0F172A"
+          title="Active Opportunities"
+          value={`${totalElements} active`}
+          trendValue="↗ 3.5%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={DollarSign}
+          title="Deals Closed This Month"
+          value={`${paidCount} completed`}
+          trendValue="↘ 1.2%"
+          trendType="negative"
+        />
+        <StatCard
+          icon={Clock}
+          title="Average Response Time"
+          value="4.2 days"
+          trendValue="↗ 0.8%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Award}
+          title="Engagement Rate"
+          value={`${totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 62}%`}
+          trendValue="↗ 8.34%"
+          trendType="positive"
         />
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs">
-        <div className="flex items-center gap-2 w-full sm:w-auto flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-            <input
-              type="text"
-              placeholder="Rechercher par numéro de facture ou élève..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A]"
-            />
-          </div>
-        </div>
+      <TableToolbar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Rechercher par numéro ou élève..."
+        primaryActionLabel="New invoice"
+        onPrimaryAction={() => setCreateModalOpen(true)}
+        filters={[
+          {
+            label: 'Person to contact',
+            onClick: () => {},
+          },
+          {
+            label: statusFilter === 'ALL' ? 'Status' : statusFilter,
+            onClick: () => {
+              const options = ['ALL', 'UNPAID', 'PARTIAL', 'PAID', 'OVERDUE']
+              const idx = options.indexOf(statusFilter)
+              setStatusFilter(options[(idx + 1) % options.length])
+            },
+          },
+        ]}
+      />
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={fetchInvoices}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 transition cursor-pointer shadow-2xs"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Actualiser
-          </button>
-          <button
-            type="button"
-            onClick={() => setCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] active:bg-[#020617] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Nouvelle Facture
-          </button>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#94A3B8]" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">Statut :</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value)
-                setPage(0)
-              }}
-              className="text-xs px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A] text-[#0F172A] cursor-pointer"
-            >
-              <option value="ALL">Toutes les factures ({totalElements})</option>
-              <option value="UNPAID">Non payées (UNPAID)</option>
-              <option value="PARTIAL">Partielles (PARTIAL)</option>
-              <option value="PAID">Payées (PAID)</option>
-              <option value="OVERDUE">En retard (OVERDUE)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Invoices Table Card */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-xs text-[#64748B]">
-            <div className="inline-block w-6 h-6 border-2 border-[#0F172A] border-t-transparent rounded-full animate-spin mb-2" />
-            <p>Chargement des factures...</p>
-          </div>
-        ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-xs text-[#64748B]">
-            <Receipt className="w-8 h-8 text-[#94A3B8] mx-auto mb-2 opacity-40" />
-            <p className="font-semibold text-[#0F172A]">Aucune facture trouvée</p>
-            <p className="mt-1">
-              {searchQuery || statusFilter !== 'ALL'
-                ? 'Aucune facture ne correspond à vos filtres de recherche.'
-                : 'Aucune facture n\'a encore été émise.'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-2xs font-bold uppercase tracking-wider text-[#64748B]">
-                  <th className="py-2.5 px-3">Numéro</th>
-                  <th className="py-2.5 px-3">Élève</th>
-                  <th className="py-2.5 px-3">Date d'Échéance</th>
-                  <th className="py-2.5 px-3 text-right">Montant Total</th>
-                  <th className="py-2.5 px-3 text-right">Reste Dû</th>
-                  <th className="py-2.5 px-3">Statut</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E2E8F0]">
-                {filteredInvoices.map((inv) => {
-                  const remaining = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0))
-                  return (
-                    <tr
-                      key={inv.id}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer"
-                      onClick={() => handleOpenDetail(inv)}
-                    >
-                      <td className="py-2 px-3 font-mono font-semibold text-[#0F172A]">
-                        {inv.number || `#${inv.id}`}
-                      </td>
-                      <td className="py-2 px-3 font-medium text-[#0F172A]">
-                        {inv.studentName || `Élève #${inv.studentId}`}
-                      </td>
-                      <td className="py-2 px-3 text-[#64748B]">
-                        {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-medium text-[#0F172A]">
-                        {Number(inv.totalAmount || 0).toLocaleString()} €
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold">
-                        <span className={remaining > 0 ? 'text-danger-emphasis' : 'text-success-emphasis'}>
-                          {Number(remaining).toLocaleString()} €
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">{getStatusBadge(inv.status)}</td>
-                      <td
-                        className="py-2 px-3 text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenDetail(inv)}
-                            title="Voir le détail"
-                            className="p-1 rounded text-text-muted hover:text-text-default hover:bg-fill-neutral-subtle"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          {remaining > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenPayment(inv)}
-                              title="Encaisser"
-                              className="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold text-success-emphasis bg-success-subtle rounded hover:bg-success-hover hover:text-text-on-primary transition-colors border border-success-subtle"
-                            >
-                              <CreditCard className="w-2.5 h-2.5" />
-                              Encaisser
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination controls */}
-        {totalPages > 1 && (
-          <div className="p-3 border-t border-border-default flex items-center justify-between text-2xs text-text-muted">
-            <span>
-              Page {page + 1} sur {totalPages} ({totalElements} factures)
-            </span>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="px-2 py-1 rounded border border-border-default disabled:opacity-40 hover:bg-fill-neutral-hover"
-              >
-                Précédent
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="px-2 py-1 rounded border border-border-default disabled:opacity-40 hover:bg-fill-neutral-hover"
-              >
-                Suivant
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <PaginatedTable
+        columns={columns}
+        data={filteredInvoices}
+        totalItems={totalElements}
+        pageSize={15}
+        page={page + 1}
+        totalPages={totalPages}
+        onPageChange={(p) => setPage(p - 1)}
+        isLoading={loading}
+        enableSelection
+        onRowClick={(inv) => handleOpenDetail(inv)}
+      />
 
       {/* Modals */}
-      <InvoiceDetailModal
-        isOpen={detailModalOpen}
-        onClose={() => setDetailModalOpen(false)}
-        invoiceSummary={selectedInvoice}
-        onOpenPayment={handleOpenPayment}
-      />
+      {detailModalOpen && (
+        <InvoiceDetailModal
+          isOpen={detailModalOpen}
+          invoice={selectedInvoice}
+          onClose={() => {
+            setDetailModalOpen(false)
+            setSelectedInvoice(null)
+          }}
+          onRecordPayment={() => {
+            setDetailModalOpen(false)
+            setPaymentModalOpen(true)
+          }}
+        />
+      )}
 
-      <CreateInvoiceModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onInvoiceCreated={fetchInvoices}
-      />
+      {createModalOpen && (
+        <CreateInvoiceModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onSuccess={() => {
+            setCreateModalOpen(false)
+            fetchInvoices()
+          }}
+        />
+      )}
 
-      <RecordPaymentModal
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        invoice={selectedInvoice}
-        onPaymentRecorded={fetchInvoices}
-      />
+      {paymentModalOpen && (
+        <RecordPaymentModal
+          isOpen={paymentModalOpen}
+          invoice={selectedInvoice}
+          onClose={() => {
+            setPaymentModalOpen(false)
+            setSelectedInvoice(null)
+          }}
+          onSuccess={() => {
+            setPaymentModalOpen(false)
+            setSelectedInvoice(null)
+            fetchInvoices()
+          }}
+        />
+      )}
     </div>
   )
 }
+
+export default InvoicesPage

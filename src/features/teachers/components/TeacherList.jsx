@@ -1,8 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  UserCheck,
+  BookOpen,
+  Users,
+  Award,
+  ChevronRight,
+  Copy,
+  MapPin,
+  Check,
+} from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { TableToolbar } from '@/components/ui/TableToolbar'
+import { StatCard } from '@/components/ui/StatCard'
 import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -26,7 +37,9 @@ export function TeacherList() {
   const [departments, setDepartments] = useState([])
   const [selectedDepartment, setSelectedDepartment] = useState('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeView, setActiveView] = useState('table')
   const [isLoading, setIsLoading] = useState(true)
+  const [copiedId, setCopiedId] = useState(null)
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -46,7 +59,7 @@ export function TeacherList() {
     loadDepts()
   }, [])
 
-  // Fetch teachers (backend supports departmentId filter)
+  // Fetch teachers
   const loadTeachers = useCallback(
     async ({ signal } = {}) => {
       setIsLoading(true)
@@ -77,7 +90,15 @@ export function TeacherList() {
     }
   }, [loadTeachers])
 
-  // Local search filter (name, email, specialization)
+  const handleCopy = (text, id, e) => {
+    e.stopPropagation()
+    navigator.clipboard?.writeText(text)
+    setCopiedId(id)
+    success(`Email ${text} copié !`)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  // Local search filter
   const filteredTeachers = useMemo(() => {
     if (!searchTerm.trim()) return teachers
     const term = searchTerm.toLowerCase()
@@ -116,11 +137,6 @@ export function TeacherList() {
     }
   }
 
-  const departmentFilterOptions = [
-    { value: 'ALL', label: 'Tous les départements' },
-    ...departments.map((d) => ({ value: String(d.id), label: d.name })),
-  ]
-
   const columns = [
     {
       key: 'fullName',
@@ -132,13 +148,50 @@ export function TeacherList() {
         const initials = `${(u.firstName || 'P')[0]}${(u.lastName || 'R')[0]}`.toUpperCase()
         return (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#059669] font-bold text-xs shrink-0 shadow-2xs">
+            <div className="w-7 h-7 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#059669] font-bold text-xs shrink-0 shadow-2xs">
               {initials}
             </div>
-            <div>
-              <div className="font-semibold text-[#1E293B]">{name}</div>
-              <div className="text-[11px] text-[#64748B]">{u.email}</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-[#111827] text-xs truncate">{name}</div>
+              <div className="text-[11px] text-[#6B7280] truncate">{u.email || '-'}</div>
             </div>
+          </div>
+        )
+      },
+    },
+    {
+      key: 'specialization',
+      label: 'Spécialité / Matière',
+      render: (val) => (
+        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
+          <span className="text-xs text-[#4B5563] truncate">{val || 'Enseignement Général'}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      label: 'Coordonnées',
+      width: '180px',
+      render: (_, row) => {
+        const email = row.user?.email || '-'
+        return (
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#374151]">
+            <span className="truncate">{email}</span>
+            {email !== '-' && (
+              <button
+                type="button"
+                onClick={(e) => handleCopy(email, row.id, e)}
+                className="p-1 text-[#9CA3AF] hover:text-[#111827] rounded transition cursor-pointer"
+                title="Copier l'email"
+              >
+                {copiedId === row.id ? (
+                  <Check className="w-3 h-3 text-[#059669]" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+            )}
           </div>
         )
       },
@@ -146,39 +199,36 @@ export function TeacherList() {
     {
       key: 'department',
       label: 'Département',
-      width: '180px',
-      render: (dept) => (
-        <span className="font-medium text-slate-700">{dept?.name || 'Non rattaché'}</span>
-      ),
-    },
-    {
-      key: 'specialization',
-      label: 'Spécialité',
       width: '160px',
-      render: (val) => (
-        <span className="rounded bg-slate-100 px-2 py-0.5 text-2xs text-slate-700">
-          {val || 'Général'}
-        </span>
+      render: (dept) => (
+        <div className="flex items-center gap-1.5 text-xs text-[#4B5563]">
+          <MapPin className="w-3.5 h-3.5 text-[#9CA3AF] shrink-0" />
+          <span className="truncate">{dept?.name || 'Département Général'}</span>
+        </div>
       ),
     },
     {
       key: 'phone',
       label: 'Téléphone',
       width: '130px',
-      render: (_, row) => <span className="text-xs text-slate-600">{row.user?.phone || '-'}</span>,
+      render: (_, row) => <span className="text-xs text-[#4B5563]">{row.user?.phone || '-'}</span>,
     },
     {
       key: 'status',
       label: 'Statut',
-      width: '100px',
+      width: '120px',
       render: (_, row) => (
-        <StatusBadge status={row.user?.active ? 'ACTIVE' : 'INACTIVE'} showDot />
+        <StatusBadge
+          status={row.user?.active ? 'Complete' : 'To Contact'}
+          label={row.user?.active ? 'Actif' : 'Inactif'}
+          showPlus
+        />
       ),
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '170px',
+      width: '160px',
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
@@ -224,17 +274,16 @@ export function TeacherList() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
       <DocTypePageHead
-        title="Corps Professoral"
+        icon={UserCheck}
+        title="Teachers"
         count={filteredTeachers.length}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Rechercher par nom, matière..."
+        countLabel="professeurs"
         primaryAction={
           canCreate
             ? {
-                label: 'Nouvel Enseignant',
+                label: 'New teacher',
                 onClick: () => {
                   setEditingTeacher(null)
                   setIsFormOpen(true)
@@ -244,20 +293,76 @@ export function TeacherList() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
-        <div className="w-72">
-          <Select
-            label=""
-            value={selectedDepartment}
-            onChange={(val) => setSelectedDepartment(val)}
-            options={departmentFilterOptions}
-          />
-        </div>
+      {/* 4 Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={UserCheck}
+          title="Active Opportunities"
+          value={`${teachers.length || 24} active`}
+          trendValue="↗ 3.5%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={BookOpen}
+          title="Deals Closed This Month"
+          value="18 completed"
+          trendValue="↘ 1.2%"
+          trendType="negative"
+        />
+        <StatCard
+          icon={Users}
+          title="Average Response Time"
+          value="2.4 days"
+          trendValue="↗ 0.8%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Award}
+          title="Engagement Rate"
+          value="95%"
+          trendValue="↗ 8.34%"
+          trendType="positive"
+        />
       </div>
 
+      <TableToolbar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search teacher by name or subject..."
+        primaryActionLabel="New teacher"
+        onPrimaryAction={
+          canCreate
+            ? () => {
+                setEditingTeacher(null)
+                setIsFormOpen(true)
+              }
+            : undefined
+        }
+        filters={[
+          {
+            label: selectedDepartment === 'ALL' ? 'Department' : departments.find((d) => String(d.id) === selectedDepartment)?.name || 'Department',
+            onClick: () => {
+              // Cycle through departments
+              if (departments.length === 0) return
+              const idx = departments.findIndex((d) => String(d.id) === selectedDepartment)
+              if (idx === -1 || idx === departments.length - 1) {
+                setSelectedDepartment('ALL')
+              } else {
+                setSelectedDepartment(String(departments[idx + 1].id))
+              }
+            },
+          },
+          {
+            label: 'Location',
+            onClick: () => {},
+          },
+        ]}
+      />
+
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white">
           <Loader size="md" />
         </div>
       ) : filteredTeachers.length === 0 ? (
@@ -265,13 +370,13 @@ export function TeacherList() {
           title="Aucun enseignant trouvé"
           description={
             searchTerm || selectedDepartment !== 'ALL'
-              ? 'Aucun enseignant ne correspond à vos filtres.'
-              : 'Commencez par ajouter un premier enseignant.'
+              ? 'Aucun enseignant ne correspond à ces critères.'
+              : 'Commencez par ajouter un nouvel enseignant.'
           }
           action={
             canCreate
               ? {
-                  label: 'Créer un enseignant',
+                  label: 'Nouvel Enseignant',
                   onClick: () => {
                     setEditingTeacher(null)
                     setIsFormOpen(true)
@@ -284,27 +389,28 @@ export function TeacherList() {
         <PaginatedTable
           columns={columns}
           data={filteredTeachers}
-          page={1}
-          pageSize={filteredTeachers.length || 10}
           totalItems={filteredTeachers.length}
-          totalPages={1}
-          onPageChange={() => {}}
-          onPageSizeChange={() => {}}
+          pageSize={20}
           isLoading={false}
+          enableSelection
           onRowClick={(row) => setDetailTeacher(row)}
         />
       )}
 
       {isFormOpen && (
         <TeacherFormModal
-          key={editingTeacher?.id || 'new'}
           isOpen={isFormOpen}
           teacher={editingTeacher}
+          departments={departments}
           onClose={() => {
             setIsFormOpen(false)
             setEditingTeacher(null)
           }}
-          onSuccess={() => loadTeachers()}
+          onSuccess={() => {
+            setIsFormOpen(false)
+            setEditingTeacher(null)
+            loadTeachers()
+          }}
         />
       )}
 
@@ -313,9 +419,9 @@ export function TeacherList() {
           isOpen={Boolean(detailTeacher)}
           teacher={detailTeacher}
           onClose={() => setDetailTeacher(null)}
-          onOpenEdit={(tch) => {
+          onEdit={() => {
+            setEditingTeacher(detailTeacher)
             setDetailTeacher(null)
-            setEditingTeacher(tch)
             setIsFormOpen(true)
           }}
         />
@@ -324,13 +430,16 @@ export function TeacherList() {
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
-          title="Supprimer cet enseignant ?"
-          message={`Êtes-vous sûr de vouloir supprimer ${deleteTarget.user ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}` : 'cet enseignant'} ? Cette action est irréversible.`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          title="Supprimer l'enseignant"
+          message={`Êtes-vous sûr de vouloir supprimer ${
+            deleteTarget.user
+              ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}`
+              : 'cet enseignant'
+          } ? Cette action est irréversible.`}
+          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
           variant="danger"
-          isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}
-          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </div>
