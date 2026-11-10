@@ -305,3 +305,80 @@ describe('Application detail modal', () => {
     expect(screen.queryByRole('heading', { name: /Candidature #101/ })).not.toBeInTheDocument()
   })
 })
+
+describe('Student conversion', () => {
+  beforeEach(() => {
+    api.getApplications.mockResolvedValue(page([alice, karim]))
+    api.recordDecision.mockResolvedValue({})
+    api.convertToStudent.mockResolvedValue({ id: 201, studentNumber: 'STU-2026-201' })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function openKarimDetail() {
+    renderPage()
+    await screen.findByText('Karim Bensaid')
+    fireEvent.click(screen.getByText('Karim Bensaid'))
+    return screen.findByRole('dialog')
+  }
+
+  it('converts an accepted candidate and links the new student record', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const dialog = await openKarimDetail()
+    const linked = { ...karim, student: { id: 201, studentNumber: 'STU-2026-201' } }
+    api.getApplications.mockResolvedValue(page([alice, linked]))
+
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    )
+
+    await waitFor(() => expect(api.convertToStudent).toHaveBeenCalledWith(102))
+    expect(confirmSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Karim Bensaid')
+    )
+    expect(
+      await within(dialog).findByText(
+        'Élève inscrit avec succès. Matricule attribué : STU-2026-201'
+      )
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText('Inscrit (Matricule: STU-2026-201)')
+    ).toBeInTheDocument()
+  })
+
+  it('does not convert when the confirmation is cancelled', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const dialog = await openKarimDetail()
+
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    )
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(api.convertToStudent).not.toHaveBeenCalled()
+    expect(within(dialog).queryByText(/Élève inscrit avec succès/)).not.toBeInTheDocument()
+  })
+
+  it('only offers conversion for accepted applications without a student', async () => {
+    renderPage()
+    await screen.findByText('Alice Tremblay')
+    fireEvent.click(screen.getByText('Alice Tremblay'))
+    const aliceDialog = await screen.findByRole('dialog')
+    expect(
+      within(aliceDialog).queryByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    ).not.toBeInTheDocument()
+    fireEvent.click(within(aliceDialog).getByRole('button', { name: 'Fermer' }))
+
+    const linked = { ...karim, student: { id: 201, studentNumber: 'STU-2026-201' } }
+    api.getApplications.mockResolvedValue(page([alice, linked]))
+    fireEvent.click(screen.getByRole('button', { name: 'Actualiser' }))
+    await screen.findByText('Inscrit (Matricule: STU-2026-201)')
+    fireEvent.click(screen.getByText('Karim Bensaid'))
+    const karimDialog = await screen.findByRole('dialog')
+    expect(
+      within(karimDialog).queryByRole('button', { name: 'Inscrire comme Élève Officiel' })
+    ).not.toBeInTheDocument()
+  })
+})
