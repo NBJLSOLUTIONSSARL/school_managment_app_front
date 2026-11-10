@@ -1,8 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { axiosClient } from '@/lib/axios'
 import { exampleService } from '@/features/students/api/exampleService'
 
 describe('exampleService uniform return contract', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('returns normalized pagination for Spring Page endpoint', async () => {
+    vi.spyOn(axiosClient, 'get').mockRejectedValue({ code: 'ERR_NETWORK' })
     const res = await exampleService.getStudentsSpringPage({ page: 1, size: 10 })
     expect(res).toHaveProperty('success', true)
     expect(res).toHaveProperty('error', null)
@@ -18,6 +24,7 @@ describe('exampleService uniform return contract', () => {
   })
 
   it('returns normalized pagination for PageResponse endpoint', async () => {
+    vi.spyOn(axiosClient, 'get').mockRejectedValue({ code: 'ERR_NETWORK' })
     const res = await exampleService.getInvoicesPageResponse({ page: 1, size: 5 })
     expect(res).toHaveProperty('success', true)
     expect(res).toHaveProperty('error', null)
