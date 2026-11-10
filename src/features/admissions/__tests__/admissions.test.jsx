@@ -219,3 +219,89 @@ describe('Admissions lifecycle', () => {
     )
   })
 })
+
+describe('Application detail modal', () => {
+  beforeEach(() => {
+    api.getApplications.mockResolvedValue(page([alice, karim]))
+    api.recordDecision.mockResolvedValue({})
+    api.convertToStudent.mockResolvedValue({ id: 201, studentNumber: 'STU-2026-201' })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function openAliceDetail() {
+    renderPage()
+    await screen.findByText('Alice Tremblay')
+    fireEvent.click(screen.getByText('Alice Tremblay'))
+    return screen.findByRole('dialog')
+  }
+
+  it('renders candidate, guardian, decision and submitted documents', async () => {
+    const dialog = await openAliceDetail()
+
+    expect(
+      within(dialog).getByRole('heading', { name: 'Candidature #101 — Alice Tremblay' })
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('Marc Tremblay')).toBeInTheDocument()
+    expect(within(dialog).getByText('marc@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('+33612345678')).toBeInTheDocument()
+    expect(within(dialog).getByText(/Déposé le/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Né\(e\) le/)).toBeInTheDocument()
+    expect(within(dialog).getByText('En Examen (UNDER_REVIEW)')).toBeInTheDocument()
+    expect(within(dialog).getByText('Dossier complet en attente entretien')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Pièces Justificatives Déposées')
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('bulletin.pdf')).toBeInTheDocument()
+    expect(within(dialog).getByText('(PDF)')).toBeInTheDocument()
+    expect(within(dialog).getByText('photo.png')).toBeInTheDocument()
+
+    const links = within(dialog).getAllByRole('link', { name: 'Consulter' })
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute('href', '/files/11')
+    expect(links[0]).toHaveAttribute('target', '_blank')
+  })
+
+  it('shows fallbacks when guardian, decision note and documents are missing', async () => {
+    const empty = {
+      ...alice,
+      id: 104,
+      candidateName: 'Sans Tuteur',
+      guardian: null,
+      decisionNote: '',
+      documents: [],
+    }
+    api.getApplications.mockResolvedValue(page([empty]))
+
+    renderPage()
+    await screen.findByText('Sans Tuteur')
+    fireEvent.click(screen.getByText('Sans Tuteur'))
+    const dialog = await screen.findByRole('dialog')
+
+    expect(within(dialog).getByText('Aucun tuteur rattaché.')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Aucune note de décision enregistrée.')
+    ).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Aucune pièce justificative attachée à cette candidature.')
+    ).toBeInTheDocument()
+  })
+
+  it('hands the selected application over to the decision modal', async () => {
+    const dialog = await openAliceDetail()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Modifier le Statut / Décision' }))
+
+    const decisionDialog = await screen.findByRole('dialog')
+    expect(
+      within(decisionDialog).getByRole('heading', {
+        name: "Décision d'Admission — Alice Tremblay",
+      })
+    ).toBeInTheDocument()
+    expect(within(decisionDialog).getByText('UNDER_REVIEW')).toBeInTheDocument()
+    expect(within(decisionDialog).getByText('Marc Tremblay (+33612345678)')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Candidature #101/ })).not.toBeInTheDocument()
+  })
+})
