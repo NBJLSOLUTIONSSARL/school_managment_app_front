@@ -81,10 +81,21 @@ function isPastOrPresent(value) {
 }
 
 export function ObservationsView() {
-  const { request, hasPermission } = useAuth()
+  const { request, user, hasRole, hasPermission } = useAuth()
   const canRead = hasPermission('PERM_READ_OBSERVATION')
   const canWrite = hasPermission('PERM_WRITE_OBSERVATION')
   const canReadConsent = hasPermission('PERM_READ_CONSENT')
+
+  const currentUserId = user?.id
+  const userRoles = Array.isArray(user?.roles) ? user.roles : []
+  const isAdmin = (typeof hasRole === 'function' && hasRole(['ROLE_ADMIN', 'admin'])) || userRoles.includes('ROLE_ADMIN') || userRoles.includes('admin')
+  const canCreateRole = (typeof hasRole === 'function' && hasRole(['ROLE_PARENT', 'ROLE_TEACHER', 'ROLE_ADMIN', 'admin'])) || userRoles.some((r) => ['ROLE_PARENT', 'ROLE_TEACHER', 'ROLE_ADMIN', 'admin'].includes(r))
+  const canCreate = canWrite && canCreateRole
+
+  const isAuthor = (obs) => {
+    if (!obs || !obs.authorUserId || !currentUserId) return true
+    return obs.authorUserId === currentUserId
+  }
 
   const [studentId, setStudentId] = useState('')
   const [resolvedStudentId, setResolvedStudentId] = useState(null)
@@ -213,7 +224,7 @@ export function ObservationsView() {
   }
 
   const openCreate = () => {
-    if (!canWrite) return
+    if (!canCreate) return
     setFormMode('create')
     setFormData({
       studentId: resolvedStudentId ? String(resolvedStudentId) : '',
@@ -227,7 +238,7 @@ export function ObservationsView() {
   }
 
   const openEdit = (observation) => {
-    if (!canWrite) return
+    if (!canWrite || (!isAdmin && !isAuthor(observation))) return
     setFormMode('edit')
     setFormData({
       studentId: String(observation.studentId),
@@ -367,7 +378,7 @@ export function ObservationsView() {
         breadcrumbs={['Pédagogie', 'Observations']}
         title="Observations pédagogiques"
         docstatus="Draft"
-        primaryAction={canWrite ? 'Nouvelle observation' : null}
+        primaryAction={canCreate ? 'Nouvelle observation' : null}
         onPrimaryAction={openCreate}
         secondaryActions={[]}
       />
@@ -586,12 +597,16 @@ export function ObservationsView() {
                         </td>
                         <td className="px-3 py-2.5 text-xs text-frappe-dark">{SOURCE_LABELS[obs.source]}</td>
                         <td className="px-3 py-2.5 text-xs text-frappe-dark">{formatDate(obs.date)}</td>
-                        <td className="px-3 py-2.5 text-xs text-frappe-dark truncate max-w-[200px]" title={obs.content}>
-                          {obs.content}
+                        <td className="px-3 py-2.5 text-xs text-frappe-dark truncate max-w-[200px]" title={isAuthor(obs) || isAdmin ? obs.content : 'Confidentiel (réservé à l’auteur)'}>
+                          {isAuthor(obs) || isAdmin ? (
+                            obs.content
+                          ) : (
+                            <span className="italic text-slate-400">Confidentiel (réservé à l’auteur)</span>
+                          )}
                         </td>
                         <td className="px-3 py-2.5 text-right text-xs">
                           <div className="flex items-center justify-end gap-1.5">
-                            {canWrite && (
+                            {canWrite && (isAdmin || isAuthor(obs)) && (
                               <button
                                 type="button"
                                 onClick={() => openEdit(obs)}
@@ -602,7 +617,7 @@ export function ObservationsView() {
                                 <Edit3 className="w-3.5 h-3.5 text-slate-600" />
                               </button>
                             )}
-                            {canWrite && (
+                            {canWrite && (isAdmin || isAuthor(obs)) && (
                               <button
                                 type="button"
                                 onClick={() => handleDelete(obs.id)}

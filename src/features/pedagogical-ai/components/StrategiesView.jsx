@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Lock, ShieldAlert } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -9,6 +10,8 @@ import {
   strategyError,
   updateLearningStrategy,
 } from '../api/learningStrategiesApi'
+import { getAnalysis } from '../api/aiAnalysesApi'
+import { listConsents } from '../api/aiConsentsApi'
 
 const strategySchema = yup.object({
   goals: yup
@@ -44,14 +47,24 @@ function formatDate(value) {
 }
 
 export function StrategiesView() {
-  const { request, hasPermission } = useAuth()
+  const { request, user, hasPermission, hasRole } = useAuth()
   const canRead = hasPermission('PERM_READ_ANALYSIS')
-  const canWrite = hasPermission('PERM_WRITE_STRATEGY')
+  const canReadConsent = hasPermission('PERM_READ_CONSENT')
+
+  const userRoles = Array.isArray(user?.roles) ? user.roles : []
+  const isStudent = (typeof hasRole === 'function' && hasRole(['ROLE_STUDENT', 'student'])) || userRoles.some((r) => ['ROLE_STUDENT', 'student'].includes(r))
+  const isParent = !isStudent && ((typeof hasRole === 'function' && hasRole(['ROLE_PARENT', 'parent'])) || userRoles.some((r) => ['ROLE_PARENT', 'parent'].includes(r)))
+
+  const canWrite = hasPermission('PERM_WRITE_STRATEGY') && !isStudent && !isParent
 
   const [strategyInputId, setStrategyInputId] = useState('')
   const [resolvedStrategyId, setResolvedStrategyId] = useState(null)
 
   const [strategy, setStrategy] = useState(null)
+  const [strategyStudentId, setStrategyStudentId] = useState(null)
+  const [consentStatus, setConsentStatus] = useState(null)
+  const isConsentRestricted = consentStatus === 'revoked' || consentStatus === 'missing'
+
   const [formData, setFormData] = useState({
     goals: '',
     recommendations: '',
@@ -74,6 +87,29 @@ export function StrategiesView() {
   const [isCreatingNew, setIsCreatingNew] = useState(false)
 
   const generation = useRef(0)
+
+  const loadConsentStatus = useCallback(async (sId) => {
+    if (!canReadConsent) return
+    const numId = Number(sId)
+    if (!Number.isSafeInteger(numId) || numId <= 0) {
+      setConsentStatus(null)
+      return
+    }
+    try {
+      const res = await listConsents(request, numId, { page: 0, size: 10 })
+      const hasActive = res.content.some((c) => c.granted === true && c.grantedAt != null)
+      const hasRevoked = res.content.some((c) => c.granted === false)
+      if (hasActive) {
+        setConsentStatus('granted')
+      } else if (hasRevoked) {
+        setConsentStatus('revoked')
+      } else {
+        setConsentStatus('missing')
+      }
+    } catch {
+      setConsentStatus(null)
+    }
+  }, [request, canReadConsent])
 
   const loadActions = useCallback(async (strategyId) => {
     if (!canRead) return
@@ -118,6 +154,17 @@ export function StrategiesView() {
         setFormErrors({})
         setError('')
         loadActions(numericId)
+        if (result.analysisId) {
+          try {
+            const analysis = await getAnalysis(request, result.analysisId)
+            if (analysis && analysis.studentId) {
+              setStrategyStudentId(analysis.studentId)
+              loadConsentStatus(analysis.studentId)
+            }
+          } catch {
+            // non-fatal if analysis lookup fails
+          }
+        }
       }
     } catch (failure) {
       if (operation === generation.current) {
@@ -128,7 +175,7 @@ export function StrategiesView() {
     } finally {
       if (operation === generation.current) setLoading(false)
     }
-  }, [request, canRead, loadActions])
+  }, [request, canRead, loadActions, loadConsentStatus])
 
   useEffect(() => {
     if (resolvedStrategyId) {
@@ -137,6 +184,20 @@ export function StrategiesView() {
       })
     }
   }, [loadStrategy, resolvedStrategyId])
+
+  useEffect(() => {
+    const handler = (e) => {
+      const changedStudentId = e.detail?.studentId
+      if (strategyStudentId && (changedStudentId == null || Number(changedStudentId) === Number(strategyStudentId))) {
+        loadConsentStatus(strategyStudentId)
+        if (resolvedStrategyId) {
+          loadStrategy(resolvedStrategyId)
+        }
+      }
+    }
+    window.addEventListener('edutrack:consent-changed', handler)
+    return () => window.removeEventListener('edutrack:consent-changed', handler)
+  }, [strategyStudentId, loadConsentStatus, loadStrategy, resolvedStrategyId])
 
   const handleIdChange = (e) => {
     setStrategyInputId(e.target.value)
@@ -151,6 +212,8 @@ export function StrategiesView() {
     setError('')
     setSuccess('')
     setIsCreatingNew(false)
+    setStrategyStudentId(null)
+    setConsentStatus(null)
     setResolvedStrategyId(id)
   }
 
@@ -164,6 +227,11 @@ export function StrategiesView() {
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     if (!canWrite) return
+
+    if (isConsentRestricted) {
+      setError('Action impossible : le consentement parental est manquant ou révoqué.')
+      return
+    }
 
     setFormErrors({})
     try {
@@ -311,11 +379,22 @@ export function StrategiesView() {
                 />
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     const id = Number(newAnalysisId)
                     if (!Number.isSafeInteger(id) || id <= 0) {
                       setError('L’identifiant d’analyse doit être un nombre positif.')
                       return
+                    }
+                    if (canReadConsent) {
+                      try {
+                        const analysis = await getAnalysis(request, id)
+                        if (analysis && analysis.studentId) {
+                          setStrategyStudentId(analysis.studentId)
+                          await loadConsentStatus(analysis.studentId)
+                        }
+                      } catch {
+                        // non-fatal
+                      }
                     }
                     setIsCreatingNew(true)
                     setStrategy(null)
@@ -367,6 +446,29 @@ export function StrategiesView() {
             </div>
           )}
 
+          {consentStatus === 'revoked' && (
+            <div className="rounded border border-rose-300 bg-rose-50 p-4 flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-rose-800">Consentement parental révoqué</p>
+                <p className="text-2xs text-rose-700 mt-0.5">
+                  Le traitement IA pour cet élève a été suspendu suite à la révocation du consentement parental. Les stratégies d’apprentissage sont restreintes.
+                </p>
+              </div>
+            </div>
+          )}
+          {consentStatus === 'missing' && (
+            <div className="rounded border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-amber-800">Consentement parental manquant</p>
+                <p className="text-2xs text-amber-700 mt-0.5">
+                  Aucun consentement parental actif n'a été enregistré pour cet élève. L'accord préalable d'un représentant légal est requis.
+                </p>
+              </div>
+            </div>
+          )}
+
           {!strategy && !isCreatingNew && (
             <div className="rounded border border-frappe-border bg-white p-6 max-w-md">
               <h2 className="text-sm font-semibold text-frappe-dark">Sélectionner une stratégie</h2>
@@ -378,110 +480,193 @@ export function StrategiesView() {
 
           {(strategy || isCreatingNew) && (
             <div className="space-y-6">
-              {/* Form Section */}
-              <section className="rounded border border-frappe-border bg-white p-6 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-frappe-border pb-3">
-                  <div>
+              {isConsentRestricted ? (
+                <div className="rounded border border-amber-300 bg-amber-50 p-6 text-center">
+                  <Lock className="w-6 h-6 text-amber-700 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-amber-900">Stratégie pédagogique protégée verrouillée</p>
+                  <p className="text-2xs text-amber-800 mt-1 max-w-md mx-auto">
+                    {consentStatus === 'revoked'
+                      ? 'Le consentement parental pour cet élève est révoqué. Les recommandations et conseils pédagogiques sont masqués conformément aux règles de protection des données (§4.18).'
+                      : 'Aucun consentement parental actif n’a été enregistré pour cet élève. Les recommandations et conseils pédagogiques sont masqués jusqu’à l’obtention du consentement (§4.18).'}
+                  </p>
+                </div>
+              ) : isStudent ? (
+                <section className="rounded border border-frappe-border bg-white p-6 shadow-2xs space-y-5">
+                  <div className="border-b border-frappe-border pb-3">
                     <h2 className="text-sm font-semibold text-frappe-dark">
-                      {isCreatingNew ? `Nouvelle stratégie (Analyse #${newAnalysisId})` : `Stratégie #${strategy.id}`}
+                      Vos conseils d’apprentissage personnalisés
                     </h2>
                     <p className="text-2xs text-frappe-muted">
-                      Objectifs, recommandations et conseils personnalisés
+                      Espace élève • Recommandations adaptées à votre parcours (§4.18)
                     </p>
                   </div>
-                  {canWrite && (
-                    <button
-                      type="button"
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="inline-flex items-center justify-center rounded border border-[#0F172A] bg-[#0F172A] px-4 py-1.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#1E293B] disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {saving ? 'Enregistrement…' : 'Enregistrer (Ctrl+S)'}
-                    </button>
-                  )}
-                </div>
 
-                <form onSubmit={handleSave} className="space-y-4">
-                  {/* Goals */}
-                  <div>
-                    <label htmlFor="strategy-goals" className="block text-2xs font-semibold text-frappe-dark mb-1">
-                      Objectifs pédagogiques (max 10 000 caractères) *
-                    </label>
-                    <textarea
-                      id="strategy-goals"
-                      rows={3}
-                      disabled={!canWrite || saving}
-                      value={formData.goals}
-                      onChange={(e) => handleFieldChange('goals', e.target.value)}
-                      placeholder="Ex: Renforcer la régularité du travail personnel et la participation orale."
-                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
-                    />
-                    {formErrors.goals && <p className="mt-1 text-2xs text-rose-600">{formErrors.goals}</p>}
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+                      <h3 className="text-xs font-semibold text-indigo-900 mb-1 flex items-center gap-1.5">
+                        <span>💡</span> Conseils pour votre apprentissage
+                      </h3>
+                      <p className="text-xs text-indigo-950 leading-relaxed whitespace-pre-line">
+                        {strategy?.studentAdvice || formData.studentAdvice}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">
+                      <h3 className="text-xs font-semibold text-emerald-900 mb-1 flex items-center gap-1.5">
+                        <span>🎯</span> Objectifs à atteindre
+                      </h3>
+                      <p className="text-xs text-emerald-950 leading-relaxed whitespace-pre-line">
+                        {strategy?.goals || formData.goals}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              ) : isParent ? (
+                <section className="rounded border border-frappe-border bg-white p-6 shadow-2xs space-y-5">
+                  <div className="border-b border-frappe-border pb-3">
+                    <h2 className="text-sm font-semibold text-frappe-dark">
+                      Stratégie d’accompagnement de votre enfant
+                    </h2>
+                    <p className="text-2xs text-frappe-muted">
+                      Espace parents • Objectifs et recommandations éducatives (§4.18)
+                    </p>
                   </div>
 
-                  {/* Recommendations */}
-                  <div>
-                    <label htmlFor="strategy-recommendations" className="block text-2xs font-semibold text-frappe-dark mb-1">
-                      Recommandations pour l’équipe pédagogique *
-                    </label>
-                    <textarea
-                      id="strategy-recommendations"
-                      rows={3}
-                      disabled={!canWrite || saving}
-                      value={formData.recommendations}
-                      onChange={(e) => handleFieldChange('recommendations', e.target.value)}
-                      placeholder="Ex: Mettre en place un plan de travail hebdomadaire avec points de contrôle."
-                      className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
-                    />
-                    {formErrors.recommendations && (
-                      <p className="mt-1 text-2xs text-rose-600">{formErrors.recommendations}</p>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+                      <h3 className="text-xs font-semibold text-blue-900 mb-1 flex items-center gap-1.5">
+                        <span>👨‍👩‍👧‍👦</span> Conseils aux parents
+                      </h3>
+                      <p className="text-xs text-blue-950 leading-relaxed whitespace-pre-line">
+                        {strategy?.parentAdvice || formData.parentAdvice}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">
+                      <h3 className="text-xs font-semibold text-emerald-900 mb-1 flex items-center gap-1.5">
+                        <span>🎯</span> Objectifs pédagogiques
+                      </h3>
+                      <p className="text-xs text-emerald-950 leading-relaxed whitespace-pre-line">
+                        {strategy?.goals || formData.goals}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-4">
+                      <h3 className="text-xs font-semibold text-amber-900 mb-1 flex items-center gap-1.5">
+                        <span>📋</span> Recommandations de l’équipe
+                      </h3>
+                      <p className="text-xs text-amber-950 leading-relaxed whitespace-pre-line">
+                        {strategy?.recommendations || formData.recommendations}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              ) : (
+                /* Form Section */
+                <section className="rounded border border-frappe-border bg-white p-6 shadow-2xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-frappe-border pb-3">
+                    <div>
+                      <h2 className="text-sm font-semibold text-frappe-dark">
+                        {isCreatingNew ? `Nouvelle stratégie (Analyse #${newAnalysisId})` : `Stratégie #${strategy.id}`}
+                      </h2>
+                      <p className="text-2xs text-frappe-muted">
+                        Objectifs, recommandations et conseils personnalisés
+                      </p>
+                    </div>
+                    {canWrite && (
+                      <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="inline-flex items-center justify-center rounded border border-[#0F172A] bg-[#0F172A] px-4 py-1.5 text-xs font-medium text-white shadow-[0_8px_20px_rgba(16,89,220,0.17)] hover:bg-[#1E293B] disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Enregistrement…' : 'Enregistrer (Ctrl+S)'}
+                      </button>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Parent Advice */}
+                  <form onSubmit={handleSave} className="space-y-4">
+                    {/* Goals */}
                     <div>
-                      <label htmlFor="strategy-parent-advice" className="block text-2xs font-semibold text-frappe-dark mb-1">
-                        Conseils aux parents *
+                      <label htmlFor="strategy-goals" className="block text-2xs font-semibold text-frappe-dark mb-1">
+                        Objectifs pédagogiques (max 10 000 caractères) *
                       </label>
                       <textarea
-                        id="strategy-parent-advice"
+                        id="strategy-goals"
                         rows={3}
                         disabled={!canWrite || saving}
-                        value={formData.parentAdvice}
-                        onChange={(e) => handleFieldChange('parentAdvice', e.target.value)}
-                        placeholder="Ex: Valoriser les progrès, installer un espace de travail calme."
+                        value={formData.goals}
+                        onChange={(e) => handleFieldChange('goals', e.target.value)}
+                        placeholder="Ex: Renforcer la régularité du travail personnel et la participation orale."
                         className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
                       />
-                      {formErrors.parentAdvice && (
-                        <p className="mt-1 text-2xs text-rose-600">{formErrors.parentAdvice}</p>
+                      {formErrors.goals && <p className="mt-1 text-2xs text-rose-600">{formErrors.goals}</p>}
+                    </div>
+
+                    {/* Recommendations */}
+                    <div>
+                      <label htmlFor="strategy-recommendations" className="block text-2xs font-semibold text-frappe-dark mb-1">
+                        Recommandations pour l’équipe pédagogique *
+                      </label>
+                      <textarea
+                        id="strategy-recommendations"
+                        rows={3}
+                        disabled={!canWrite || saving}
+                        value={formData.recommendations}
+                        onChange={(e) => handleFieldChange('recommendations', e.target.value)}
+                        placeholder="Ex: Mettre en place un plan de travail hebdomadaire avec points de contrôle."
+                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                      />
+                      {formErrors.recommendations && (
+                        <p className="mt-1 text-2xs text-rose-600">{formErrors.recommendations}</p>
                       )}
                     </div>
 
-                    {/* Student Advice */}
-                    <div>
-                      <label htmlFor="strategy-student-advice" className="block text-2xs font-semibold text-frappe-dark mb-1">
-                        Conseils à l’élève *
-                      </label>
-                      <textarea
-                        id="strategy-student-advice"
-                        rows={3}
-                        disabled={!canWrite || saving}
-                        value={formData.studentAdvice}
-                        onChange={(e) => handleFieldChange('studentAdvice', e.target.value)}
-                        placeholder="Ex: Noter ses devoirs dans l’agenda, demander de l’aide en classe."
-                        className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
-                      />
-                      {formErrors.studentAdvice && (
-                        <p className="mt-1 text-2xs text-rose-600">{formErrors.studentAdvice}</p>
-                      )}
-                    </div>
-                  </div>
-                </form>
-              </section>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Parent Advice */}
+                      <div>
+                        <label htmlFor="strategy-parent-advice" className="block text-2xs font-semibold text-frappe-dark mb-1">
+                          Conseils aux parents *
+                        </label>
+                        <textarea
+                          id="strategy-parent-advice"
+                          rows={3}
+                          disabled={!canWrite || saving}
+                          value={formData.parentAdvice}
+                          onChange={(e) => handleFieldChange('parentAdvice', e.target.value)}
+                          placeholder="Ex: Valoriser les progrès, installer un espace de travail calme."
+                          className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                        />
+                        {formErrors.parentAdvice && (
+                          <p className="mt-1 text-2xs text-rose-600">{formErrors.parentAdvice}</p>
+                        )}
+                      </div>
 
-              {/* Follow-up Actions Section (available when strategy exists) */}
-              {strategy && (
+                      {/* Student Advice */}
+                      <div>
+                        <label htmlFor="strategy-student-advice" className="block text-2xs font-semibold text-frappe-dark mb-1">
+                          Conseils à l’élève *
+                        </label>
+                        <textarea
+                          id="strategy-student-advice"
+                          rows={3}
+                          disabled={!canWrite || saving}
+                          value={formData.studentAdvice}
+                          onChange={(e) => handleFieldChange('studentAdvice', e.target.value)}
+                          placeholder="Ex: Noter ses devoirs dans l’agenda, demander de l’aide en classe."
+                          className="w-full rounded border border-frappe-border bg-white p-2.5 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10 disabled:bg-slate-50 disabled:text-slate-500"
+                        />
+                        {formErrors.studentAdvice && (
+                          <p className="mt-1 text-2xs text-rose-600">{formErrors.studentAdvice}</p>
+                        )}
+                      </div>
+                    </div>
+                  </form>
+                </section>
+              )}
+
+              {/* Follow-up Actions Section (available when strategy exists and consent not restricted) */}
+              {strategy && !isConsentRestricted && (
                 <section className="rounded border border-frappe-border bg-white p-6 shadow-2xs space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-frappe-border pb-3">
                     <div>
