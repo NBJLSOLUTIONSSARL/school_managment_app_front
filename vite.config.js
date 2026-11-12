@@ -24,6 +24,17 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: env.VITE_BUILD_SOURCEMAP === "true",
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('lucide-react')) return 'icons'
+              if (id.includes('yup')) return 'validation'
+              return 'vendor'
+            }
+          },
+        },
+      },
     },
     test: {
       environment: "jsdom",

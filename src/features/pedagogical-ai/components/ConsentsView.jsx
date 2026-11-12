@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Check } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -136,7 +136,7 @@ export function ConsentsView() {
 
     let validated
     try {
-      validated = await consentSchema.validate(formData, { abortEarly: false })
+      validated = consentSchema.validateSync(formData, { abortEarly: false })
     } catch (validationError) {
       if (validationError instanceof yup.ValidationError) {
         const next = {}
@@ -160,11 +160,46 @@ export function ConsentsView() {
         setSuccess(validated.granted ? 'Consentement accordé.' : 'Consentement révoqué.')
         closeForm()
         loadConsents()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('edutrack:consent-changed', {
+              detail: { studentId: Number(validated.studentId), granted: validated.granted },
+            })
+          )
+        }
       }
     } catch (failure) {
       if (operation === generation.current) setError(consentError(failure))
     } finally {
       if (operation === generation.current) setSubmitting(false)
+    }
+  }
+
+  const handleGrant = async (sId) => {
+    if (!canWrite) return
+    const operation = ++generation.current
+    setLoading(true)
+    setError('')
+    try {
+      await recordConsent(request, {
+        studentId: Number(sId),
+        granted: true,
+      })
+      if (operation === generation.current) {
+        setSuccess('Consentement accordé.')
+        loadConsents()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('edutrack:consent-changed', {
+              detail: { studentId: Number(sId), granted: true },
+            })
+          )
+        }
+      }
+    } catch (failure) {
+      if (operation === generation.current) setError(consentError(failure))
+    } finally {
+      if (operation === generation.current) setLoading(false)
     }
   }
 
@@ -179,6 +214,13 @@ export function ConsentsView() {
       if (operation === generation.current) {
         setSuccess('Consentement révoqué.')
         loadConsents()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('edutrack:consent-changed', {
+              detail: { studentId: resolvedStudentId, granted: false },
+            })
+          )
+        }
       }
     } catch (failure) {
       if (operation === generation.current) setError(consentError(failure))
@@ -357,6 +399,18 @@ export function ConsentsView() {
                         <td className="px-3 py-2.5 text-xs text-frappe-dark">{formatDate(consent.grantedAt)}</td>
                         <td className="px-3 py-2.5 text-right text-xs">
                           <div className="flex items-center justify-end gap-1.5">
+                            {canWrite && !consent.granted && (
+                              <button
+                                type="button"
+                                onClick={() => handleGrant(consent.studentId)}
+                                className="inline-flex items-center justify-center h-7 px-2.5 gap-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer text-2xs font-medium"
+                                title="Signer et accorder le consentement"
+                                aria-label="Signer"
+                              >
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Signer</span>
+                              </button>
+                            )}
                             {canWrite && consent.granted && (
                               <button
                                 type="button"

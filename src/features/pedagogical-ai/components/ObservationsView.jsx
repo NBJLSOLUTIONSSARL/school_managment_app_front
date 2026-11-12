@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Edit3, Trash2 } from 'lucide-react'
+import { Edit3, Trash2, ShieldAlert, ShieldCheck } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -10,6 +10,7 @@ import {
   observationError,
   updateObservation,
 } from '../api/observationsApi'
+import { listConsents } from '../api/aiConsentsApi'
 
 const observationSchema = yup.object({
   studentId: yup
@@ -83,6 +84,7 @@ export function ObservationsView() {
   const { request, hasPermission } = useAuth()
   const canRead = hasPermission('PERM_READ_OBSERVATION')
   const canWrite = hasPermission('PERM_WRITE_OBSERVATION')
+  const canReadConsent = hasPermission('PERM_READ_CONSENT')
 
   const [studentId, setStudentId] = useState('')
   const [resolvedStudentId, setResolvedStudentId] = useState(null)
@@ -106,8 +108,32 @@ export function ObservationsView() {
   })
   const [formErrors, setFormErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [consentStatus, setConsentStatus] = useState(null)
 
   const generation = useRef(0)
+
+  const loadConsentStatus = useCallback(async (sId) => {
+    if (!canReadConsent) return
+    const numId = Number(sId)
+    if (!Number.isSafeInteger(numId) || numId <= 0) {
+      setConsentStatus(null)
+      return
+    }
+    try {
+      const res = await listConsents(request, numId, { page: 0, size: 10 })
+      const hasActive = res.content.some((c) => c.granted === true && c.grantedAt != null)
+      const hasRevoked = res.content.some((c) => c.granted === false)
+      if (hasActive) {
+        setConsentStatus('granted')
+      } else if (hasRevoked) {
+        setConsentStatus('revoked')
+      } else {
+        setConsentStatus('missing')
+      }
+    } catch {
+      setConsentStatus(null)
+    }
+  }, [request, canReadConsent])
 
   const loadObservations = useCallback(async () => {
     if (!canRead) return
@@ -141,9 +167,22 @@ export function ObservationsView() {
       queueMicrotask(() => {
         setLoading(true)
         loadObservations()
+        loadConsentStatus(resolvedStudentId)
       })
     }
-  }, [loadObservations, resolvedStudentId])
+  }, [loadObservations, loadConsentStatus, resolvedStudentId])
+
+  useEffect(() => {
+    const handler = (e) => {
+      const changedStudentId = e.detail?.studentId
+      if (resolvedStudentId && (changedStudentId == null || Number(changedStudentId) === Number(resolvedStudentId))) {
+        loadConsentStatus(resolvedStudentId)
+        loadObservations()
+      }
+    }
+    window.addEventListener('edutrack:consent-changed', handler)
+    return () => window.removeEventListener('edutrack:consent-changed', handler)
+  }, [resolvedStudentId, loadConsentStatus, loadObservations])
 
   const handleStudentChange = (event) => {
     setStudentId(event.target.value)
@@ -219,7 +258,7 @@ export function ObservationsView() {
 
     let validated
     try {
-      validated = await observationSchema.validate(formData, { abortEarly: false })
+      validated = observationSchema.validateSync(formData, { abortEarly: false })
     } catch (validationError) {
       if (validationError instanceof yup.ValidationError) {
         const next = {}
@@ -382,6 +421,41 @@ export function ObservationsView() {
 
           {resolvedStudentId && (
             <div className="space-y-4">
+              {consentStatus === 'granted' && (
+                <div className="rounded border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-2xs font-medium text-emerald-800">
+                      Consentement parental actif pour l’analyse IA
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Actif
+                  </span>
+                </div>
+              )}
+              {consentStatus === 'revoked' && (
+                <div className="rounded border border-amber-300 bg-amber-50 px-3.5 py-2.5 flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-amber-900">Consentement parental révoqué</p>
+                    <p className="text-2xs text-amber-800 mt-0.5">
+                      Le consentement parental pour cet élève est révoqué. L'exploitation de ces observations pour les analyses IA et les rapports automatisés est verrouillée.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {consentStatus === 'missing' && (
+                <div className="rounded border border-slate-200 bg-slate-50 px-3.5 py-2.5 flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">Consentement parental manquant</p>
+                    <p className="text-2xs text-slate-600 mt-0.5">
+                      Aucun consentement parental actif n'a été enregistré. L'accord d'un représentant légal est requis avant toute exploitation IA de ces observations.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row sm:items-end sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-sm font-semibold text-frappe-dark">Observations de l’élève #{resolvedStudentId}</h2>
@@ -681,7 +755,7 @@ export function ObservationsView() {
                     rows={4}
                     className="h-24 w-full rounded border border-frappe-border bg-white px-2.5 py-2 text-xs text-frappe-dark shadow-2xs focus:border-[#0F172A] focus:ring-1 focus:ring-[#0F172A]/10"
                   />
-                  <p className="mt-1 text-2xs text-frappe-muted">Max 5000 caractères</p>
+                  <p className="mt-1 text-2xs text-frappe-muted">Longueur maximale autorisée : 5000 signes</p>
                   {formErrors.content && (
                     <p className="mt-1 text-2xs text-rose-600">{formErrors.content}</p>
                   )}

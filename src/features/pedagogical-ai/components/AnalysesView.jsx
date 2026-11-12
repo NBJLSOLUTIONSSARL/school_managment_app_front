@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Eye, Check, X, Megaphone } from 'lucide-react'
+import { Eye, Check, X, Megaphone, ShieldAlert, ShieldCheck, Lock } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -12,6 +12,7 @@ import {
   rejectAnalysis,
   validateAnalysis,
 } from '../api/aiAnalysesApi'
+import { listConsents } from '../api/aiConsentsApi'
 
 const rejectionSchema = yup.object({
   reason: yup
@@ -54,6 +55,7 @@ export function AnalysesView() {
   const canValidate = hasPermission('PERM_VALIDATE_ANALYSIS')
   const canPublish = hasPermission('PERM_PUBLISH_ANALYSIS')
   const canReadLog = hasPermission('PERM_READ_LOG')
+  const canReadConsent = hasPermission('PERM_READ_CONSENT')
 
   const [studentId, setStudentId] = useState('')
   const [resolvedStudentId, setResolvedStudentId] = useState(null)
@@ -75,7 +77,32 @@ export function AnalysesView() {
   const [rejectReason, setRejectReason] = useState('')
   const [rejectError, setRejectError] = useState('')
 
+  const [consentStatus, setConsentStatus] = useState(null)
+
   const generation = useRef(0)
+
+  const loadConsentStatus = useCallback(async (sId) => {
+    if (!canReadConsent) return
+    const numId = Number(sId)
+    if (!Number.isSafeInteger(numId) || numId <= 0) {
+      setConsentStatus(null)
+      return
+    }
+    try {
+      const res = await listConsents(request, numId, { page: 0, size: 10 })
+      const hasActive = res.content.some((c) => c.granted === true && c.grantedAt != null)
+      const hasRevoked = res.content.some((c) => c.granted === false)
+      if (hasActive) {
+        setConsentStatus('granted')
+      } else if (hasRevoked) {
+        setConsentStatus('revoked')
+      } else {
+        setConsentStatus('missing')
+      }
+    } catch {
+      setConsentStatus(null)
+    }
+  }, [request, canReadConsent])
 
   const loadAnalyses = useCallback(async () => {
     if (!canRead) return
@@ -103,9 +130,24 @@ export function AnalysesView() {
 
   useEffect(() => {
     if (resolvedStudentId) {
-      queueMicrotask(() => loadAnalyses())
+      queueMicrotask(() => {
+        loadAnalyses()
+        loadConsentStatus(resolvedStudentId)
+      })
     }
-  }, [loadAnalyses, resolvedStudentId])
+  }, [loadAnalyses, loadConsentStatus, resolvedStudentId])
+
+  useEffect(() => {
+    const handler = (e) => {
+      const changedStudentId = e.detail?.studentId
+      if (resolvedStudentId && (changedStudentId == null || Number(changedStudentId) === Number(resolvedStudentId))) {
+        loadConsentStatus(resolvedStudentId)
+        loadAnalyses()
+      }
+    }
+    window.addEventListener('edutrack:consent-changed', handler)
+    return () => window.removeEventListener('edutrack:consent-changed', handler)
+  }, [resolvedStudentId, loadConsentStatus, loadAnalyses])
 
   const handleStudentChange = (event) => {
     setStudentId(event.target.value)
@@ -145,12 +187,18 @@ export function AnalysesView() {
     setPagination((prev) => ({ ...prev, page }))
   }
 
+  const isConsentRestricted = consentStatus === 'revoked' || consentStatus === 'missing'
   const canGenerateAnalysis = canGenerate
     && resolvedStudentId != null
     && resolvedTermId != null
+    && !isConsentRestricted
 
   const handleGenerate = async () => {
     if (!canGenerateAnalysis) return
+    if (isConsentRestricted) {
+      setError('Consentement parental requis : la génération est bloquée tant que le consentement est manquant ou révoqué.')
+      return
+    }
     const operation = ++generation.current
     setLoading(true)
     setError('')
@@ -381,6 +429,16 @@ export function AnalysesView() {
                 >
                   {loading ? 'Génération…' : 'Générer l’analyse'}
                 </button>
+                {isConsentRestricted && (
+                  <div className="rounded border border-amber-200 bg-amber-50 p-2 text-2xs text-amber-800 flex items-start gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      {consentStatus === 'revoked'
+                        ? 'Génération bloquée : consentement parental révoqué.'
+                        : 'Génération bloquée : consentement parental manquant.'}
+                    </span>
+                  </div>
+                )}
                 <p className="text-2xs text-frappe-muted">
                   Nécessite PERM_GENERATE_ANALYSIS, un consentement parental valide, des observations existantes et un fournisseur IA configuré.
                 </p>
@@ -412,6 +470,41 @@ export function AnalysesView() {
 
           {resolvedStudentId && (
             <div className="space-y-4">
+              {consentStatus === 'granted' && (
+                <div className="rounded border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-2xs font-medium text-emerald-800">
+                      Consentement parental actif pour l’analyse IA
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Actif
+                  </span>
+                </div>
+              )}
+              {consentStatus === 'revoked' && (
+                <div className="rounded border border-amber-300 bg-amber-50 px-3.5 py-2.5 flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-amber-900">Consentement parental révoqué</p>
+                    <p className="text-2xs text-amber-800 mt-0.5">
+                      Le consentement parental pour cet élève a été révoqué. La génération de nouvelles analyses et la consultation détaillée sont restreintes.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {consentStatus === 'missing' && (
+                <div className="rounded border border-slate-200 bg-slate-50 px-3.5 py-2.5 flex items-start gap-2.5">
+                  <ShieldAlert className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">Consentement parental manquant</p>
+                    <p className="text-2xs text-slate-600 mt-0.5">
+                      Aucun consentement parental actif n'a été enregistré pour cet élève. L'accord préalable d'un représentant légal est requis.
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row sm:items-end sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-sm font-semibold text-frappe-dark">Analyses de l’élève #{resolvedStudentId}</h2>
@@ -607,32 +700,42 @@ export function AnalysesView() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Résumé</p>
-                  <div className="rounded border border-frappe-border bg-white p-2 text-xs">
-                    {selectedAnalysis.summary}
+              {consentStatus === 'revoked' ? (
+                <div className="rounded border border-amber-300 bg-amber-50 p-5 text-center">
+                  <Lock className="w-5 h-5 text-amber-700 mx-auto mb-1.5" />
+                  <p className="text-xs font-semibold text-amber-900">Diagnostic protégé verrouillé</p>
+                  <p className="text-2xs text-amber-800 mt-1 max-w-sm mx-auto">
+                    Le consentement parental pour cet élève est révoqué. Les informations pédagogiques détaillées sont masquées conformément aux règles de protection des données.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Résumé</p>
+                    <div className="rounded border border-frappe-border bg-white p-2 text-xs">
+                      {selectedAnalysis.summary}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Forces</p>
+                    <div className="rounded border border-frappe-border bg-white p-2 text-xs">
+                      {selectedAnalysis.strengths}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Difficultés</p>
+                    <div className="rounded border border-frappe-border bg-white p-2 text-xs">
+                      {selectedAnalysis.difficulties}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Tendances</p>
+                    <div className="rounded border border-frappe-border bg-white p-2 text-xs">
+                      {selectedAnalysis.trends}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Forces</p>
-                  <div className="rounded border border-frappe-border bg-white p-2 text-xs">
-                    {selectedAnalysis.strengths}
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Difficultés</p>
-                  <div className="rounded border border-frappe-border bg-white p-2 text-xs">
-                    {selectedAnalysis.difficulties}
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-2xs font-semibold text-frappe-muted uppercase mb-1">Tendances</p>
-                  <div className="rounded border border-frappe-border bg-white p-2 text-xs">
-                    {selectedAnalysis.trends}
-                  </div>
-                </div>
-              </div>
+              )}
 
               {canReadLog && (
                 <div className="mt-4 rounded border border-frappe-border bg-white p-3">

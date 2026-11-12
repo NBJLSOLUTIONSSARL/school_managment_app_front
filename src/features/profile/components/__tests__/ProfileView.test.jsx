@@ -202,7 +202,7 @@ describe('SCRUM-54 authentication integration', () => {
     await act(async () => pending.resolve(response([document()])))
     expect(screen.queryByText('Documents légaux')).not.toBeInTheDocument()
     expect(screen.queryByText('Type fourni par le serveur')).not.toBeInTheDocument()
-    expect(fetch.mock.calls[2][0]).toBe('/api/v1/auth/logout')
+    await waitFor(() => expect(fetch.mock.calls[2]?.[0]).toBe('/api/v1/auth/logout'))
   })
 
   it('removes a loaded profile when the existing session timer expires', async () => {
