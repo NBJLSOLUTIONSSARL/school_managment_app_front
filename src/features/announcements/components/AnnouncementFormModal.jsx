@@ -14,18 +14,26 @@ const TARGET_ROLE_OPTIONS = [
   { value: 'STAFF', label: 'Personnel administratif' },
 ]
 
+const STATUS_OPTIONS = [
+  { value: 'PUBLISHED', label: 'Publiée (visible par le public cible)' },
+  { value: 'DRAFT', label: 'Brouillon (non visible)' },
+  { value: 'ARCHIVED', label: 'Archivée' },
+]
+
 function getInitialData(item) {
   if (!item) {
     return {
       title: '',
       content: '',
       targetRole: 'ALL',
+      status: 'PUBLISHED',
     }
   }
   return {
     title: item.title || '',
     content: item.content || '',
     targetRole: item.targetRole || 'ALL',
+    status: item.status || 'PUBLISHED',
   }
 }
 
@@ -69,6 +77,10 @@ export function AnnouncementFormModal({ isOpen, onClose, onSuccess, announcement
       errors.targetRole = 'Le public cible est requis.'
     }
 
+    if (!formData.status) {
+      errors.status = 'Le statut est requis.'
+    }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
       return
@@ -84,7 +96,7 @@ export function AnnouncementFormModal({ isOpen, onClose, onSuccess, announcement
       }
 
       if (res.success) {
-        success(isEditing ? 'Annonce mise à jour avec succès.' : 'Annonce publiée avec succès.')
+        success(isEditing ? 'Annonce mise à jour avec succès.' : 'Annonce enregistrée avec succès.')
         onSuccess?.(res.data)
         onClose?.()
       } else {
@@ -97,6 +109,14 @@ export function AnnouncementFormModal({ isOpen, onClose, onSuccess, announcement
       setIsSubmitting(false)
     }
   }
+
+  const submitLabel = isEditing
+    ? 'Mettre à jour'
+    : formData.status === 'DRAFT'
+      ? 'Enregistrer le brouillon'
+      : formData.status === 'ARCHIVED'
+        ? 'Archiver l’annonce'
+        : 'Publier l’annonce'
 
   return (
     <Modal
@@ -116,7 +136,7 @@ export function AnnouncementFormModal({ isOpen, onClose, onSuccess, announcement
             isLoading={isSubmitting}
             disabled={isSubmitting}
           >
-            {isEditing ? 'Mettre à jour' : 'Publier l’annonce'}
+            {submitLabel}
           </Button>
         </div>
       }
@@ -134,21 +154,39 @@ export function AnnouncementFormModal({ isOpen, onClose, onSuccess, announcement
             error={fieldErrors.title}
             disabled={isSubmitting}
           />
-          {fieldErrors.title && (
-            <p className="mt-1 text-2xs text-red-600">{fieldErrors.title}</p>
-          )}
+          {fieldErrors.title && <p className="mt-1 text-2xs text-red-600">{fieldErrors.title}</p>}
         </div>
 
-        <div>
-          <label className="mb-1 block font-medium text-slate-700">
-            Public cible <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={formData.targetRole}
-            onChange={(val) => handleChange('targetRole', val)}
-            options={TARGET_ROLE_OPTIONS}
-            disabled={isSubmitting}
-          />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block font-medium text-slate-700">
+              Public cible <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={formData.targetRole}
+              onChange={(val) => handleChange('targetRole', val)}
+              options={TARGET_ROLE_OPTIONS}
+              disabled={isSubmitting}
+            />
+            {fieldErrors.targetRole && (
+              <p className="mt-1 text-2xs text-red-600">{fieldErrors.targetRole}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block font-medium text-slate-700">
+              Statut <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={formData.status}
+              onChange={(val) => handleChange('status', val)}
+              options={STATUS_OPTIONS}
+              disabled={isSubmitting}
+            />
+            {fieldErrors.status && (
+              <p className="mt-1 text-2xs text-red-600">{fieldErrors.status}</p>
+            )}
+          </div>
         </div>
 
         <div>

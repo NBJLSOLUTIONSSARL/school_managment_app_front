@@ -96,7 +96,7 @@ export function NotificationList() {
     }
   }, [loadNotifications])
 
-  // Synchronize across views with edutrack:notifications-updated
+  // Synchronize across views with edutrack:notifications-updated and edutrack:ws-notification
   useEffect(() => {
     function handleNotificationsUpdated(event) {
       const { id, action } = event.detail || {}
@@ -110,10 +110,17 @@ export function NotificationList() {
       }
     }
 
+    function handleWsNew() {
+      loadNotifications()
+    }
+
     window.addEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
-    return () =>
+    window.addEventListener('edutrack:ws-notification', handleWsNew)
+    return () => {
       window.removeEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
-  }, [])
+      window.removeEventListener('edutrack:ws-notification', handleWsNew)
+    }
+  }, [loadNotifications])
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter((n) => {

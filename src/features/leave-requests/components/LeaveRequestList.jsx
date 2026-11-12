@@ -132,6 +132,20 @@ export function LeaveRequestList() {
     }
   }, [loadLeaveRequests])
 
+  // Real-time synchronization when a leave request is created via WebSocket
+  useEffect(() => {
+    function handleRealtimeLeaveRequest() {
+      if (isAdmin) {
+        loadLeaveRequests()
+      }
+    }
+
+    window.addEventListener('edutrack:leave-request-created', handleRealtimeLeaveRequest)
+    return () => {
+      window.removeEventListener('edutrack:leave-request-created', handleRealtimeLeaveRequest)
+    }
+  }, [isAdmin, loadLeaveRequests])
+
   const handleCancelConfirm = async () => {
     if (!cancelTarget || isCancelling) return
     setIsCancelling(true)

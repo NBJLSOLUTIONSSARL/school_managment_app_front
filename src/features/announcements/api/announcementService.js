@@ -8,11 +8,12 @@ export const announcementService = {
    * Get paginated announcements
    * @param {Object} [params]
    * @param {string} [params.targetRole] - ALL, STUDENT, TEACHER, GUARDIAN, STAFF
+   * @param {string} [params.status] - DRAFT, PUBLISHED, ARCHIVED
    * @param {number} [params.page=1] - 1-indexed for UI
    * @param {number} [params.size=20]
    * @param {AbortSignal} [params.signal]
    */
-  async getAnnouncements({ targetRole, page = 1, size = 20, signal } = {}) {
+  async getAnnouncements({ targetRole, status, page = 1, size = 20, signal } = {}) {
     try {
       const queryParams = {
         page: Math.max(0, page - 1),
@@ -20,6 +21,9 @@ export const announcementService = {
       }
       if (targetRole && targetRole !== 'ALL_FILTER') {
         queryParams.targetRole = targetRole
+      }
+      if (status && status !== 'ALL_STATUS') {
+        queryParams.status = status
       }
 
       const res = await axiosClient.get(BASE_URL, {
@@ -63,16 +67,20 @@ export const announcementService = {
   },
 
   /**
-   * Create announcement (ADMIN only)
-   * @param {Object} payload - { title, content, targetRole }
+   * Create announcement (ADMIN or authorized STAFF)
+   * @param {Object} payload - { title, content, targetRole, status }
    */
   async createAnnouncement(payload) {
     try {
-      const res = await axiosClient.post(BASE_URL, {
+      const body = {
         title: payload.title?.trim(),
         content: payload.content?.trim(),
         targetRole: payload.targetRole,
-      })
+      }
+      if (payload.status) {
+        body.status = payload.status
+      }
+      const res = await axiosClient.post(BASE_URL, body)
       return {
         success: true,
         data: extractApiData(res),
@@ -88,17 +96,21 @@ export const announcementService = {
   },
 
   /**
-   * Update announcement (ADMIN only)
+   * Update announcement (ADMIN or authorized STAFF)
    * @param {number|string} id
-   * @param {Object} payload - { title, content, targetRole }
+   * @param {Object} payload - { title, content, targetRole, status }
    */
   async updateAnnouncement(id, payload) {
     try {
-      const res = await axiosClient.put(`${BASE_URL}/${id}`, {
+      const body = {
         title: payload.title?.trim(),
         content: payload.content?.trim(),
         targetRole: payload.targetRole,
-      })
+      }
+      if (payload.status) {
+        body.status = payload.status
+      }
+      const res = await axiosClient.put(`${BASE_URL}/${id}`, body)
       return {
         success: true,
         data: extractApiData(res),
@@ -114,7 +126,7 @@ export const announcementService = {
   },
 
   /**
-   * Delete announcement (ADMIN only)
+   * Delete announcement (ADMIN or authorized role)
    * @param {number|string} id
    */
   async deleteAnnouncement(id) {

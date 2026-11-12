@@ -30,6 +30,7 @@ const sampleAnnouncements = [
     title: 'Fermeture exceptionnelle de l’établissement',
     content: 'En raison des conditions météorologiques, l’école sera fermée ce vendredi.',
     targetRole: 'ALL',
+    status: 'PUBLISHED',
     publishedAt: '2026-11-05T08:00:00',
   },
   {
@@ -37,6 +38,7 @@ const sampleAnnouncements = [
     title: 'Réunion des professeurs principaux',
     content: 'Ordre du jour : organisation des conseils de classe.',
     targetRole: 'TEACHER',
+    status: 'PUBLISHED',
     publishedAt: '2026-11-06T14:00:00',
   },
   {
@@ -44,18 +46,31 @@ const sampleAnnouncements = [
     title: 'Rencontre parents-professeurs',
     content: 'Les créneaux de rendez-vous sont ouverts sur le portail.',
     targetRole: 'GUARDIAN',
+    status: 'PUBLISHED',
     publishedAt: '2026-11-07T16:00:00',
+  },
+  {
+    id: 4,
+    title: 'Brouillon communication fête de fin d’année',
+    content: 'Projet de festivités à finaliser.',
+    targetRole: 'ALL',
+    status: 'DRAFT',
+    publishedAt: null,
   },
 ]
 
-function renderComponent({ roles = ['ROLE_ADMIN'] } = {}) {
+function renderComponent({ roles = ['ROLE_ADMIN'], permissions = [] } = {}) {
   const authValue = {
-    user: { id: 1, email: 'user@edutrack.fr', roles },
+    user: { id: 1, email: 'user@edutrack.fr', roles, permissions },
     isAuthenticated: true,
     isLoading: false,
     hasRole: vi.fn((checkRoles) => {
       const arr = Array.isArray(checkRoles) ? checkRoles : [checkRoles]
       return arr.some((r) => roles.includes(r))
+    }),
+    hasPermission: vi.fn((checkPerms) => {
+      const arr = Array.isArray(checkPerms) ? checkPerms : [checkPerms]
+      return arr.some((p) => permissions.includes(p))
     }),
   }
 
@@ -77,12 +92,12 @@ describe('AnnouncementList', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders announcements with audience badges', async () => {
+  it('renders announcements with audience and status badges', async () => {
     announcementService.getAnnouncements.mockResolvedValue({
       success: true,
       data: {
         items: sampleAnnouncements,
-        totalItems: 3,
+        totalItems: 4,
         totalPages: 1,
       },
     })
@@ -93,19 +108,22 @@ describe('AnnouncementList', () => {
       expect(screen.getByText('Fermeture exceptionnelle de l’établissement')).toBeInTheDocument()
       expect(screen.getByText('Réunion des professeurs principaux')).toBeInTheDocument()
       expect(screen.getByText('Rencontre parents-professeurs')).toBeInTheDocument()
+      expect(screen.getByText('Brouillon communication fête de fin d’année')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('Tout le monde')).toBeInTheDocument()
+    expect(screen.getAllByText('Tout le monde').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Enseignants').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Parents').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Publiée').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Brouillon').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('provides management buttons for ROLE_ADMIN', async () => {
+  it('provides full CRUD management buttons for ROLE_ADMIN', async () => {
     announcementService.getAnnouncements.mockResolvedValue({
       success: true,
       data: {
         items: sampleAnnouncements,
-        totalItems: 3,
+        totalItems: 4,
         totalPages: 1,
       },
     })
@@ -119,7 +137,25 @@ describe('AnnouncementList', () => {
     })
   })
 
-  it('provides read-only view for non-admin roles (ROLE_STUDENT, ROLE_PARENT)', async () => {
+  it('allows ROLE_STAFF to create and manage announcements', async () => {
+    announcementService.getAnnouncements.mockResolvedValue({
+      success: true,
+      data: {
+        items: sampleAnnouncements,
+        totalItems: 4,
+        totalPages: 1,
+      },
+    })
+
+    renderComponent({ roles: ['ROLE_STAFF'] })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /nouvelle annonce/i })).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: /modifier/i }).length).toBeGreaterThan(0)
+    })
+  })
+
+  it('provides read-only view for recipient roles (ROLE_STUDENT, ROLE_PARENT, ROLE_TEACHER)', async () => {
     announcementService.getAnnouncements.mockResolvedValue({
       success: true,
       data: {
@@ -139,6 +175,13 @@ describe('AnnouncementList', () => {
     expect(screen.queryByRole('button', { name: /modifier/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /supprimer/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /voir/i })).toBeInTheDocument()
+
+    // Verifies that for recipient role, status is forced to PUBLISHED
+    expect(announcementService.getAnnouncements).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'PUBLISHED',
+      })
+    )
   })
 
   it('opens announcement details modal when clicking title', async () => {
@@ -164,7 +207,7 @@ describe('AnnouncementList', () => {
     })
   })
 
-  it('deletes an announcement after confirmation', async () => {
+  it('deletes an announcement after confirmation by admin', async () => {
     announcementService.getAnnouncements.mockResolvedValue({
       success: true,
       data: {

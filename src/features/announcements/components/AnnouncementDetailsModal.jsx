@@ -10,23 +10,35 @@ const ROLE_LABELS = {
   STAFF: 'Personnel administratif',
 }
 
+const STATUS_LABELS = {
+  PUBLISHED: 'Publiée',
+  DRAFT: 'Brouillon',
+  ARCHIVED: 'Archivée',
+}
+
 export function AnnouncementDetailsModal({ isOpen, onClose, announcement, onOpenEdit }) {
   if (!announcement) return null
 
   const targetLabel = ROLE_LABELS[announcement.targetRole] || announcement.targetRole || 'ALL'
-  const publishedDate = announcement.publishedAt
-    ? new Date(announcement.publishedAt).toLocaleString('fr-FR', {
-        dateStyle: 'full',
-        timeStyle: 'short',
-      })
-    : 'Date inconnue'
+  const statusLabel = STATUS_LABELS[announcement.status] || announcement.status || 'Publiée'
+  const isDraft = announcement.status === 'DRAFT'
+
+  const subtitle =
+    isDraft && !announcement.publishedAt
+      ? 'Brouillon enregistré (non publié)'
+      : announcement.publishedAt
+        ? `Publié le ${new Date(announcement.publishedAt).toLocaleString('fr-FR', {
+            dateStyle: 'full',
+            timeStyle: 'short',
+          })}`
+        : 'Date de publication inconnue'
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={announcement.title || 'Détail de l’annonce'}
-      subtitle={`Publié le ${publishedDate}`}
+      subtitle={subtitle}
       footer={
         <div className="flex justify-between w-full">
           <div>
@@ -50,9 +62,11 @@ export function AnnouncementDetailsModal({ isOpen, onClose, announcement, onOpen
       }
     >
       <div className="space-y-4 text-xs text-slate-700">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3">
           <span className="text-2xs font-semibold uppercase text-slate-400">Audience :</span>
           <StatusBadge status={targetLabel} size="xs" />
+          <span className="text-2xs font-semibold uppercase text-slate-400 ml-2">Statut :</span>
+          <StatusBadge status={statusLabel} size="xs" />
           {announcement.publishedByUserId && (
             <span className="ml-auto text-2xs text-slate-400">
               Auteur ID : #{announcement.publishedByUserId}

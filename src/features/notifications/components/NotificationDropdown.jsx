@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
 import { notificationService } from '../api/notificationService'
+import { notificationSocket } from '../services/notificationSocket'
+import { getAccessToken } from '@/utils/tokenStorage'
+import { ToastContext } from '@/context/toastContext'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/classNames'
 
@@ -22,12 +25,58 @@ function NotificationTypeIcon({ type }) {
 export function NotificationDropdown() {
   const { user, isAuthenticated } = useAuth()
   const userId = user?.id
+  const toast = useContext(ToastContext)
 
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const dropdownRef = useRef(null)
+
+  // Real-time WebSocket connection and listener
+  useEffect(() => {
+    if (!isAuthenticated) {
+      notificationSocket.disconnect()
+      return
+    }
+
+    const token = getAccessToken()
+    if (token) {
+      notificationSocket.connect(token)
+    }
+
+    const handleWsNotification = (event) => {
+      const payload = event.detail
+      if (!payload) return
+
+      const isLeave = payload.event === 'LEAVE_REQUEST_CREATED'
+      const messageText = payload.message || 'Nouvelle notification reçue.'
+
+      if (toast?.info) {
+        toast.info(messageText, isLeave ? 'Demande de congé' : 'Notification')
+      }
+
+      const newNotifItem = {
+        id: payload.notificationId || Date.now(),
+        content: messageText,
+        type: 'INFO',
+        read: false,
+        createdAt: payload.timestamp || new Date().toISOString(),
+      }
+
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === newNotifItem.id)) return prev
+        return [newNotifItem, ...prev]
+      })
+      setUnreadCount((c) => c + 1)
+    }
+
+    window.addEventListener('edutrack:ws-notification', handleWsNotification)
+
+    return () => {
+      window.removeEventListener('edutrack:ws-notification', handleWsNotification)
+    }
+  }, [isAuthenticated, toast])
 
   const fetchNotifications = useCallback(
     async (isBackground = false) => {

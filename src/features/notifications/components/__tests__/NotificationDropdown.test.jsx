@@ -179,4 +179,46 @@ describe('NotificationDropdown', () => {
       expect(screen.queryByText('1')).not.toBeInTheDocument()
     })
   })
+
+  it('reacts to real-time edutrack:ws-notification websocket events', async () => {
+    notificationService.getUserNotifications.mockResolvedValue({
+      success: true,
+      data: {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+      },
+    })
+
+    renderComponent()
+
+    await waitFor(() => {
+      expect(screen.queryByText('1')).not.toBeInTheDocument()
+    })
+
+    // Simulate incoming websocket notification for leave request
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('edutrack:ws-notification', {
+          detail: {
+            event: 'LEAVE_REQUEST_CREATED',
+            notificationId: 555,
+            message: 'Nouvelle demande de congé : Jean Dupont a soumis une demande (ANNUAL)',
+            timestamp: new Date().toISOString(),
+          },
+        })
+      )
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+
+    const bellBtn = screen.getByRole('button', { name: /centre de notifications/i })
+    fireEvent.click(bellBtn)
+
+    expect(
+      screen.getByText(/Nouvelle demande de congé : Jean Dupont/i)
+    ).toBeInTheDocument()
+  })
 })

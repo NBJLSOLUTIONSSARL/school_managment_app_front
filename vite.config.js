@@ -20,7 +20,10 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: Number(env.VITE_DEV_PORT) || 3000,
-      proxy: { "/api": { target: "http://localhost:8080", changeOrigin: true } },
+      proxy: {
+        "/api": { target: "http://localhost:8080", changeOrigin: true },
+        "/ws": { target: "http://localhost:8080", ws: true, changeOrigin: true },
+      },
     },
     build: {
       sourcemap: env.VITE_BUILD_SOURCEMAP === "true",
