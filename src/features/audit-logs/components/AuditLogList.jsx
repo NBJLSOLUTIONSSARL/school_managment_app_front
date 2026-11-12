@@ -155,17 +155,23 @@ export function AuditLogList() {
     {
       key: 'createdAt',
       label: 'Horodatage',
-      render: (val) =>
-        val
-          ? new Date(val).toLocaleDateString('fr-FR', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
-          : '-',
+      render: (val) => {
+        if (!val) return '-'
+        try {
+          const d = new Date(val)
+          if (Number.isNaN(d.getTime())) return '-'
+          return d.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })
+        } catch {
+          return '-'
+        }
+      },
     },
     {
       key: 'actions',
