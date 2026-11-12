@@ -6,30 +6,40 @@ export function ConfirmDialog({
   isOpen,
   onConfirm,
   onCancel,
+  onClose,
   title,
   description,
+  message,
   confirmText,
+  confirmLabel,
   cancelText,
+  cancelLabel,
   confirmVariant = 'danger',
+  variant,
   isLoading = false,
 }) {
   const { t } = useI18n()
+  const handleCancel = onCancel || onClose
+  const actualDescription = description ?? message ?? t('common.emptyDescription')
+  const actualConfirmText = confirmText ?? confirmLabel ?? t('common.confirm')
+  const actualCancelText = cancelText ?? cancelLabel ?? t('common.cancel')
+  const actualVariant = variant ?? confirmVariant
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={isLoading ? undefined : onCancel}
+      onClose={isLoading ? undefined : handleCancel}
       title={title ?? t('common.confirm')}
       size="sm"
       closeOnBackdrop={!isLoading}
       closeOnEsc={!isLoading}
       footer={
         <>
-          <Button variant="secondary" size="sm" onClick={onCancel} disabled={isLoading}>
-            {cancelText ?? t('common.cancel')}
+          <Button variant="secondary" size="sm" onClick={handleCancel} disabled={isLoading}>
+            {actualCancelText}
           </Button>
-          <Button variant={confirmVariant} size="sm" onClick={onConfirm} isLoading={isLoading}>
-            {confirmText ?? t('common.confirm')}
+          <Button variant={actualVariant} size="sm" onClick={onConfirm} isLoading={isLoading}>
+            {actualConfirmText}
           </Button>
         </>
       }
@@ -42,7 +52,7 @@ export function ConfirmDialog({
           !
         </div>
         <p className="pt-1 text-xs leading-relaxed text-slate-600">
-          {description ?? t('common.emptyDescription')}
+          {actualDescription}
         </p>
       </div>
     </Modal>

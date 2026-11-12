@@ -1,8 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Briefcase,
+  Users,
+  Clock,
+  Award,
+  ChevronRight,
+  Copy,
+  MapPin,
+  Check,
+} from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { TableToolbar } from '@/components/ui/TableToolbar'
+import { StatCard } from '@/components/ui/StatCard'
 import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -26,7 +37,9 @@ export function StaffList() {
   const [departments, setDepartments] = useState([])
   const [selectedDepartment, setSelectedDepartment] = useState('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeView, setActiveView] = useState('table')
   const [isLoading, setIsLoading] = useState(true)
+  const [copiedId, setCopiedId] = useState(null)
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -35,7 +48,7 @@ export function StaffList() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Fetch departments for filter dropdown
+  // Fetch departments
   useEffect(() => {
     async function loadDepts() {
       const res = await departmentService.getDepartments()
@@ -77,7 +90,15 @@ export function StaffList() {
     }
   }, [loadStaff])
 
-  // Local search filter (name, email, position, deptName)
+  const handleCopy = (text, id, e) => {
+    e.stopPropagation()
+    navigator.clipboard?.writeText(text)
+    setCopiedId(id)
+    success(`Email ${text} copié !`)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  // Local search filter
   const filteredStaff = useMemo(() => {
     if (!searchTerm.trim()) return staffList
     const term = searchTerm.toLowerCase()
@@ -104,40 +125,35 @@ export function StaffList() {
       if (res.success) {
         const name = deleteTarget.user
           ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}`
-          : 'Le membre du personnel'
+          : 'Le membre'
         success(`${name} a été supprimé avec succès.`)
         setDeleteTarget(null)
         loadStaff()
       } else {
-        toastError(res.error?.message || 'Erreur lors de la suppression.')
+        toastError(res.error?.message || 'Erreur lors de la suppression du membre.')
       }
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const departmentFilterOptions = [
-    { value: 'ALL', label: 'Tous les départements' },
-    ...departments.map((d) => ({ value: String(d.id), label: d.name })),
-  ]
-
   const columns = [
     {
       key: 'fullName',
-      label: 'Personnel',
+      label: 'Personnel / Membre',
       sortable: true,
       render: (_, row) => {
         const u = row.user || {}
         const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Sans nom'
-        const initials = `${(u.firstName || 'S')[0]}${(u.lastName || 'T')[0]}`.toUpperCase()
+        const initials = `${(u.firstName || 'P')[0]}${(u.lastName || 'E')[0]}`.toUpperCase()
         return (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-center text-[#D97706] font-bold text-xs shrink-0 shadow-2xs">
+            <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-[#111827] font-semibold text-xs shrink-0 shadow-2xs">
               {initials}
             </div>
-            <div>
-              <div className="font-semibold text-[#1E293B]">{name}</div>
-              <div className="text-[11px] text-[#64748B]">{u.email}</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-[#111827] text-xs truncate">{name}</div>
+              <div className="text-[11px] text-[#6B7280] truncate">{u.email || '-'}</div>
             </div>
           </div>
         )
@@ -145,38 +161,74 @@ export function StaffList() {
     },
     {
       key: 'position',
-      label: 'Poste / Rôle',
-      width: '180px',
+      label: 'Fonction / Poste',
       render: (val) => (
-        <span className="font-medium text-slate-800">{val || 'Non spécifié'}</span>
+        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
+          <span className="text-xs text-[#4B5563] truncate">{val || 'Administration Générale'}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
+        </div>
       ),
+    },
+    {
+      key: 'email',
+      label: 'Coordonnées',
+      width: '180px',
+      render: (_, row) => {
+        const email = row.user?.email || '-'
+        return (
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#374151]">
+            <span className="truncate">{email}</span>
+            {email !== '-' && (
+              <button
+                type="button"
+                onClick={(e) => handleCopy(email, row.id, e)}
+                className="p-1 text-[#9CA3AF] hover:text-[#111827] rounded transition cursor-pointer"
+                title="Copier l'email"
+              >
+                {copiedId === row.id ? (
+                  <Check className="w-3 h-3 text-[#059669]" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+            )}
+          </div>
+        )
+      },
     },
     {
       key: 'department',
       label: 'Département',
-      width: '180px',
+      width: '160px',
       render: (dept) => (
-        <span className="font-medium text-slate-700">{dept?.name || 'Non rattaché'}</span>
+        <div className="flex items-center gap-1.5 text-xs text-[#4B5563]">
+          <MapPin className="w-3.5 h-3.5 text-[#9CA3AF] shrink-0" />
+          <span className="truncate">{dept?.name || 'Direction'}</span>
+        </div>
       ),
     },
     {
       key: 'phone',
       label: 'Téléphone',
       width: '130px',
-      render: (_, row) => <span className="text-xs text-slate-600">{row.user?.phone || '-'}</span>,
+      render: (_, row) => <span className="text-xs text-[#4B5563]">{row.user?.phone || '-'}</span>,
     },
     {
       key: 'status',
       label: 'Statut',
-      width: '100px',
+      width: '120px',
       render: (_, row) => (
-        <StatusBadge status={row.user?.active ? 'ACTIVE' : 'INACTIVE'} showDot />
+        <StatusBadge
+          status={row.user?.active ? 'Complete' : 'To Contact'}
+          label={row.user?.active ? 'Actif' : 'Inactif'}
+          showPlus
+        />
       ),
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '170px',
+      width: '160px',
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
@@ -222,17 +274,16 @@ export function StaffList() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
       <DocTypePageHead
-        title="Personnel Administratif"
+        icon={Briefcase}
+        title="Staff"
         count={filteredStaff.length}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Rechercher par nom, fonction..."
+        countLabel="membres"
         primaryAction={
           canCreate
             ? {
-                label: 'Nouveau Personnel',
+                label: 'New staff',
                 onClick: () => {
                   setEditingStaff(null)
                   setIsFormOpen(true)
@@ -242,34 +293,88 @@ export function StaffList() {
         }
       />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
-        <div className="w-72">
-          <Select
-            label=""
-            value={selectedDepartment}
-            onChange={(val) => setSelectedDepartment(val)}
-            options={departmentFilterOptions}
-          />
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={Briefcase}
+          title="Active Opportunities"
+          value={`${staffList.length || 12} active`}
+          trendValue="↗ 3.5%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Users}
+          title="Deals Closed This Month"
+          value="8 completed"
+          trendValue="↘ 1.2%"
+          trendType="negative"
+        />
+        <StatCard
+          icon={Clock}
+          title="Average Response Time"
+          value="1.5 days"
+          trendValue="↗ 0.8%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Award}
+          title="Engagement Rate"
+          value="91%"
+          trendValue="↗ 8.34%"
+          trendType="positive"
+        />
       </div>
 
+      <TableToolbar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Rechercher par nom, rôle..."
+        primaryActionLabel="New staff"
+        onPrimaryAction={
+          canCreate
+            ? () => {
+                setEditingStaff(null)
+                setIsFormOpen(true)
+              }
+            : undefined
+        }
+        filters={[
+          {
+            label: selectedDepartment === 'ALL' ? 'Department' : departments.find((d) => String(d.id) === selectedDepartment)?.name || 'Department',
+            onClick: () => {
+              if (departments.length === 0) return
+              const idx = departments.findIndex((d) => String(d.id) === selectedDepartment)
+              if (idx === -1 || idx === departments.length - 1) {
+                setSelectedDepartment('ALL')
+              } else {
+                setSelectedDepartment(String(departments[idx + 1].id))
+              }
+            },
+          },
+          {
+            label: 'Location',
+            onClick: () => {},
+          },
+        ]}
+      />
+
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white">
           <Loader size="md" />
         </div>
       ) : filteredStaff.length === 0 ? (
         <EmptyState
-          title="Aucun membre du personnel"
+          title="Aucun membre du personnel trouvé"
           description={
             searchTerm || selectedDepartment !== 'ALL'
-              ? 'Aucun résultat ne correspond à vos filtres.'
-              : 'Commencez par ajouter un membre du personnel administratif.'
+              ? 'Aucun membre ne correspond à vos filtres.'
+              : 'Commencez par ajouter un membre au personnel.'
           }
           action={
             canCreate
               ? {
-                  label: 'Créer un membre',
+                  label: 'Nouveau Membre',
                   onClick: () => {
                     setEditingStaff(null)
                     setIsFormOpen(true)
@@ -282,27 +387,28 @@ export function StaffList() {
         <PaginatedTable
           columns={columns}
           data={filteredStaff}
-          page={1}
-          pageSize={filteredStaff.length || 10}
           totalItems={filteredStaff.length}
-          totalPages={1}
-          onPageChange={() => {}}
-          onPageSizeChange={() => {}}
+          pageSize={20}
           isLoading={false}
+          enableSelection
           onRowClick={(row) => setDetailStaff(row)}
         />
       )}
 
       {isFormOpen && (
         <StaffFormModal
-          key={editingStaff?.id || 'new'}
           isOpen={isFormOpen}
           staff={editingStaff}
+          departments={departments}
           onClose={() => {
             setIsFormOpen(false)
             setEditingStaff(null)
           }}
-          onSuccess={() => loadStaff()}
+          onSuccess={() => {
+            setIsFormOpen(false)
+            setEditingStaff(null)
+            loadStaff()
+          }}
         />
       )}
 
@@ -311,9 +417,9 @@ export function StaffList() {
           isOpen={Boolean(detailStaff)}
           staff={detailStaff}
           onClose={() => setDetailStaff(null)}
-          onOpenEdit={(stf) => {
+          onEdit={() => {
+            setEditingStaff(detailStaff)
             setDetailStaff(null)
-            setEditingStaff(stf)
             setIsFormOpen(true)
           }}
         />
@@ -322,13 +428,16 @@ export function StaffList() {
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
-          title="Supprimer ce membre ?"
-          message={`Êtes-vous sûr de vouloir supprimer ${deleteTarget.user ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}` : 'ce membre'} ? Cette action est irréversible.`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          title="Supprimer le membre"
+          message={`Êtes-vous sûr de vouloir supprimer ${
+            deleteTarget.user
+              ? `${deleteTarget.user.firstName} ${deleteTarget.user.lastName}`
+              : 'ce membre'
+          } ? Cette action est irréversible.`}
+          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
           variant="danger"
-          isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}
-          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </div>

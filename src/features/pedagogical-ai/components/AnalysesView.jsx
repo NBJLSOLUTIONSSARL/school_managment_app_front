@@ -700,12 +700,14 @@ export function AnalysesView() {
                 </div>
               </div>
 
-              {consentStatus === 'revoked' ? (
+              {isConsentRestricted ? (
                 <div className="rounded border border-amber-300 bg-amber-50 p-5 text-center">
                   <Lock className="w-5 h-5 text-amber-700 mx-auto mb-1.5" />
                   <p className="text-xs font-semibold text-amber-900">Diagnostic protégé verrouillé</p>
                   <p className="text-2xs text-amber-800 mt-1 max-w-sm mx-auto">
-                    Le consentement parental pour cet élève est révoqué. Les informations pédagogiques détaillées sont masquées conformément aux règles de protection des données.
+                    {consentStatus === 'revoked'
+                      ? 'Le consentement parental pour cet élève est révoqué. Les informations pédagogiques détaillées sont masquées conformément aux règles de protection des données.'
+                      : 'Aucun consentement parental actif n\'a été enregistré pour cet élève. Les informations pédagogiques détaillées sont masquées jusqu\'à l\'obtention du consentement.'}
                   </p>
                 </div>
               ) : (

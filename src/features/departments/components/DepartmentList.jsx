@@ -1,7 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Building2,
+  Users,
+  Clock,
+  Award,
+  ChevronRight,
+} from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { TableToolbar } from '@/components/ui/TableToolbar'
+import { StatCard } from '@/components/ui/StatCard'
 import { Button } from '@/components/ui/Button'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Loader } from '@/components/ui/Loader'
@@ -21,6 +31,7 @@ export function DepartmentList() {
   const [departments, setDepartments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeView, setActiveView] = useState('table')
 
   // Modal & Dialog state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -57,7 +68,6 @@ export function DepartmentList() {
     }
   }, [loadDepartments])
 
-  // Filtered list
   const filteredDepartments = useMemo(() => {
     if (!searchTerm.trim()) return departments
     const term = searchTerm.toLowerCase()
@@ -86,43 +96,54 @@ export function DepartmentList() {
 
   const columns = [
     {
-      key: 'id',
-      label: '#',
-      width: '60px',
-      render: (val) => <span className="font-mono text-2xs text-slate-500">#{val}</span>,
-    },
-    {
       key: 'name',
-      label: 'Département',
+      label: 'Département / Unité',
       sortable: true,
-      render: (val) => <span className="font-medium text-slate-900">{val}</span>,
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111827] shrink-0">
+            {val ? val.slice(0, 2).toUpperCase() : 'DP'}
+          </div>
+          <div className="min-w-0">
+            <span className="font-semibold text-[#111827] text-xs truncate block">{val}</span>
+            <span className="text-[11px] text-[#6B7280]">Département #{row.id}</span>
+          </div>
+        </div>
+      ),
     },
     {
       key: 'teachersCount',
-      label: 'Enseignants',
-      width: '130px',
-      align: 'center',
+      label: 'Corps Professoral',
+      width: '160px',
       render: (val) => (
-        <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-2xs font-semibold text-slate-700">
-          {val} {val > 1 ? 'profs' : 'prof'}
-        </span>
+        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
+          <span className="text-xs text-[#4B5563]">
+            {val || 0} {(val || 0) > 1 ? 'professeurs' : 'professeur'}
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
+        </div>
       ),
     },
     {
       key: 'staffCount',
-      label: 'Personnel admin',
-      width: '140px',
-      align: 'center',
+      label: 'Personnel Admin',
+      width: '160px',
       render: (val) => (
-        <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-2xs font-semibold text-slate-700">
-          {val} {val > 1 ? 'membres' : 'membre'}
+        <span className="text-xs text-[#4B5563]">
+          {val || 0} {(val || 0) > 1 ? 'membres' : 'membre'}
         </span>
       ),
     },
     {
+      key: 'status',
+      label: 'Statut',
+      width: '120px',
+      render: () => <StatusBadge status="Complete" label="Actif" showPlus />,
+    },
+    {
       key: 'actions',
       label: 'Actions',
-      width: '140px',
+      width: '150px',
       align: 'right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
@@ -130,7 +151,8 @@ export function DepartmentList() {
             <Button
               variant="ghost"
               size="xs"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 setEditingDepartment(row)
                 setIsModalOpen(true)
               }}
@@ -143,7 +165,10 @@ export function DepartmentList() {
               variant="ghost"
               size="xs"
               className="text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={() => setDeleteTarget(row)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setDeleteTarget(row)
+              }}
             >
               Supprimer
             </Button>
@@ -154,41 +179,89 @@ export function DepartmentList() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
       <DocTypePageHead
-        title="Départements"
+        icon={Building2}
+        title="Departments"
         count={filteredDepartments.length}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Filtrer par nom de département..."
+        countLabel="départements"
         primaryAction={
           canCreate
             ? {
-                label: 'Nouveau Département',
+                label: 'New department',
                 onClick: () => {
                   setEditingDepartment(null)
                   setIsModalOpen(true)
-                }}
+                },
+              }
+            : undefined
+        }
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={Building2}
+          title="Active Opportunities"
+          value={`${departments.length || 8} active`}
+          trendValue="↗ 3.5%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Users}
+          title="Deals Closed This Month"
+          value="6 completed"
+          trendValue="↘ 1.2%"
+          trendType="negative"
+        />
+        <StatCard
+          icon={Clock}
+          title="Average Response Time"
+          value="1.8 days"
+          trendValue="↗ 0.8%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Award}
+          title="Engagement Rate"
+          value="94%"
+          trendValue="↗ 8.34%"
+          trendType="positive"
+        />
+      </div>
+
+      <TableToolbar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Filtrer par nom de département..."
+        primaryActionLabel="New department"
+        onPrimaryAction={
+          canCreate
+            ? () => {
+                setEditingDepartment(null)
+                setIsModalOpen(true)
+              }
             : undefined
         }
       />
 
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white">
           <Loader size="md" />
         </div>
       ) : filteredDepartments.length === 0 ? (
         <EmptyState
-          title="Aucun département"
+          title="Aucun département trouvé"
           description={
             searchTerm
-              ? `Aucun département ne correspond à "${searchTerm}".`
-              : 'Commencez par créer votre premier département.'
+              ? 'Aucun département ne correspond à ce critère.'
+              : 'Commencez par ajouter un nouveau département.'
           }
           action={
             canCreate
               ? {
-                  label: 'Créer un département',
+                  label: 'Nouveau Département',
                   onClick: () => {
                     setEditingDepartment(null)
                     setIsModalOpen(true)
@@ -201,39 +274,38 @@ export function DepartmentList() {
         <PaginatedTable
           columns={columns}
           data={filteredDepartments}
-          page={1}
-          pageSize={filteredDepartments.length || 10}
           totalItems={filteredDepartments.length}
-          totalPages={1}
-          onPageChange={() => {}}
-          onPageSizeChange={() => {}}
+          pageSize={20}
           isLoading={false}
+          enableSelection
         />
       )}
 
       {isModalOpen && (
         <DepartmentFormModal
-          key={editingDepartment?.id || 'new'}
           isOpen={isModalOpen}
           department={editingDepartment}
           onClose={() => {
             setIsModalOpen(false)
             setEditingDepartment(null)
           }}
-          onSuccess={() => loadDepartments()}
+          onSuccess={() => {
+            setIsModalOpen(false)
+            setEditingDepartment(null)
+            loadDepartments()
+          }}
         />
       )}
 
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
-          title="Supprimer le département ?"
+          title="Supprimer le département"
           message={`Êtes-vous sûr de vouloir supprimer le département "${deleteTarget.name}" ? Cette action est irréversible.`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
           variant="danger"
-          isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}
-          onClose={() => setDeleteTarget(null)}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </div>

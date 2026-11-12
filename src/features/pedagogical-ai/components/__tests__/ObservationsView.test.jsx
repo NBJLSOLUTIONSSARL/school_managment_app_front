@@ -329,6 +329,89 @@ describe('ObservationsPage edit and delete', () => {
   })
 })
 
+describe('ObservationsPage parental consent enforcement', () => {
+  const consentResponse = (overrides = {}) => ({
+    content: [],
+    page: 0,
+    size: 10,
+    totalElements: 0,
+    totalPages: 0,
+    ...overrides,
+  })
+
+  async function loadStudent(auth, studentId = '12') {
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents/student/')) {
+        return Promise.resolve(
+          consentResponse({
+            content: auth.__consentContent ?? [],
+            totalElements: auth.__consentContent?.length ?? 0,
+          })
+        )
+      }
+      return Promise.resolve({
+        content: [],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+      })
+    })
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: studentId } })
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: /charger les observations/i }).filter((b) => !b.disabled).pop())
+    })
+  }
+
+  it('displays active consent banner when consent is granted', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 1, studentId: 12, guardianId: 5, granted: true, grantedAt: '2026-10-01' }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental actif pour l[’']analyse IA/i)).toBeInTheDocument()
+    )
+    expect(screen.getByText('Actif')).toBeInTheDocument()
+  })
+
+  it('displays revoked consent warning when consent is revoked', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 2, studentId: 12, guardianId: 5, granted: false, grantedAt: null }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental révoqué/i)).toBeInTheDocument()
+    )
+  })
+
+  it('displays missing consent warning when no consent exists', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = []
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental manquant/i)).toBeInTheDocument()
+    )
+  })
+
+  it('updates consent status dynamically when edutrack:consent-changed event fires', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 3, studentId: 12, guardianId: 5, granted: false, grantedAt: null }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental révoqué/i)).toBeInTheDocument()
+    )
+
+    auth.__consentContent = [{ id: 4, studentId: 12, guardianId: 5, granted: true, grantedAt: '2026-11-01' }]
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('edutrack:consent-changed', { detail: { studentId: 12 } }))
+    })
+
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental actif pour l[’']analyse IA/i)).toBeInTheDocument()
+    )
+  })
+})
+
 describe('ObservationsPage keyboard shortcuts', () => {
   it('triggers save on Ctrl+S when form is open', async () => {
     const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_WRITE_OBSERVATION'] })

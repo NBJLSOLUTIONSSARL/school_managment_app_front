@@ -36,12 +36,20 @@ export function NotificationDropdown() {
       try {
         const res = await notificationService.getUserNotifications(userId, {
           page: 1,
-          size: 10,
+          size: 20,
         })
         if (res.success && res.data) {
           const items = res.data.items || []
-          setNotifications(items)
-          setUnreadCount(items.filter((n) => !n.read).length)
+          // Deduplicate items by ID
+          const map = new Map()
+          items.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          const uniqueItems = Array.from(map.values())
+          setNotifications(uniqueItems)
+          setUnreadCount(uniqueItems.filter((n) => !n.read).length)
         }
       } catch {
         // Silently tolerate background polling errors
@@ -74,6 +82,33 @@ export function NotificationDropdown() {
     return () => clearInterval(intervalId)
   }, [isAuthenticated, userId, fetchNotifications])
 
+  // Synchronize across components with edutrack:notifications-updated
+  useEffect(() => {
+    function handleNotificationsUpdated(event) {
+      const { id, action } = event.detail || {}
+      if (action === 'READ' && id) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        )
+        setUnreadCount((prev) => Math.max(0, prev - 1))
+      } else if (action === 'DELETE' && id) {
+        setNotifications((prev) => {
+          const target = prev.find((n) => n.id === id)
+          if (target && !target.read) {
+            setUnreadCount((c) => Math.max(0, c - 1))
+          }
+          return prev.filter((n) => n.id !== id)
+        })
+      } else {
+        fetchNotifications(true)
+      }
+    }
+
+    window.addEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+    return () =>
+      window.removeEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+  }, [fetchNotifications])
+
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -94,6 +129,11 @@ export function NotificationDropdown() {
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         )
         setUnreadCount((prev) => Math.max(0, prev - 1))
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id, action: 'READ' },
+          })
+        )
       }
     } catch {
       // ignore

@@ -68,7 +68,14 @@ export function AnnouncementList() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setAnnouncements(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setAnnouncements(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
@@ -299,8 +306,8 @@ export function AnnouncementList() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cette annonce ?"
-          message={`Êtes-vous sûr de vouloir supprimer l'annonce "${deleteTarget.title}" ? Cette action est irréversible.`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          description={`Êtes-vous sûr de vouloir supprimer l'annonce "${deleteTarget.title}" ? Cette action est irréversible.`}
+          confirmText={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

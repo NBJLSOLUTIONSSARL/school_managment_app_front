@@ -4,23 +4,15 @@ import { I18nContext } from './i18nContext'
 import { translate } from './translate'
 import {
   DEFAULT_LANGUAGE,
-  LANGUAGE_STORAGE_KEY,
+  LANGUAGE_COOKIE_KEY,
   SUPPORTED_LANGUAGES,
   translations,
 } from './translations'
-
-function getInitialLanguage() {
-  if (typeof window === 'undefined') return DEFAULT_LANGUAGE
-
-  try {
-    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY)
-    if (stored && translations[stored]) return stored
-  } catch {
-    // Ignore storage access errors (private mode, blocked cookies, ...).
-  }
-
-  return DEFAULT_LANGUAGE
-}
+import {
+  setCookie,
+  purgeLegacyLanguageStorage,
+  getInitialLanguage,
+} from './cookieUtils'
 
 export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(getInitialLanguage)
@@ -29,6 +21,7 @@ export function I18nProvider({ children }) {
   const locale = translations[language]?.locale || 'fr-FR'
 
   useEffect(() => {
+    purgeLegacyLanguageStorage()
     if (typeof document !== 'undefined') {
       document.documentElement.lang = language
       document.documentElement.dir = dir
@@ -37,17 +30,39 @@ export function I18nProvider({ children }) {
     setFormatLocale(locale)
 
     try {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
+      setCookie(LANGUAGE_COOKIE_KEY, language)
     } catch {
-      // Persisting the preference is best-effort only.
     }
   }, [language, dir, locale])
 
-  const setLanguage = useCallback((nextLanguage) => {
-    setLanguageState(translations[nextLanguage] ? nextLanguage : DEFAULT_LANGUAGE)
+  useEffect(() => {
+    function handleLocationSync() {
+      try {
+        const params = new URLSearchParams(window.location.search)
+        const urlLang = params.get('lang')
+        if (urlLang && translations[urlLang]) {
+          setLanguageState((curr) => (curr !== urlLang ? urlLang : curr))
+        }
+      } catch {
+      }
+    }
+
+    window.addEventListener('popstate', handleLocationSync)
+    return () => window.removeEventListener('popstate', handleLocationSync)
   }, [])
 
-  const t = useCallback((key, vars) => translate(language, key, vars), [language])
+  const setLanguage = useCallback((nextLanguage) => {
+    const valid = translations[nextLanguage] ? nextLanguage : DEFAULT_LANGUAGE
+    setLanguageState(valid)
+    setCookie(LANGUAGE_COOKIE_KEY, valid)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('edutrack:language-change', { detail: { language: valid } })
+      )
+    }
+  }, [])
+
+  const t = useCallback((key, vars, fb) => translate(language, key, vars, fb), [language])
 
   const value = useMemo(
     () => ({

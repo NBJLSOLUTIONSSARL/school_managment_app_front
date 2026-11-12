@@ -14,6 +14,8 @@ export const Select = forwardRef(function Select(
     id,
     disabled = false,
     children,
+    value,
+    onChange,
     ...props
   },
   ref
@@ -27,6 +29,27 @@ export const Select = forwardRef(function Select(
     .join(' ')
 
   const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-xl' : 'h-10 text-sm ps-3.5 pe-8 rounded-xl'
+
+  const normalizedValue =
+    typeof value === 'object' && value !== null
+      ? (value.value ?? value.id ?? '')
+      : value
+
+  const handleSelectChange = (e) => {
+    if (!onChange) return
+    const selectVal = e?.target?.value ?? ''
+    if (e && typeof e === 'object') {
+      try {
+        e.value = selectVal
+        e.toJSON = () => selectVal
+        e.toString = () => selectVal
+        e.valueOf = () => selectVal
+      } catch {
+        // Safeguard if object is non-extensible
+      }
+    }
+    onChange(e)
+  }
 
   return (
     <div className="w-full text-start">
@@ -50,6 +73,8 @@ export const Select = forwardRef(function Select(
           aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
+          value={normalizedValue}
+          onChange={handleSelectChange}
           className={cn(
             'w-full appearance-none border bg-white text-[#1E293B] transition-all cursor-pointer',
             'focus:outline-hidden focus:ring-2 focus:ring-offset-0',

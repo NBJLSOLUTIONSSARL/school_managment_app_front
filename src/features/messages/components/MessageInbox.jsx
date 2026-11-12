@@ -27,6 +27,7 @@ export function MessageInbox() {
 
   // Pagination & items
   const [messages, setMessages] = useState([])
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalItems, setTotalItems] = useState(0)
@@ -55,9 +56,20 @@ export function MessageInbox() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setMessages(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          const uniqueItems = Array.from(map.values())
+          setMessages(uniqueItems)
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
+          if (activeTab === 'inbox') {
+            setInboxUnreadCount(uniqueItems.filter((m) => !m.read).length)
+          }
         } else {
           setMessages([])
           setTotalItems(0)
@@ -83,11 +95,6 @@ export function MessageInbox() {
       task.catch(() => {})
     }
   }, [loadMessages])
-
-  const unreadCount = useMemo(() => {
-    if (activeTab !== 'inbox') return 0
-    return messages.filter((m) => !m.read).length
-  }, [messages, activeTab])
 
   const filteredMessages = useMemo(() => {
     if (!searchTerm.trim()) return messages
@@ -118,11 +125,12 @@ export function MessageInbox() {
     }
   }
 
-  const handleMessageRead = (msgId) => {
+  const handleMessageRead = useCallback((msgId) => {
     setMessages((prev) =>
       prev.map((m) => (m.id === msgId ? { ...m, read: true } : m))
     )
-  }
+    setInboxUnreadCount((prev) => Math.max(0, prev - 1))
+  }, [])
 
   const handleReply = (msg) => {
     setComposeDefaults({
@@ -245,9 +253,9 @@ export function MessageInbox() {
             )}
           >
             <span>Boîte de réception</span>
-            {unreadCount > 0 && (
+            {inboxUnreadCount > 0 && (
               <span className="inline-flex items-center justify-center rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white shadow-xs">
-                {unreadCount}
+                {inboxUnreadCount}
               </span>
             )}
           </button>
@@ -352,8 +360,8 @@ export function MessageInbox() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer ce message ?"
-          message={`Êtes-vous sûr de vouloir supprimer le message "${deleteTarget.subject}" ?`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
+          description={`Êtes-vous sûr de vouloir supprimer le message "${deleteTarget.subject}" ?`}
+          confirmText={isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

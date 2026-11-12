@@ -1,13 +1,17 @@
 import { Fragment, isValidElement } from 'react'
+import { LayoutGrid, Sparkles, Building2, ChevronRight } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
+import { AvatarStack } from '@/components/ui/AvatarStack'
 import { useI18n } from '@/hooks/useI18n'
 
 export function DocTypePageHead({
+  icon: Icon = Building2,
   breadcrumbs = [],
   title,
   docstatus,
   count,
+  countLabel,
   searchTerm,
   onSearchChange,
   searchPlaceholder,
@@ -15,19 +19,23 @@ export function DocTypePageHead({
   onPrimaryAction,
   secondaryActions = [],
   onMenuAction,
+  showAvatarStack = true,
+  avatars,
+  allAppsAction,
+  className = '',
 }) {
   const { t } = useI18n()
 
-  // Safely extract primary action contract (supports both string/element and { label, onClick, variant } object)
+  // Safely extract primary action contract
   const isPrimaryObject =
     typeof primaryAction === 'object' && primaryAction !== null && !isValidElement(primaryAction)
   const primaryLabel = isPrimaryObject ? primaryAction.label : primaryAction
   const primaryClick = isPrimaryObject
     ? primaryAction.onClick || onPrimaryAction
     : onPrimaryAction
-  const primaryVariant = isPrimaryObject ? primaryAction.variant || 'primary' : 'primary'
+  const _primaryVariant = isPrimaryObject ? primaryAction.variant || 'primary' : 'primary'
 
-  // Safely normalize secondary actions (supports both array of { label, onClick, variant } and strings)
+  // Safely normalize secondary actions
   const normalizedSecondaryActions = Array.isArray(secondaryActions)
     ? secondaryActions.filter(Boolean).map((action) => {
         if (typeof action === 'object' && action !== null && !isValidElement(action)) {
@@ -46,59 +54,59 @@ export function DocTypePageHead({
       })
     : []
 
-  return (
-    <div className="sticky top-0 z-30 flex min-h-12 w-full flex-wrap items-center justify-between gap-2.5 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md px-3.5 py-2 sm:px-5 md:flex-nowrap md:py-0 shadow-2xs">
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
-        {breadcrumbs.length > 0 && (
-          <>
-            <nav
-              aria-label={t('common.breadcrumb')}
-              className="hidden items-center gap-1.5 text-xs text-[#64748B] lg:flex"
-            >
-              {breadcrumbs.map((crumb, idx) => {
-                const isLast = idx === breadcrumbs.length - 1
-                const label =
-                  typeof crumb === 'object' && crumb !== null ? crumb.label : crumb
-                const key =
-                  typeof crumb === 'object' && crumb !== null && crumb.key ? crumb.key : idx
+  const formattedCount =
+    count !== undefined && count !== null
+      ? `${count} ${countLabel || (typeof title === 'string' ? title.toLowerCase() : '')}`
+      : null
 
-                return (
-                  <Fragment key={key}>
-                    {idx > 0 && (
-                      <span className="text-[#94A3B8]" aria-hidden="true">
-                        /
-                      </span>
-                    )}
-                    <span
-                      className="font-medium hover:text-[#0F172A] transition-colors"
-                      aria-current={isLast ? 'page' : undefined}
-                    >
-                      {label}
-                    </span>
-                  </Fragment>
-                )
-              })}
-            </nav>
-            <span className="hidden text-[#CBD5E1] lg:inline" aria-hidden="true">
-              |
+  return (
+    <div
+      className={`flex min-h-12 w-full flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white px-4 py-3 sm:px-6 select-none ${className}`}
+    >
+      {/* Left: Entity Icon, Title, Dot, Count */}
+      <div className="flex min-w-0 items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        {/* Entity Icon Badge matching the image */}
+        <div className="w-8 h-8 rounded-xl bg-gray-100/90 border border-gray-200/60 flex items-center justify-center text-gray-700 shrink-0 shadow-2xs">
+          {Icon ? <Icon className="w-4 h-4 stroke-[2]" /> : <Building2 className="w-4 h-4 stroke-[2]" />}
+        </div>
+
+        {breadcrumbs.length > 0 && (
+          <nav
+            aria-label={t('common.breadcrumb', 'Breadcrumb')}
+            className="hidden items-center gap-1 text-xs text-[#6B7280] lg:flex me-1"
+          >
+            {breadcrumbs.map((crumb, idx) => {
+              const label = typeof crumb === 'object' && crumb !== null ? crumb.label : crumb
+              const key = typeof crumb === 'object' && crumb !== null && crumb.key ? crumb.key : idx
+              return (
+                <Fragment key={key}>
+                  {idx > 0 && <ChevronRight className="w-3 h-3 text-[#9CA3AF]" />}
+                  <span className="font-medium hover:text-[#111827] transition-colors">{label}</span>
+                </Fragment>
+              )
+            })}
+            <span className="mx-1 text-[#D1D5DB]" aria-hidden="true">
+              /
             </span>
-          </>
+          </nav>
         )}
 
-        <h1 className="truncate text-base sm:text-lg font-bold tracking-tight text-[#0F172A]">
+        <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#111827] truncate">
           {title}
         </h1>
 
-        {count !== undefined && count !== null && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#F1F5F9] text-[#0F172A] border border-[#E2E8F0]">
-            {count}
-          </span>
+        {formattedCount && (
+          <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280] truncate">
+            <span className="text-[#9CA3AF]">•</span>
+            <span>{formattedCount}</span>
+          </div>
         )}
 
         {docstatus && <StatusBadge status={docstatus} />}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Right: Avatar Stack, All Apps, Primary Action */}
+      <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
         {onSearchChange && (
           <div className="relative hidden md:block">
             <input
@@ -106,11 +114,40 @@ export function DocTypePageHead({
               value={searchTerm ?? ''}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder || t('common.search', 'Rechercher...')}
-              className="h-8 w-44 lg:w-56 rounded-xl border border-[#E2E8F0] bg-white px-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0F172A]/15 shadow-2xs"
+              className="h-8 w-44 lg:w-56 rounded-xl border border-[#E5E7EB] bg-white px-3 text-xs text-[#111827] placeholder-[#9CA3AF] focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-black/5 shadow-2xs"
             />
           </div>
         )}
 
+        {/* Team Avatar Stack matching the image */}
+        {showAvatarStack && <AvatarStack avatars={avatars} extraCount={9} size="sm" />}
+
+        {/* Primary Action Button matching the image (+ Enrich data / Nouvel item) */}
+        {primaryLabel && (
+          <button
+            type="button"
+            onClick={primaryClick}
+            disabled={isPrimaryObject ? primaryAction.disabled : false}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#111827] hover:bg-black active:bg-[#1F2937] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-white stroke-[2]" />
+            <span>{primaryLabel}</span>
+          </button>
+        )}
+
+        {/* All Apps button matching the image (shown when enabled or custom action passed) */}
+        {(allAppsAction || allAppsAction !== undefined) && (
+          <button
+            type="button"
+            onClick={allAppsAction?.onClick}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-xl text-xs font-medium shadow-2xs transition-colors cursor-pointer"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-[#6B7280]" />
+            <span>All Apps</span>
+          </button>
+        )}
+
+        {/* Secondary Actions */}
         {normalizedSecondaryActions.map((action, idx) => (
           <Button
             key={idx}
@@ -124,25 +161,13 @@ export function DocTypePageHead({
           </Button>
         ))}
 
-        {primaryLabel && (
-          <Button
-            variant={primaryVariant}
-            size="sm"
-            onClick={primaryClick}
-            disabled={isPrimaryObject ? primaryAction.disabled : false}
-            isLoading={isPrimaryObject ? primaryAction.isLoading : false}
-          >
-            {primaryLabel}
-          </Button>
-        )}
-
         {onMenuAction && (
           <button
             type="button"
             onClick={onMenuAction}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-xs text-[#64748B] hover:bg-slate-50 hover:text-[#0F172A] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0F172A]/20 transition-all cursor-pointer shadow-2xs"
-            title={t('common.moreOptions')}
-            aria-label={t('common.moreOptions')}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-xs text-[#6B7280] hover:bg-slate-50 hover:text-[#111827] transition-all cursor-pointer shadow-2xs"
+            title={t('common.moreOptions', 'Plus')}
+            aria-label={t('common.moreOptions', 'Plus')}
           >
             <span aria-hidden="true">•••</span>
           </button>

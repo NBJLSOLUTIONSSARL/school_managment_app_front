@@ -48,19 +48,27 @@ export function EventList() {
       try {
         const fromIso = fromDate ? `${fromDate}T00:00:00` : undefined
         const toIso = toDate ? `${toDate}T23:59:59` : undefined
+        const effectiveSize = activeTab === 'calendar' ? 100 : pageSize
 
         const res = await eventService.getEvents({
           from: fromIso,
           to: toIso,
-          page,
-          size: pageSize,
+          page: activeTab === 'calendar' ? 1 : page,
+          size: effectiveSize,
           signal,
         })
 
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setEvents(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setEvents(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
@@ -77,7 +85,7 @@ export function EventList() {
         }
       }
     },
-    [page, pageSize, fromDate, toDate, toastError]
+    [activeTab, page, pageSize, fromDate, toDate, toastError]
   )
 
   useEffect(() => {
@@ -289,7 +297,11 @@ export function EventList() {
           <Loader size="md" />
         </div>
       ) : activeTab === 'calendar' ? (
-        <EventCalendarView events={events} onSelectEvent={(ev) => setDetailItem(ev)} />
+        <EventCalendarView
+          events={events}
+          selectedDate={fromDate || undefined}
+          onSelectEvent={(ev) => setDetailItem(ev)}
+        />
       ) : events.length === 0 ? (
         <EmptyState
           title="Aucun événement trouvé"
@@ -363,8 +375,8 @@ export function EventList() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cet événement ?"
-          message={`Êtes-vous sûr de vouloir supprimer l'événement "${deleteTarget.title}" ?`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          description={`Êtes-vous sûr de vouloir supprimer l'événement "${deleteTarget.title}" ?`}
+          confirmText={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

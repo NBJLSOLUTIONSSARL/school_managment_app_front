@@ -1,73 +1,53 @@
+import { Plus } from 'lucide-react'
 import { cn } from '@/utils/classNames'
 
-const statusMap = {
-  // Frappe DocType statuses & EduTrack Figma statuses
-  Draft: {
-    bg: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
-    dot: 'bg-[#0F172A]',
-  },
-  Submitted: {
-    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-    dot: 'bg-[#10B981]',
-  },
-  Completed: {
-    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-    dot: 'bg-[#10B981]',
-  },
-  Active: {
-    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-    dot: 'bg-[#10B981]',
-  },
-  Paid: {
-    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-    dot: 'bg-[#10B981]',
-  },
-  Pending: {
-    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-    dot: 'bg-[#F59E0B]',
-  },
-  Warning: {
-    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-    dot: 'bg-[#F59E0B]',
-  },
-  Cancelled: {
-    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-    dot: 'bg-[#EF4444]',
-  },
-  Overdue: {
-    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-    dot: 'bg-[#EF4444]',
-  },
-  Suspended: {
-    bg: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-    dot: 'bg-[#EF4444]',
-  },
-  'At Risk': {
-    bg: 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]',
-    dot: 'bg-[#F59E0B]',
-  },
-  Inactive: {
-    bg: 'bg-slate-100 text-[#64748B] border-slate-200',
-    dot: 'bg-slate-400',
-  },
-  Locked: {
-    bg: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-    dot: 'bg-[#F59E0B]',
-  },
-  Open: {
-    bg: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-    dot: 'bg-[#10B981]',
-  },
-  Info: {
-    bg: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
-    dot: 'bg-[#0F172A]',
-  },
+// Category mapping to the 4 status styles in the reference image:
+// 1. To Contact (neutral / slate)
+// 2. Follow-Up (sky blue)
+// 3. In Negotiation (amber / warning)
+// 4. Complete / Active (emerald / success)
+const statusVariants = {
+  // Complete / Success (Green)
+  complete: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  active: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  paid: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  accepted: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  submitted: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  completed: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  open: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+
+  // Follow-Up / Information (Sky Blue)
+  'follow-up': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  under_review: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  'under review': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  info: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  in_progress: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  'in progress': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  partial: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+
+  // In Negotiation / Pending (Amber)
+  'in negotiation': 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  pending: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  waitlisted: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  warning: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  'at risk': 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  unpaid: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+
+  // To Contact / Draft / Neutral / Danger (Slate / Neutral)
+  'to contact': 'bg-[#F9FAFB] text-[#4B5563] border-[#E5E7EB]',
+  draft: 'bg-[#F9FAFB] text-[#4B5563] border-[#E5E7EB]',
+  inactive: 'bg-[#F9FAFB] text-[#6B7280] border-[#E5E7EB]',
+  overdue: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+  rejected: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+  cancelled: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+  suspended: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
 }
 
 export function StatusBadge({
   status = 'Draft',
   label,
   showDot = false,
+  showPlus = true,
   className = '',
   size = 'sm',
 }) {
@@ -78,10 +58,18 @@ export function StatusBadge({
         ? status.status || status.value || status.label || 'Draft'
         : 'Draft'
 
-  const normalizedKey = statusMap[statusKey] ? statusKey : 'Draft'
-  const current = statusMap[normalizedKey]
+  const normalizedKey = String(statusKey).toLowerCase().trim()
+  const variantClass =
+    statusVariants[normalizedKey] ||
+    (normalizedKey.includes('active') || normalizedKey.includes('paid') || normalizedKey.includes('complete')
+      ? statusVariants.complete
+      : normalizedKey.includes('pending') || normalizedKey.includes('wait')
+        ? statusVariants['in negotiation']
+        : normalizedKey.includes('review') || normalizedKey.includes('follow')
+          ? statusVariants['follow-up']
+          : statusVariants['to contact'])
 
-  const resolvedLabel =
+  const rawLabel =
     typeof label === 'string'
       ? label
       : typeof label === 'object' && label !== null
@@ -92,19 +80,22 @@ export function StatusBadge({
             ? status.label || status.name || status.status || 'Draft'
             : String(status || 'Draft')
 
-  const sizeClasses = size === 'xs' ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-0.5'
+  const resolvedLabel = rawLabel.replace(/^([+•\-\s]+)/, '').trim()
+
+  const sizeClasses = size === 'xs' ? 'text-[11px] px-2 py-0.5' : 'text-xs px-2.5 py-0.5'
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full font-semibold border select-none',
-        current.bg,
+        'inline-flex items-center gap-1 rounded-full font-medium border select-none transition-colors shadow-2xs',
+        variantClass,
         sizeClasses,
         className
       )}
     >
-      {showDot && <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', current.dot)} />}
-      <span>{resolvedLabel}</span>
+      {showPlus && <Plus className="w-3 h-3 stroke-[2.5] opacity-75 shrink-0" />}
+      {showDot && !showPlus && <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />}
+      <span className="truncate">{resolvedLabel}</span>
     </span>
   )
 }

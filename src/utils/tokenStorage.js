@@ -1,65 +1,74 @@
-const ACCESS_TOKEN_KEY = 'school_app_access_token'
-const REFRESH_TOKEN_KEY = 'school_app_refresh_token'
-const USER_KEY = 'school_app_current_user'
+let inMemoryAccessToken = null
+let inMemoryRefreshToken = null
+let inMemoryCurrentUser = null
+
+export const LEGACY_STORAGE_KEYS = [
+  'school_app_current_user',
+  'school_app_language',
+  'academie_lang',
+  'school_app_access_token',
+  'school_app_refresh_token',
+]
 
 /**
- * Retrieve the current access token.
+ * Purges any legacy tokens and data from localStorage/sessionStorage.
+ */
+export function purgeLegacyStorage() {
+  if (typeof window === 'undefined') return
+  for (const key of LEGACY_STORAGE_KEYS) {
+    try {
+      window.localStorage?.removeItem(key)
+    } catch {
+      // ignore
+    }
+    try {
+      window.sessionStorage?.removeItem(key)
+    } catch {
+      // ignore
+    }
+  }
+}
+
+// Auto-purge immediately upon module import
+purgeLegacyStorage()
+
+/**
+ * Retrieve the current access token from memory.
+ * Never retrieved from localStorage or sessionStorage.
  * @returns {string|null}
  */
 export function getAccessToken() {
-  try {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
-  } catch {
-    return null
-  }
+  return inMemoryAccessToken
 }
 
 /**
- * Store the access token.
- * @param {string} token
+ * Store the access token in memory only.
+ * @param {string|null} token
  */
 export function setAccessToken(token) {
-  try {
-    if (token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, token)
-    } else {
-      localStorage.removeItem(ACCESS_TOKEN_KEY)
-    }
-  } catch {
-    // ignore storage access errors
-  }
+  inMemoryAccessToken = token || null
+  purgeLegacyStorage()
 }
 
 /**
- * Retrieve the refresh token.
+ * Retrieve the refresh token from memory.
  * @returns {string|null}
  */
 export function getRefreshToken() {
-  try {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
-  } catch {
-    return null
-  }
+  return inMemoryRefreshToken
 }
 
 /**
- * Store the refresh token.
- * @param {string} token
+ * Store the refresh token in memory only.
+ * @param {string|null} token
  */
 export function setRefreshToken(token) {
-  try {
-    if (token) {
-      localStorage.setItem(REFRESH_TOKEN_KEY, token)
-    } else {
-      localStorage.removeItem(REFRESH_TOKEN_KEY)
-    }
-  } catch {
-    // ignore
-  }
+  inMemoryRefreshToken = token || null
+  purgeLegacyStorage()
 }
 
 /**
- * Store both tokens at once.
+ * Store both tokens at once in memory only.
  * @param {{ accessToken?: string, refreshToken?: string }} tokens
  */
 export function setTokens({ accessToken, refreshToken } = {}) {
@@ -68,43 +77,37 @@ export function setTokens({ accessToken, refreshToken } = {}) {
 }
 
 /**
- * Clear all tokens and user session data.
+ * Clear all in-memory tokens and user session data.
  */
 export function clearTokens() {
-  try {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
-  } catch {
-    // ignore
+  inMemoryAccessToken = null
+  inMemoryRefreshToken = null
+  inMemoryCurrentUser = null
+  if (typeof document !== 'undefined') {
+    try {
+      document.cookie = 'edutrack_session=; path=/; max-age=0; SameSite=Lax'
+    } catch {
+      // ignore
+    }
   }
+  purgeLegacyStorage()
 }
 
 /**
- * Retrieve stored user metadata.
+ * Retrieve stored user metadata from memory only.
+ * Never retrieved from localStorage or sessionStorage.
  * @returns {Record<string, any>|null}
  */
 export function getCurrentUser() {
-  try {
-    const raw = localStorage.getItem(USER_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+  return inMemoryCurrentUser ? { ...inMemoryCurrentUser } : null
 }
 
 /**
- * Store user metadata.
+ * Store user metadata in memory only.
+ * Never stored in localStorage or sessionStorage.
  * @param {Record<string, any>|null} user
  */
 export function setCurrentUser(user) {
-  try {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user))
-    } else {
-      localStorage.removeItem(USER_KEY)
-    }
-  } catch {
-    // ignore
-  }
+  inMemoryCurrentUser = user ? { ...user } : null
+  purgeLegacyStorage()
 }

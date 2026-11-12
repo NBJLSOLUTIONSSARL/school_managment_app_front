@@ -19,7 +19,9 @@ export const axiosClient = axios.create({
   baseURL: import.meta.env?.VITE_API_BASE_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
+  withCredentials: true,
   timeout: 30000,
 })
 
@@ -50,6 +52,17 @@ axiosClient.interceptors.request.use(
   }
 )
 
+// Flag to prevent multiple concurrent 401s from triggering multiple redirects or loops
+let isRedirecting = false
+
+export function resetRedirectFlag() {
+  isRedirecting = false
+}
+
+export function getIsRedirecting() {
+  return isRedirecting
+}
+
 // Response Interceptor: Global 401 handling
 axiosClient.interceptors.response.use(
   (response) => {
@@ -60,10 +73,17 @@ axiosClient.interceptors.response.use(
 
     if (status === 401) {
       const requestUrl = error?.config?.url || ''
-      const isAuthEndpoint = requestUrl.includes('/auth/') || requestUrl.includes('login')
+      // Only skip session purge on unauthenticated credential submissions where 401 indicates invalid input
+      const isLoginAttempt =
+        requestUrl.includes('/auth/login') ||
+        requestUrl.endsWith('/login') ||
+        requestUrl === '/login' ||
+        requestUrl.includes('/auth/google') ||
+        requestUrl.includes('/auth/forgot-password') ||
+        requestUrl.includes('/auth/reset-password')
 
       // Do not wipe the session on a failed login attempt.
-      if (isAuthEndpoint) {
+      if (isLoginAttempt) {
         return Promise.reject(error)
       }
 
@@ -72,11 +92,12 @@ axiosClient.interceptors.response.use(
 
       // 2. Notify in-memory state / context listeners
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+        window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: { url: requestUrl } }))
 
-        // 3. Redirect to /login if not already on the login page
+        // 3. Redirect to /login if not already on the login page (deduplicated)
         const currentPath = window.location.pathname || ''
-        if (!currentPath.startsWith('/login')) {
+        if (!currentPath.startsWith('/login') && !isRedirecting) {
+          isRedirecting = true
           const redirectParam = encodeURIComponent(currentPath + (window.location.search || ''))
 
           try {

@@ -34,6 +34,8 @@ const TYPE_LABELS = {
   SICK: 'Maladie',
   ADMINISTRATIVE: 'Administratif',
   UNPAID: 'Sans solde',
+  CONGE_PAYE: 'Annuel',
+  FORMATION: 'Administratif',
 }
 
 const STATUS_LABELS = {
@@ -94,7 +96,14 @@ export function LeaveRequestList() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setLeaveRequests(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setLeaveRequests(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
@@ -224,12 +233,25 @@ export function LeaveRequestList() {
         const isPending = row.status === 'PENDING'
         const canApproveOrReject = isAdmin && isPending && !isOwner
         const canCancel = isOwner && isPending
+        const canEdit = isOwner && isPending
 
         return (
           <div className="flex items-center justify-end gap-1">
             <Button variant="ghost" size="xs" onClick={() => setDetailItem(row)}>
               Détails
             </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => {
+                  setEditingItem(row)
+                  setIsFormOpen(true)
+                }}
+              >
+                Modifier
+              </Button>
+            )}
             {canApproveOrReject && (
               <>
                 <Button
@@ -285,8 +307,9 @@ export function LeaveRequestList() {
         <div className="w-44">
           <Select
             value={statusFilter}
-            onChange={(val) => {
-              setStatusFilter(val)
+            onChange={(e) => {
+              const val = e?.target ? e.target.value : e
+              setStatusFilter(typeof val === 'string' ? val : String(val ?? 'ALL'))
               setPage(1)
             }}
             options={STATUS_FILTERS}
@@ -295,8 +318,9 @@ export function LeaveRequestList() {
         <div className="w-44">
           <Select
             value={typeFilter}
-            onChange={(val) => {
-              setTypeFilter(val)
+            onChange={(e) => {
+              const val = e?.target ? e.target.value : e
+              setTypeFilter(typeof val === 'string' ? val : String(val ?? 'ALL'))
               setPage(1)
             }}
             options={TYPE_FILTERS}
@@ -401,6 +425,11 @@ export function LeaveRequestList() {
           isAdmin={isAdmin}
           onClose={() => setDetailItem(null)}
           onStatusChanged={() => loadLeaveRequests()}
+          onOpenEdit={(item) => {
+            setDetailItem(null)
+            setEditingItem(item)
+            setIsFormOpen(true)
+          }}
         />
       )}
 
@@ -409,8 +438,8 @@ export function LeaveRequestList() {
         <ConfirmDialog
           isOpen={Boolean(cancelTarget)}
           title="Annuler cette demande de congé ?"
-          message={`Êtes-vous sûr de vouloir annuler votre demande de congé du ${cancelTarget.startDate} au ${cancelTarget.endDate} ?`}
-          confirmLabel={isCancelling ? 'Annulation...' : 'Confirmer l’annulation'}
+          description={`Êtes-vous sûr de vouloir annuler votre demande de congé du ${cancelTarget.startDate} au ${cancelTarget.endDate} ?`}
+          confirmText={isCancelling ? 'Annulation...' : 'Confirmer l’annulation'}
           variant="danger"
           isLoading={isCancelling}
           onConfirm={handleCancelConfirm}

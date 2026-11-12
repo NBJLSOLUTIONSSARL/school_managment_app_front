@@ -56,7 +56,19 @@ export function Pagination({
     >
       {showSummary && (
         <div className="text-xs text-[#64748B]" aria-live="polite">
-          {t('pagination.summary', { start: startItem, end: endItem, total: totalItems })}
+          {(() => {
+            const template = t(
+              'pagination.summary',
+              'Affichage de {start} à {end} sur {total} résultats'
+            )
+            if (typeof template === 'string') {
+              return template
+                .replace('{start}', startItem)
+                .replace('{end}', endItem)
+                .replace('{total}', totalItems)
+            }
+            return `${startItem} - ${endItem} sur ${totalItems}`
+          })()}
         </div>
       )}
 

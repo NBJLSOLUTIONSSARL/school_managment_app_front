@@ -110,6 +110,38 @@ describe('Reusable Common Components', () => {
       expect(select.options[0].text).toBe('Sélectionner...')
       expect(select.options[1].text).toBe('Terminale S1')
     })
+
+    it('normalizes object value and supports onChange with JSON serialization safety', () => {
+      const options = [
+        { value: 'TS1', label: 'Terminale S1' },
+        { value: '1A', label: 'Première A' },
+      ]
+      let capturedEvent = null
+      act(() => {
+        root.render(
+          <Select
+            label="Classe"
+            value={{ value: '1A' }}
+            options={options}
+            onChange={(e) => {
+              capturedEvent = e
+            }}
+          />
+        )
+      })
+      const select = container.querySelector('select')
+      expect(select.value).toBe('1A')
+
+      // Trigger change
+      act(() => {
+        select.value = 'TS1'
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+
+      expect(capturedEvent).not.toBeNull()
+      expect(capturedEvent.value).toBe('TS1')
+      expect(JSON.stringify({ selected: capturedEvent })).toBe('{"selected":"TS1"}')
+    })
   })
 
   describe('DatePicker', () => {

@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { I18nProvider } from '@/lib/i18n/I18nProvider'
+import { getCookie } from '@/lib/i18n/cookieUtils'
 import { useI18n } from '@/hooks/useI18n'
-import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '@/lib/i18n/translations'
+import { DEFAULT_LANGUAGE, LANGUAGE_COOKIE_KEY } from '@/lib/i18n/translations'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -35,6 +36,8 @@ describe('I18nProvider', () => {
 
   beforeEach(() => {
     localStorage.clear()
+    sessionStorage.clear()
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=; path=/; max-age=0`
     document.documentElement.lang = 'fr'
     document.documentElement.dir = 'ltr'
 
@@ -66,7 +69,7 @@ describe('I18nProvider', () => {
     expect(container.querySelector('[data-testid="rtl"]').textContent).toBe('false')
   })
 
-  it('switches to Arabic, applies RTL and persists the choice', () => {
+  it('switches to Arabic, applies RTL and persists in non-sensitive cookie without localStorage/sessionStorage', () => {
     act(() => {
       root.render(
         <I18nProvider>
@@ -83,8 +86,18 @@ describe('I18nProvider', () => {
     expect(container.querySelector('[data-testid="dir"]').textContent).toBe('rtl')
     expect(document.documentElement.lang).toBe('ar')
     expect(document.documentElement.dir).toBe('rtl')
-    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('ar')
     expect(container.querySelector('[data-testid="rtl"]').textContent).toBe('true')
+
+    // Must NEVER store in localStorage or sessionStorage
+    expect(localStorage.getItem('school_app_language')).toBeNull()
+    expect(localStorage.getItem('academie_lang')).toBeNull()
+    expect(sessionStorage.getItem('school_app_language')).toBeNull()
+    expect(sessionStorage.getItem('academie_lang')).toBeNull()
+    expect(localStorage.length).toBe(0)
+    expect(sessionStorage.length).toBe(0)
+
+    // Stored in non-sensitive cookie
+    expect(getCookie(LANGUAGE_COOKIE_KEY)).toBe('ar')
   })
 
   it('falls back to French for unsupported languages', () => {

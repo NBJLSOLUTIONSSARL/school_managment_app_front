@@ -60,7 +60,14 @@ export function NotificationList() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setNotifications(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setNotifications(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
@@ -89,6 +96,25 @@ export function NotificationList() {
     }
   }, [loadNotifications])
 
+  // Synchronize across views with edutrack:notifications-updated
+  useEffect(() => {
+    function handleNotificationsUpdated(event) {
+      const { id, action } = event.detail || {}
+      if (action === 'READ' && id) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        )
+      } else if (action === 'DELETE' && id) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id))
+        setTotalItems((prev) => Math.max(0, prev - 1))
+      }
+    }
+
+    window.addEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+    return () =>
+      window.removeEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+  }, [])
+
   const filteredNotifications = useMemo(() => {
     return notifications.filter((n) => {
       if (typeFilter !== 'ALL' && n.type !== typeFilter) return false
@@ -106,6 +132,11 @@ export function NotificationList() {
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         )
         success('Notification marquée comme lue.')
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id, action: 'READ' },
+          })
+        )
       } else {
         toastError(res.error?.message || 'Erreur lors de la mise à jour.')
       }
@@ -121,6 +152,11 @@ export function NotificationList() {
       const res = await notificationService.deleteNotification(deleteTarget.id)
       if (res.success) {
         success('Notification supprimée.')
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id: deleteTarget.id, action: 'DELETE' },
+          })
+        )
         setDeleteTarget(null)
         loadNotifications()
       } else {
@@ -199,11 +235,14 @@ export function NotificationList() {
     },
   ]
 
+  const isFiltered = typeFilter !== 'ALL' || readFilter !== 'ALL'
+  const displayCount = isFiltered ? filteredNotifications.length : totalItems
+
   return (
     <div className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Centre de Notifications"
-        count={totalItems}
+        count={displayCount}
       />
 
       {/* Filter Bar */}
@@ -258,8 +297,8 @@ export function NotificationList() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cette notification ?"
-          message="Voulez-vous supprimer définitivement cette notification ?"
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
+          description="Voulez-vous supprimer définitivement cette notification ?"
+          confirmText={isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

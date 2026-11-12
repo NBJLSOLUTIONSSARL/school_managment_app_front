@@ -15,24 +15,17 @@ export function MessageDetailsModal({
   const isRecipient = message && currentUserId && Number(message.recipientId) === Number(currentUserId)
 
   useEffect(() => {
-    if (isOpen && message && !message.read && isRecipient) {
-      let active = true
-      const mark = async () => {
-        try {
-          const res = await messageService.markAsRead(message.id)
-          if (active && res.success) {
+    if (isOpen && message?.id && !message.read && isRecipient) {
+      messageService
+        .markAsRead(message.id)
+        .then((res) => {
+          if (res?.success) {
             onMessageRead?.(message.id)
           }
-        } catch {
-          // ignore mark as read failure
-        }
-      }
-      mark()
-      return () => {
-        active = false
-      }
+        })
+        .catch(() => {})
     }
-  }, [isOpen, message, isRecipient, onMessageRead])
+  }, [isOpen, message?.id, message?.read, isRecipient, onMessageRead])
 
   if (!message) return null
 

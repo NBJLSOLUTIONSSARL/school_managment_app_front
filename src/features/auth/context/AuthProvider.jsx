@@ -1,111 +1,24 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { AuthContext } from './AuthContext'
-import { ApiError, apiRequest } from '@/features/auth/api/authApi'
+import { ApiError, apiRequest, getMe, updateUserLanguage } from '@/features/auth/api/authApi'
+import { useI18n } from '@/hooks/useI18n'
+import { setTokens, clearTokens, setCurrentUser } from '@/utils/tokenStorage'
+import { resetRedirectFlag } from '@/lib/axios'
 import {
-  getAccessToken,
-  setTokens,
-  clearTokens,
-  getCurrentUser,
-  setCurrentUser,
-} from '@/utils/tokenStorage'
-
-const knownRoles = new Set(['ROLE_ADMIN', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_STAFF'])
-const expiredMessage = 'Votre session a expiré ou a été révoquée. Reconnectez-vous.'
-
-function normalizeRole(r) {
-  if (typeof r !== 'string') return ''
-  const upper = r.toUpperCase()
-  return upper.startsWith('ROLE_') ? upper : `ROLE_${upper}`
-}
-
-function readSession(response, requestedAt) {
-  const data = response?.data
-  const user = data?.user
-  const stringArray = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string' && item.length > 0)
-  if (response?.success !== true || data?.tokenType !== 'Bearer' || typeof data.accessToken !== 'string'
-    || !Number.isFinite(data.expiresIn) || data.expiresIn <= 0 || !user || user.active !== true
-    || !Number.isSafeInteger(user.id) || user.id <= 0 || typeof user.email !== 'string'
-    || !stringArray(user.roles) || !stringArray(user.permissions)) {
-    throw new ApiError(0, 'Réponse de connexion invalide. Réessayez.')
-  }
-  let claims
-  try {
-    const parts = data.accessToken.split('.')
-    if (parts.length !== 3) throw new Error()
-    const encoded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    claims = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
-  } catch {
-    throw new ApiError(0, 'Réponse de connexion invalide. Réessayez.')
-  }
-  if (!Number.isFinite(claims.exp) || claims.type === 'REFRESH') throw new ApiError(401, expiredMessage)
-  const expiresAt = Math.min(claims.exp * 1000, requestedAt + data.expiresIn * 1000)
-  if (expiresAt <= Date.now()) throw new ApiError(401, expiredMessage)
-
-  const filteredRoles = [...new Set(user.roles.filter((role) => knownRoles.has(role)))]
-  const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.name || (user.email ? user.email.split('@')[0] : 'Utilisateur')
-
-  return {
-    accessToken: data.accessToken,
-    expiresAt,
-    user: {
-      id: user.id,
-      email: user.email,
-      name,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      photoUrl: user.photoUrl,
-      language: user.language,
-      active: user.active,
-      twoFactorEnabled: user.twoFactorEnabled,
-      roles: filteredRoles,
-      permissions: [...new Set(user.permissions)],
-    },
-  }
-}
-
-function restoreInitialSession() {
-  const token = getAccessToken()
-  const user = getCurrentUser()
-  if (!token || !user) return null
-
-  let expiresAt = Date.now() + 3600000
-  try {
-    const parts = token.split('.')
-    if (parts.length === 3) {
-      const encoded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-      const claims = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
-      if (Number.isFinite(claims.exp)) {
-        expiresAt = claims.exp * 1000
-        if (expiresAt <= Date.now()) {
-          clearTokens()
-          return null
-        }
-      }
-    }
-  } catch {
-    // If not a parseable JWT, allow token
-  }
-
-  const userRoles = Array.isArray(user.roles) ? user.roles : [user.role || 'ROLE_ADMIN']
-  const normalizedRoles = userRoles.map(normalizeRole).filter((r) => knownRoles.has(r))
-  const name = user.name || [user.firstName, user.lastName].filter(Boolean).join(' ') || (user.email ? user.email.split('@')[0] : 'Utilisateur')
-
-  return {
-    accessToken: token,
-    expiresAt,
-    user: {
-      ...user,
-      name,
-      roles: normalizedRoles.length ? normalizedRoles : ['ROLE_ADMIN'],
-      permissions: Array.isArray(user.permissions) ? user.permissions : [],
-    },
-  }
-}
+  knownRoles,
+  expiredMessage,
+  normalizeRole,
+  hasSessionIndicator,
+  setSessionIndicator,
+  normalizeUser,
+  readSession,
+  restoreInitialSession,
+} from '@/features/auth/utils/authSessionUtils'
 
 export function AuthProvider({ children }) {
+  const { setLanguage } = useI18n()
   const [session, setSession] = useState(() => restoreInitialSession())
-  const [isLoading, setLoading] = useState(false)
+  const [isLoading, setLoading] = useState(() => !session && hasSessionIndicator())
   const [notice, setNotice] = useState('')
   const current = useRef(session)
   const operation = useRef(0)
@@ -120,14 +33,83 @@ export function AuthProvider({ children }) {
     current.current = null
     busy.current = false
     clearTokens()
+    setSessionIndicator(false)
     setSession(null)
     setLoading(false)
     setNotice(message)
   }, [])
 
+  const refreshProfile = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await getMe()
+      const data = res?.data
+      if (res?.success && data) {
+        const user = normalizeUser(data.user || data)
+        if (user) {
+          const nextSession = {
+            accessToken: '',
+            expiresAt: Date.now() + 86400000,
+            user,
+          }
+          current.current = nextSession
+          setSession(nextSession)
+          setCurrentUser(user)
+          setSessionIndicator(true)
+
+          if (user.language && ['fr', 'en', 'ar'].includes(user.language)) {
+            setLanguage(user.language)
+          }
+          return user
+        }
+      }
+      clearSession()
+      return null
+    } catch {
+      clearSession()
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }, [clearSession, setLanguage])
+
+  useEffect(() => {
+    if (!current.current && hasSessionIndicator()) {
+      refreshProfile()
+    }
+  }, [refreshProfile])
+
+  useEffect(() => {
+    const userLang = session?.user?.language
+    if (userLang && (userLang === 'fr' || userLang === 'en' || userLang === 'ar')) {
+      setLanguage(userLang)
+    }
+  }, [session?.user?.language, setLanguage])
+
+  useEffect(() => {
+    const handleLanguageChange = async (event) => {
+      const newLang = event.detail?.language
+      const activeUser = current.current?.user
+      if (!newLang || !activeUser) return
+
+      try {
+        await updateUserLanguage({ language: newLang, token: current.current?.accessToken })
+        setSession((prev) => {
+          if (!prev?.user) return prev
+          const updatedUser = { ...prev.user, language: newLang }
+          setCurrentUser(updatedUser)
+          return { ...prev, user: updatedUser }
+        })
+      } catch {
+      }
+    }
+
+    window.addEventListener('edutrack:language-change', handleLanguageChange)
+    return () => window.removeEventListener('edutrack:language-change', handleLanguageChange)
+  }, [])
+
   useEffect(() => () => { operation.current += 1; current.current = null; busy.current = false }, [])
 
-  // Listen for global 401 unauthorized event dispatched by Axios interceptor
   useEffect(() => {
     function handleUnauthorized() {
       clearSession(expiredMessage)
@@ -158,7 +140,62 @@ export function AuthProvider({ children }) {
     }
   }, [session, clearSession])
 
-  const login = useCallback(async ({ email, password, role = 'admin', name = 'Administrateur' }) => {
+  const login = useCallback(async ({ email, password }) => {
+    if (busy.current) {
+      throw new ApiError(409, 'Une tentative de connexion est déjà en cours de traitement.')
+    }
+    const id = ++operation.current
+    busy.current = true
+    current.current = null
+    setSession(null)
+    clearTokens()
+    setNotice('')
+    setLoading(true)
+    const requestedAt = Date.now()
+    try {
+      const response = await apiRequest('/api/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim(), password }),
+      })
+
+      if (operation.current !== id) return false
+      setSessionIndicator(true)
+
+      let next
+      if (response?.data?.user) {
+        next = readSession(response, requestedAt)
+      } else {
+        const meRes = await apiRequest('/api/v1/auth/me')
+        const user = normalizeUser(meRes?.data?.user || meRes?.data)
+        next = {
+          accessToken: response?.data?.accessToken || '',
+          expiresAt: requestedAt + (response?.data?.expiresIn || 86400) * 1000,
+          user,
+        }
+      }
+
+      current.current = next
+      setSession(next)
+      if (next.accessToken) {
+        setTokens({ accessToken: next.accessToken, refreshToken: next.accessToken })
+      }
+      setCurrentUser(next.user)
+      resetRedirectFlag()
+
+      if (next.user?.language && ['fr', 'en', 'ar'].includes(next.user.language)) {
+        setLanguage(next.user.language)
+      }
+
+      return true
+    } finally {
+      if (operation.current === id) {
+        busy.current = false
+        setLoading(false)
+      }
+    }
+  }, [setLanguage])
+
+  const loginWithGoogle = useCallback(async ({ code, codeVerifier, state, nonce, redirectUri }) => {
     if (busy.current) return false
     const id = ++operation.current
     busy.current = true
@@ -169,53 +206,22 @@ export function AuthProvider({ children }) {
     setLoading(true)
     const requestedAt = Date.now()
     try {
-      let response
-      try {
-        response = await apiRequest('/api/v1/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ email: email.trim(), password }),
-        })
-      } catch (err) {
-        const isDev = Boolean(import.meta.env?.DEV)
-        // In production/staging, never synthesize mock credentials; always propagate backend errors.
-        // In local development, only fall back if backend server is unreachable (status 0, 404, or 503).
-        if (!isDev || (err.status && err.status !== 0 && err.status !== 404 && err.status !== 503)) {
-          throw err
-        }
-        // Fallback for offline local dev simulation
-        const mockAccessToken = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
-        const normRoles = (Array.isArray(role) ? role : [role]).map(normalizeRole).filter((r) => knownRoles.has(r))
-        const activeRoles = normRoles.length ? normRoles : ['ROLE_ADMIN']
-        const mockUser = {
-          id: 1,
-          email: email || 'admin@school.edu',
-          name: name || (email ? email.split('@')[0] : 'Administrateur'),
-          firstName: name?.split(' ')[0] || 'Admin',
-          lastName: name?.split(' ')[1] || 'User',
-          roles: activeRoles,
-          permissions: ['users:read', 'classes:read', 'classes:write'],
-          active: true,
-        }
-        const mockSession = {
-          accessToken: mockAccessToken,
-          expiresAt: Date.now() + 3600000,
-          user: mockUser,
-        }
-        if (operation.current === id) {
-          current.current = mockSession
-          setSession(mockSession)
-          setTokens({ accessToken: mockAccessToken, refreshToken: mockAccessToken })
-          setCurrentUser(mockUser)
-        }
-        return { success: true, user: mockUser }
-      }
-
+      const response = await apiRequest('/api/v1/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ code, codeVerifier, state, nonce, redirectUri }),
+      })
       if (operation.current !== id) return false
+      setSessionIndicator(true)
       const next = readSession(response, requestedAt)
       current.current = next
       setSession(next)
-      setTokens({ accessToken: next.accessToken, refreshToken: next.accessToken })
+      if (next.accessToken) {
+        setTokens({ accessToken: next.accessToken, refreshToken: next.accessToken })
+      }
       setCurrentUser(next.user)
+      if (next.user?.language && ['fr', 'en', 'ar'].includes(next.user.language)) {
+        setLanguage(next.user.language)
+      }
       return true
     } finally {
       if (operation.current === id) {
@@ -223,6 +229,59 @@ export function AuthProvider({ children }) {
         setLoading(false)
       }
     }
+  }, [setLanguage])
+
+  const initiateGoogleLink = useCallback(async ({ password }) => {
+    const active = current.current
+    const token = active?.accessToken
+    return apiRequest('/api/v1/auth/google/init-link', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ password }),
+    })
+  }, [])
+
+  const linkGoogleAccount = useCallback(async ({ code, codeVerifier, state, nonce, redirectUri, linkToken }) => {
+    const active = current.current
+    const token = active?.accessToken
+    const requestedAt = Date.now()
+    const response = await apiRequest('/api/v1/auth/google/link', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ code, codeVerifier, state, nonce, redirectUri, linkToken }),
+    })
+    const next = readSession(response, requestedAt)
+    current.current = next
+    setSession(next)
+    if (next.accessToken) {
+      setTokens({ accessToken: next.accessToken, refreshToken: next.accessToken })
+    }
+    setCurrentUser(next.user)
+    return next.user
+  }, [])
+
+  const unlinkGoogleAccount = useCallback(async () => {
+    const active = current.current
+    const token = active?.accessToken
+    const response = await apiRequest('/api/v1/auth/google/link', {
+      method: 'DELETE',
+      token,
+    })
+    const updatedUser = response?.data
+    if (current.current) {
+      const nextSession = {
+        ...current.current,
+        user: {
+          ...current.current.user,
+          ...(updatedUser || {}),
+          googleLinked: false,
+        },
+      }
+      current.current = nextSession
+      setSession(nextSession)
+      setCurrentUser(nextSession.user)
+    }
+    return response?.data || true
   }, [])
 
   const logout = useCallback(async () => {
@@ -237,7 +296,6 @@ export function AuthProvider({ children }) {
       const result = await apiRequest('/api/v1/auth/logout', { method: 'POST', token: previous.accessToken })
       revoked = result?.success === true
     } catch {
-      // Local cleanup is unconditional; server revocation is never assumed.
     } finally {
       if (operation.current === id) {
         busy.current = false
@@ -281,16 +339,20 @@ export function AuthProvider({ children }) {
       return (
         roles.includes(norm) ||
         (knownRoles.has(r) && roles.includes(r)) ||
-        (norm === 'ROLE_SUPER_ADMIN' && roles.includes('ROLE_ADMIN'))
+        (norm === 'ROLE_ADMIN' && roles.includes('ROLE_SUPER_ADMIN'))
       )
     })
   }, [roles])
 
   const hasAnyRole = useCallback((requiredRoles) => {
-    return Array.isArray(requiredRoles) && requiredRoles.some(hasRole)
+    if (!requiredRoles) return false
+    const needed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+    return needed.some((r) => hasRole(r))
   }, [hasRole])
 
   const hasPermission = useCallback((permission) => {
+    if (!permission) return false
+    if (permissions.includes('*')) return true
     return permissions.includes(permission)
   }, [permissions])
 
@@ -305,13 +367,18 @@ export function AuthProvider({ children }) {
       isLoading,
       notice,
       login,
+      loginWithGoogle,
+      initiateGoogleLink,
+      linkGoogleAccount,
+      unlinkGoogleAccount,
       logout,
       request,
+      refreshProfile,
       hasRole,
       hasAnyRole,
       hasPermission,
     }),
-    [session, roles, permissions, isLoading, notice, login, logout, request, hasRole, hasAnyRole, hasPermission]
+    [session, roles, permissions, isLoading, notice, login, loginWithGoogle, initiateGoogleLink, linkGoogleAccount, unlinkGoogleAccount, logout, request, refreshProfile, hasRole, hasAnyRole, hasPermission]
   )
 
   return (

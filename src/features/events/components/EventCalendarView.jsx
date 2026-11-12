@@ -5,10 +5,28 @@ import { cn } from '@/utils/classNames'
 
 const WEEK_DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
-export function EventCalendarView({ events = [], onSelectEvent }) {
-  const [currentDate, setCurrentDate] = useState(() => new Date())
+export function EventCalendarView({ events = [], onSelectEvent, selectedDate }) {
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (selectedDate) {
+      const d = new Date(selectedDate)
+      if (!Number.isNaN(d.getTime())) return d
+    }
+    return new Date()
+  })
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate)
   const [todayDate] = useState(() => new Date())
   const [calendarMode, setCalendarMode] = useState('month') // 'month' | 'week'
+
+  // Synchronize currentDate when selectedDate changes (e.g. from date filter)
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate)
+    if (selectedDate) {
+      const d = new Date(selectedDate)
+      if (!Number.isNaN(d.getTime())) {
+        setCurrentDate(d)
+      }
+    }
+  }
 
   // Navigation handlers
   const handlePrev = () => {

@@ -531,6 +531,34 @@ describe('AnalysesPage parental consent enforcement', () => {
     expect(generateBtn).toBeDisabled()
   })
 
+  it('masks analysis detail content when consent is missing (not just revoked)', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getAllByText(/consentement parental manquant/i).length).toBeGreaterThan(0))
+
+    const viewBtn = screen.getAllByRole('button', { title: /voir le détail/i }).find((b) => !b.disabled)
+    fireEvent.click(viewBtn)
+
+    await waitFor(() => expect(screen.getByText(/diagnostic protégé verrouillé/i)).toBeInTheDocument())
+    expect(screen.queryByText('Participation soutenue en classe.')).not.toBeInTheDocument()
+  })
+
   it('updates consent status dynamically when edutrack:consent-changed event fires', async () => {
     const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
     let currentGranted = false

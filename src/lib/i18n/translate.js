@@ -1,6 +1,7 @@
 import { DEFAULT_LANGUAGE, translations } from './translations'
 
 function resolve(dictionary, key) {
+  if (!dictionary || typeof dictionary !== 'object') return undefined
   return key.split('.').reduce((accumulator, part) => {
     if (accumulator && typeof accumulator === 'object' && part in accumulator) {
       return accumulator[part]
@@ -14,21 +15,29 @@ function resolve(dictionary, key) {
  *
  * @param {string} language
  * @param {string} key
- * @param {Record<string, unknown>} [vars]
+ * @param {Record<string, unknown> | string} [varsOrFallback]
+ * @param {string} [optionalFallback]
  * @returns {string}
  */
-export function translate(language, key, vars) {
+export function translate(language, key, varsOrFallback, optionalFallback) {
   const dictionary = translations[language] || translations[DEFAULT_LANGUAGE]
-  const fallback = translations[DEFAULT_LANGUAGE]
+  const fallbackDict = translations[DEFAULT_LANGUAGE]
 
-  const value = resolve(dictionary, key) ?? resolve(fallback, key)
+  const resolvedValue = resolve(dictionary, key) ?? resolve(fallbackDict, key)
 
-  if (typeof value !== 'string') return key
+  const hasVars = varsOrFallback && typeof varsOrFallback === 'object' && !Array.isArray(varsOrFallback)
+  const fallbackStr = typeof varsOrFallback === 'string' ? varsOrFallback : optionalFallback
 
-  if (!vars) return value
+  if (typeof resolvedValue !== 'string') {
+    return fallbackStr || key
+  }
 
-  return value.replace(/\{(\w+)\}/g, (match, name) =>
-    vars[name] === undefined || vars[name] === null ? match : String(vars[name])
+  if (!hasVars) return resolvedValue
+
+  return resolvedValue.replace(/\{(\w+)\}/g, (match, name) =>
+    varsOrFallback[name] === undefined || varsOrFallback[name] === null
+      ? match
+      : String(varsOrFallback[name])
   )
 }
 

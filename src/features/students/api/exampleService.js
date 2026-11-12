@@ -38,7 +38,7 @@ export const exampleService = {
         })
       } catch (err) {
         // Fallback avec mock Spring Page pour tester sans backend actif
-        if (err?.code === 'ERR_NETWORK' || err?.response?.status === 404 || err?.response?.status === 401 || !err?.response) {
+        if (err?.code === 'ERR_NETWORK' || err?.code === 'ECONNREFUSED' || !err?.response || err?.response?.status === 404 || err?.response?.status === 401) {
           const mockStudents = generateMockStudents(42)
           const start = springPage * size
           const content = mockStudents.slice(start, start + size)
@@ -101,7 +101,7 @@ export const exampleService = {
         })
       } catch (err) {
         // Fallback avec mock PageResponse
-        if (err?.code === 'ERR_NETWORK' || err?.response?.status === 404 || err?.response?.status === 401 || !err?.response) {
+        if (err?.code === 'ERR_NETWORK' || err?.code === 'ECONNREFUSED' || !err?.response || err?.response?.status === 404 || err?.response?.status === 401) {
           const mockInvoices = generateMockInvoices(18)
           const start = (page - 1) * size
           const items = mockInvoices.slice(start, start + size)

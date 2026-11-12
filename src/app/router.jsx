@@ -4,6 +4,9 @@ import { PrivateLayout } from '@/components/layout/PrivateLayout'
 import { RoleGuard } from '@/components/layout/RoleGuard'
 
 import { LoginPage } from '@/routes/LoginPage'
+import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/routes/ResetPasswordPage'
+import { GoogleCallbackPage } from '@/routes/GoogleCallbackPage'
 import { DashboardPage } from '@/routes/DashboardPage'
 import { StudentListPage } from '@/routes/StudentListPage'
 import { TeacherListPage } from '@/routes/TeacherListPage'
@@ -40,10 +43,22 @@ export const router = createBrowserRouter([
     element: <RootIndexRedirect />,
   },
 
-  // Standalone Fullscreen Login Route matching Figma Design
+  // Standalone Fullscreen Auth Routes matching EduTrack Design
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
+  },
+  {
+    path: '/auth/google/callback',
+    element: <GoogleCallbackPage />,
   },
 
   // Public Layout routes
@@ -144,7 +159,10 @@ export const router = createBrowserRouter([
       {
         path: '/observations',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
+            requiredPermission="PERM_READ_OBSERVATION"
+          >
             <ObservationsPage />
           </RoleGuard>
         ),
@@ -152,7 +170,10 @@ export const router = createBrowserRouter([
       {
         path: '/consents',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}
+            requiredPermission="PERM_READ_CONSENT"
+          >
             <ConsentsPage />
           </RoleGuard>
         ),
@@ -160,7 +181,10 @@ export const router = createBrowserRouter([
       {
         path: '/analyses',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
+            requiredPermission="PERM_READ_ANALYSIS"
+          >
             <AnalysesPage />
           </RoleGuard>
         ),
@@ -168,7 +192,10 @@ export const router = createBrowserRouter([
       {
         path: '/strategies',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff', 'ROLE_STUDENT', 'student']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student']}
+            requiredPermission="PERM_READ_ANALYSIS"
+          >
             <StrategiesPage />
           </RoleGuard>
         ),
