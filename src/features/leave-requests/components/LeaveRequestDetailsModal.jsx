@@ -26,6 +26,7 @@ export function LeaveRequestDetailsModal({
   currentUserId,
   isAdmin,
   onStatusChanged,
+  onOpenEdit,
 }) {
   const { success, error: toastError } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -118,6 +119,19 @@ export function LeaveRequestDetailsModal({
                 Annuler ma demande
               </Button>
             )}
+            {isOwner && isPending && onOpenEdit && (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={isProcessing}
+                onClick={() => {
+                  onClose?.()
+                  onOpenEdit(leaveRequest)
+                }}
+              >
+                Modifier
+              </Button>
+            )}
           </div>
           <Button variant="secondary" size="sm" onClick={onClose} disabled={isProcessing}>
             Fermer
@@ -155,9 +169,12 @@ export function LeaveRequestDetailsModal({
           {leaveRequest.requestedAt && (
             <div className="col-span-2 text-2xs text-slate-400">
               Déposée le{' '}
-              {new Date(leaveRequest.requestedAt).toLocaleDateString('fr-FR', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
+              {new Date(leaveRequest.requestedAt).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </div>
           )}

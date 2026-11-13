@@ -6,7 +6,6 @@ import {
   Award,
   ChevronRight,
   Eye,
-  UserCheck,
 } from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { StatCard } from '@/components/ui/StatCard'
@@ -100,7 +99,7 @@ export function AdmissionsPage() {
     return nameMatch || guardianMatch
   })
 
-  const underReviewCount = applications.filter((a) => a.status === 'UNDER_REVIEW').length
+  const _underReviewCount = applications.filter((a) => a.status === 'UNDER_REVIEW').length
   const acceptedCount = applications.filter((a) => a.status === 'ACCEPTED').length
 
   const columns = [

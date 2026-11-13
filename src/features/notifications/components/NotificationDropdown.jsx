@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Info, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
 import { notificationService } from '../api/notificationService'
+import { notificationSocket } from '../services/notificationSocket'
+import { getAccessToken } from '@/utils/tokenStorage'
+import { ToastContext } from '@/context/toastContext'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/classNames'
 
@@ -22,12 +25,58 @@ function NotificationTypeIcon({ type }) {
 export function NotificationDropdown() {
   const { user, isAuthenticated } = useAuth()
   const userId = user?.id
+  const toast = useContext(ToastContext)
 
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const dropdownRef = useRef(null)
+
+  // Real-time WebSocket connection and listener
+  useEffect(() => {
+    if (!isAuthenticated) {
+      notificationSocket.disconnect()
+      return
+    }
+
+    const token = getAccessToken()
+    if (token) {
+      notificationSocket.connect(token)
+    }
+
+    const handleWsNotification = (event) => {
+      const payload = event.detail
+      if (!payload) return
+
+      const isLeave = payload.event === 'LEAVE_REQUEST_CREATED'
+      const messageText = payload.message || 'Nouvelle notification reçue.'
+
+      if (toast?.info) {
+        toast.info(messageText, isLeave ? 'Demande de congé' : 'Notification')
+      }
+
+      const newNotifItem = {
+        id: payload.notificationId || Date.now(),
+        content: messageText,
+        type: 'INFO',
+        read: false,
+        createdAt: payload.timestamp || new Date().toISOString(),
+      }
+
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === newNotifItem.id)) return prev
+        return [newNotifItem, ...prev]
+      })
+      setUnreadCount((c) => c + 1)
+    }
+
+    window.addEventListener('edutrack:ws-notification', handleWsNotification)
+
+    return () => {
+      window.removeEventListener('edutrack:ws-notification', handleWsNotification)
+    }
+  }, [isAuthenticated, toast])
 
   const fetchNotifications = useCallback(
     async (isBackground = false) => {
@@ -36,12 +85,20 @@ export function NotificationDropdown() {
       try {
         const res = await notificationService.getUserNotifications(userId, {
           page: 1,
-          size: 10,
+          size: 20,
         })
         if (res.success && res.data) {
           const items = res.data.items || []
-          setNotifications(items)
-          setUnreadCount(items.filter((n) => !n.read).length)
+          // Deduplicate items by ID
+          const map = new Map()
+          items.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          const uniqueItems = Array.from(map.values())
+          setNotifications(uniqueItems)
+          setUnreadCount(uniqueItems.filter((n) => !n.read).length)
         }
       } catch {
         // Silently tolerate background polling errors
@@ -74,6 +131,33 @@ export function NotificationDropdown() {
     return () => clearInterval(intervalId)
   }, [isAuthenticated, userId, fetchNotifications])
 
+  // Synchronize across components with edutrack:notifications-updated
+  useEffect(() => {
+    function handleNotificationsUpdated(event) {
+      const { id, action } = event.detail || {}
+      if (action === 'READ' && id) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        )
+        setUnreadCount((prev) => Math.max(0, prev - 1))
+      } else if (action === 'DELETE' && id) {
+        setNotifications((prev) => {
+          const target = prev.find((n) => n.id === id)
+          if (target && !target.read) {
+            setUnreadCount((c) => Math.max(0, c - 1))
+          }
+          return prev.filter((n) => n.id !== id)
+        })
+      } else {
+        fetchNotifications(true)
+      }
+    }
+
+    window.addEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+    return () =>
+      window.removeEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+  }, [fetchNotifications])
+
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -94,6 +178,11 @@ export function NotificationDropdown() {
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         )
         setUnreadCount((prev) => Math.max(0, prev - 1))
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id, action: 'READ' },
+          })
+        )
       }
     } catch {
       // ignore

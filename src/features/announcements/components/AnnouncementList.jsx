@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { Button } from '@/components/ui/Button'
@@ -30,11 +30,27 @@ const ROLE_LABELS = {
   STAFF: 'Personnel',
 }
 
+const STATUS_FILTER_OPTIONS = [
+  { value: 'ALL_STATUS', label: 'Tous les statuts' },
+  { value: 'PUBLISHED', label: 'Publiées' },
+  { value: 'DRAFT', label: 'Brouillons' },
+  { value: 'ARCHIVED', label: 'Archivées' },
+]
+
+const STATUS_CONFIG = {
+  PUBLISHED: { label: 'Publiée', status: 'complete' },
+  DRAFT: { label: 'Brouillon', status: 'draft' },
+  ARCHIVED: { label: 'Archivée', status: 'inactive' },
+}
+
 export function AnnouncementList() {
-  const { hasRole } = useAuth()
+  const { hasRole, hasPermission } = useAuth()
   const { success, error: toastError } = useToast()
 
-  const canManage = hasRole(['ROLE_ADMIN', 'admin'])
+  const canManage =
+    hasRole(['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']) ||
+    hasPermission?.(['PERM_ANNOUNCEMENT_WRITE', 'PERM_ANNOUNCEMENT_MANAGE'])
+  const canDelete = hasRole(['ROLE_ADMIN', 'admin']) || hasPermission?.('PERM_ANNOUNCEMENT_DELETE')
 
   // Pagination & items
   const [announcements, setAnnouncements] = useState([])
@@ -46,6 +62,7 @@ export function AnnouncementList() {
 
   // Filters
   const [targetRole, setTargetRole] = useState('ALL_FILTER')
+  const [statusFilter, setStatusFilter] = useState('ALL_STATUS')
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -54,12 +71,29 @@ export function AnnouncementList() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Dynamic audience options based on role permissions
+  const allowedRoleOptions = useMemo(() => {
+    if (canManage) return ROLE_OPTIONS
+    const isTeacher = hasRole(['ROLE_TEACHER', 'teacher'])
+    const isParent = hasRole(['ROLE_PARENT', 'parent'])
+    const isStudent = hasRole(['ROLE_STUDENT', 'student'])
+
+    return ROLE_OPTIONS.filter((opt) => {
+      if (opt.value === 'ALL_FILTER' || opt.value === 'ALL') return true
+      if (isTeacher && opt.value === 'TEACHER') return true
+      if (isParent && opt.value === 'GUARDIAN') return true
+      if (isStudent && opt.value === 'STUDENT') return true
+      return false
+    })
+  }, [canManage, hasRole])
+
   const loadAnnouncements = useCallback(
     async ({ signal } = {}) => {
       setIsLoading(true)
       try {
         const res = await announcementService.getAnnouncements({
           targetRole,
+          status: canManage ? statusFilter : 'PUBLISHED',
           page,
           size: pageSize,
           signal,
@@ -68,7 +102,14 @@ export function AnnouncementList() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setAnnouncements(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setAnnouncements(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
@@ -85,7 +126,7 @@ export function AnnouncementList() {
         }
       }
     },
-    [page, pageSize, targetRole, toastError]
+    [canManage, page, pageSize, statusFilter, targetRole, toastError]
   )
 
   useEffect(() => {
@@ -131,14 +172,23 @@ export function AnnouncementList() {
     {
       key: 'targetRole',
       label: 'Audience',
-      width: '160px',
+      width: '150px',
       render: (val) => <StatusBadge status={ROLE_LABELS[val] || val || 'ALL'} size="xs" />,
+    },
+    {
+      key: 'status',
+      label: 'Statut',
+      width: '120px',
+      render: (val) => {
+        const cfg = STATUS_CONFIG[val] || { label: val || 'Publiée', status: 'complete' }
+        return <StatusBadge status={cfg.status} label={cfg.label} size="xs" />
+      },
     },
     {
       key: 'publishedAt',
       label: 'Date de publication',
       width: '170px',
-      render: (val) =>
+      render: (val, row) =>
         val
           ? new Date(val).toLocaleDateString('fr-FR', {
               day: '2-digit',
@@ -147,7 +197,9 @@ export function AnnouncementList() {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : '-',
+          : row?.status === 'DRAFT'
+            ? 'Brouillon'
+            : '-',
     },
     {
       key: 'actions',
@@ -160,26 +212,26 @@ export function AnnouncementList() {
             Voir
           </Button>
           {canManage && (
-            <>
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => {
-                  setEditingItem(row)
-                  setIsFormOpen(true)
-                }}
-              >
-                Modifier
-              </Button>
-              <Button
-                variant="ghost"
-                size="xs"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={() => setDeleteTarget(row)}
-              >
-                Supprimer
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                setEditingItem(row)
+                setIsFormOpen(true)
+              }}
+            >
+              Modifier
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setDeleteTarget(row)}
+            >
+              Supprimer
+            </Button>
           )}
         </div>
       ),
@@ -212,13 +264,25 @@ export function AnnouncementList() {
               setTargetRole(val)
               setPage(1)
             }}
-            options={ROLE_OPTIONS}
+            options={allowedRoleOptions}
           />
         </div>
+        {canManage && (
+          <div className="w-48">
+            <Select
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(val)
+                setPage(1)
+              }}
+              options={STATUS_FILTER_OPTIONS}
+            />
+          </div>
+        )}
         <div className="ml-auto text-2xs text-slate-400">
           {canManage
-            ? 'Gestion active : Vous pouvez créer, modifier ou supprimer des annonces.'
-            : 'Consultation : Annonces ciblées selon votre profil.'}
+            ? 'Gestion active : Vous pouvez créer, modifier ou archiver des annonces.'
+            : 'Consultation : Annonces publiées ciblées selon votre profil.'}
         </div>
       </div>
 
@@ -299,8 +363,8 @@ export function AnnouncementList() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cette annonce ?"
-          message={`Êtes-vous sûr de vouloir supprimer l'annonce "${deleteTarget.title}" ? Cette action est irréversible.`}
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
+          description={`Êtes-vous sûr de vouloir supprimer l'annonce "${deleteTarget.title}" ? Cette action est irréversible.`}
+          confirmText={isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

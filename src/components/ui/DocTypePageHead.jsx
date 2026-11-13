@@ -33,7 +33,7 @@ export function DocTypePageHead({
   const primaryClick = isPrimaryObject
     ? primaryAction.onClick || onPrimaryAction
     : onPrimaryAction
-  const primaryVariant = isPrimaryObject ? primaryAction.variant || 'primary' : 'primary'
+  const _primaryVariant = isPrimaryObject ? primaryAction.variant || 'primary' : 'primary'
 
   // Safely normalize secondary actions
   const normalizedSecondaryActions = Array.isArray(secondaryActions)

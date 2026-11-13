@@ -262,3 +262,175 @@ describe('StrategiesPage follow-up actions', () => {
     await waitFor(() => expect(screen.getByText(/aucune action de suivi/i)).toBeInTheDocument())
   })
 })
+
+describe('StrategiesPage parental consent enforcement (§4.18)', () => {
+  const mockAnalysis = {
+    id: 42,
+    studentId: 7,
+    termId: 1,
+    status: 'PUBLISHED',
+    model: 'gpt-4o-mini',
+    generatedAt: '2026-11-10T10:00:00',
+    summary: 'Résumé des progrès',
+    strengths: 'Curiosité intellectuelle',
+    difficulties: 'Régularité des révisions',
+    trends: 'Progression constante',
+  }
+
+  const missingConsents = {
+    content: [],
+    page: 0,
+    size: 10,
+    totalElements: 0,
+    totalPages: 0,
+  }
+
+  const revokedConsents = {
+    content: [{ id: 102, studentId: 7, guardianId: 5, granted: false, grantedAt: null }],
+    page: 0,
+    size: 10,
+    totalElements: 1,
+    totalPages: 1,
+  }
+
+  const grantedConsents = {
+    content: [{ id: 101, studentId: 7, guardianId: 5, granted: true, grantedAt: '2026-11-01T12:00:00' }],
+    page: 0,
+    size: 10,
+    totalElements: 1,
+    totalPages: 1,
+  }
+
+  it('masks protected strategy content and shows warning when parental consent is missing', async () => {
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_ANALYSIS', 'PERM_WRITE_STRATEGY', 'PERM_READ_CONSENT'],
+    })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/follow-up-actions')) return Promise.resolve(actionsResponse)
+      if (url.includes('/api/learning-strategies/1')) return Promise.resolve(strategy)
+      if (url.includes('/api/ai-analyses/42')) return Promise.resolve(mockAnalysis)
+      if (url.includes('/api/ai-consents/student/7')) return Promise.resolve(missingConsents)
+      return Promise.reject(new Error('Unknown url: ' + url))
+    })
+
+    const input = screen.getByLabelText(/identifiant de stratégie/i)
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /charger/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/consentement parental manquant/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/stratégie pédagogique protégée verrouillée/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/objectifs pédagogiques/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(followUpAction.description)).not.toBeInTheDocument()
+  })
+
+  it('masks protected strategy content and displays banner when parental consent is revoked', async () => {
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_ANALYSIS', 'PERM_WRITE_STRATEGY', 'PERM_READ_CONSENT'],
+    })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/follow-up-actions')) return Promise.resolve(actionsResponse)
+      if (url.includes('/api/learning-strategies/1')) return Promise.resolve(strategy)
+      if (url.includes('/api/ai-analyses/42')) return Promise.resolve(mockAnalysis)
+      if (url.includes('/api/ai-consents/student/7')) return Promise.resolve(revokedConsents)
+      return Promise.reject(new Error('Unknown url: ' + url))
+    })
+
+    const input = screen.getByLabelText(/identifiant de stratégie/i)
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /charger/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/consentement parental révoqué/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/stratégie pédagogique protégée verrouillée/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/objectifs pédagogiques/i)).not.toBeInTheDocument()
+  })
+
+  it('dynamically unlocks strategy when edutrack:consent-changed event is fired', async () => {
+    let currentConsents = revokedConsents
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_ANALYSIS', 'PERM_WRITE_STRATEGY', 'PERM_READ_CONSENT'],
+    })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/follow-up-actions')) return Promise.resolve(actionsResponse)
+      if (url.includes('/api/learning-strategies/1')) return Promise.resolve(strategy)
+      if (url.includes('/api/ai-analyses/42')) return Promise.resolve(mockAnalysis)
+      if (url.includes('/api/ai-consents/student/7')) return Promise.resolve(currentConsents)
+      return Promise.reject(new Error('Unknown url: ' + url))
+    })
+
+    const input = screen.getByLabelText(/identifiant de stratégie/i)
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /charger/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/stratégie pédagogique protégée verrouillée/i)).toBeInTheDocument()
+    })
+
+    currentConsents = grantedConsents
+    fireEvent(window, new CustomEvent('edutrack:consent-changed', { detail: { studentId: 7 } }))
+
+    await waitFor(() => {
+      expect(screen.queryByText(/stratégie pédagogique protégée verrouillée/i)).not.toBeInTheDocument()
+      expect(screen.getByDisplayValue(strategy.goals)).toBeInTheDocument()
+    })
+  })
+})
+
+describe('StrategiesPage role-appropriate presentation (§4.18)', () => {
+  it('displays student-specific advice and goals without parent advice or editing form for ROLE_STUDENT', async () => {
+    const { auth } = renderPage({
+      user: { id: 7, email: 'student@school.test', roles: ['ROLE_STUDENT'] },
+      permissions: ['PERM_READ_ANALYSIS'],
+      hasRole: (roles) => (Array.isArray(roles) ? roles.includes('ROLE_STUDENT') : roles === 'ROLE_STUDENT'),
+    })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/follow-up-actions')) return Promise.resolve(actionsResponse)
+      if (url.includes('/api/learning-strategies/1')) return Promise.resolve(strategy)
+      return Promise.reject(new Error('Unknown url: ' + url))
+    })
+
+    const input = screen.getByLabelText(/identifiant de stratégie/i)
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /charger/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/vos conseils d’apprentissage personnalisés/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/conseils pour votre apprentissage/i)).toBeInTheDocument()
+    expect(screen.getByText(strategy.studentAdvice)).toBeInTheDocument()
+    expect(screen.getByText(strategy.goals)).toBeInTheDocument()
+    expect(screen.queryByText(strategy.parentAdvice)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/objectifs pédagogiques/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /enregistrer/i })).not.toBeInTheDocument()
+  })
+
+  it('displays parent advice and recommendations without editing forms for ROLE_PARENT', async () => {
+    const { auth } = renderPage({
+      user: { id: 5, email: 'parent@school.test', roles: ['ROLE_PARENT'] },
+      permissions: ['PERM_READ_ANALYSIS'],
+      hasRole: (roles) => (Array.isArray(roles) ? roles.includes('ROLE_PARENT') : roles === 'ROLE_PARENT'),
+    })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/follow-up-actions')) return Promise.resolve(actionsResponse)
+      if (url.includes('/api/learning-strategies/1')) return Promise.resolve(strategy)
+      return Promise.reject(new Error('Unknown url: ' + url))
+    })
+
+    const input = screen.getByLabelText(/identifiant de stratégie/i)
+    fireEvent.change(input, { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: /charger/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/stratégie d’accompagnement de votre enfant/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText(/conseils aux parents/i)).toBeInTheDocument()
+    expect(screen.getByText(strategy.parentAdvice)).toBeInTheDocument()
+    expect(screen.getByText(strategy.recommendations)).toBeInTheDocument()
+    expect(screen.getByText(strategy.goals)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/objectifs pédagogiques/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /enregistrer/i })).not.toBeInTheDocument()
+  })
+})

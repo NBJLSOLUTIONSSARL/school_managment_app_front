@@ -6,12 +6,10 @@ import {
   Search,
   SlidersHorizontal,
   Settings,
-  Download,
   ChevronDown,
   Plus,
   User,
   MapPin,
-  Filter,
   X,
 } from 'lucide-react'
 
@@ -27,12 +25,12 @@ export function TableToolbar({
   primaryActionLabel = 'New item',
   onPrimaryAction,
   filters = [],
-  onFilterChange,
+  onFilterChange: _onFilterChange,
   showFilters = true,
   className = '',
 }) {
   const [internalView, setInternalView] = useState(activeView)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [_isSearchOpen, _setIsSearchOpen] = useState(false)
 
   const currentView = onViewChange ? activeView : internalView
   const handleViewClick = (v) => {

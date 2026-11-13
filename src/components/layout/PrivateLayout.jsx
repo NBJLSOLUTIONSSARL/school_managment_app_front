@@ -16,6 +16,7 @@ import {
   Eye,
   ShieldCheck,
   Brain,
+  Compass,
   Megaphone,
   Calendar,
   Mail,
@@ -38,7 +39,7 @@ import { cn } from '@/utils/classNames'
 import { PageLoader } from '@/components/ui/Loader'
 
 export function PrivateLayout() {
-  const { user, logout, isAuthenticated, hasRole, isLoading } = useAuth()
+  const { user, logout, isAuthenticated, hasRole, hasPermission, isLoading } = useAuth()
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
@@ -191,24 +192,35 @@ export function PrivateLayout() {
     { label: t('nav.homework'), to: '/homework', icon: BookOpen, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
     { label: t('nav.reportCards'), to: '/report-cards', icon: FileText, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
     {
-      label: t('nav.observations'),
+      label: t('nav.observations', 'Observations'),
       to: '/observations',
       icon: Eye,
-      roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin'],
+      roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher'],
+      permission: 'PERM_READ_OBSERVATION',
       section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
     {
-      label: t('nav.consents'),
+      label: t('nav.consents', 'Consentements'),
       to: '/consents',
       icon: ShieldCheck,
-      roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin'],
+      roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
+      permission: 'PERM_READ_CONSENT',
       section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
     {
-      label: t('nav.analyses'),
+      label: t('nav.analyses', 'Analyses IA'),
       to: '/analyses',
       icon: Brain,
-      roles: ['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin'],
+      roles: ['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher'],
+      permission: 'PERM_READ_ANALYSIS',
+      section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
+    },
+    {
+      label: t('nav.strategies', 'Stratégies'),
+      to: '/strategies',
+      icon: Compass,
+      roles: ['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student'],
+      permission: 'PERM_READ_ANALYSIS',
       section: t('nav.pedagogicalAi', 'IA PÉDAGOGIQUE').toUpperCase(),
     },
     { label: t('nav.announcements'), to: '/announcements', icon: Megaphone, section: t('nav.communicationAdmin', 'COMMUNICATION & ADMIN').toUpperCase() },
@@ -239,7 +251,18 @@ export function PrivateLayout() {
     },
   ]
 
-  const visibleNavItems = navItems.filter((item) => !item.roles || hasRole(item.roles))
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.roles && !hasRole(item.roles)) {
+      return false
+    }
+    if (item.permission && (!hasPermission || !hasPermission(item.permission))) {
+      return false
+    }
+    if (item.permissions && (!hasPermission || !item.permissions.some((p) => hasPermission(p)))) {
+      return false
+    }
+    return true
+  })
 
   return (
     <div className="flex h-screen h-dvh max-h-screen overflow-hidden bg-[#F8FAFC] font-sans text-[#0F172A]">

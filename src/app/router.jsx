@@ -159,7 +159,10 @@ export const router = createBrowserRouter([
       {
         path: '/observations',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
+            requiredPermission="PERM_READ_OBSERVATION"
+          >
             <ObservationsPage />
           </RoleGuard>
         ),
@@ -167,7 +170,10 @@ export const router = createBrowserRouter([
       {
         path: '/consents',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}
+            requiredPermission="PERM_READ_CONSENT"
+          >
             <ConsentsPage />
           </RoleGuard>
         ),
@@ -175,7 +181,10 @@ export const router = createBrowserRouter([
       {
         path: '/analyses',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
+            requiredPermission="PERM_READ_ANALYSIS"
+          >
             <AnalysesPage />
           </RoleGuard>
         ),
@@ -183,7 +192,10 @@ export const router = createBrowserRouter([
       {
         path: '/strategies',
         element: (
-          <RoleGuard allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin']}>
+          <RoleGuard
+            allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student']}
+            requiredPermission="PERM_READ_ANALYSIS"
+          >
             <StrategiesPage />
           </RoleGuard>
         ),

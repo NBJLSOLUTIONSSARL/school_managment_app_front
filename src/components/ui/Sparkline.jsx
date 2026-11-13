@@ -9,7 +9,7 @@ export function Sparkline({
   strokeWidth = 2,
   className = '',
 }) {
-  const gradientId = useId()
+  const _gradientId = useId()
   const isPositive = trend === 'up' || trend === 'positive'
   const strokeColor = color || (isPositive ? '#10B981' : '#EF4444')
 

@@ -45,7 +45,7 @@ export function StudentList() {
   // Filter state
   const [nameSearch, setNameSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
-  const [sortParam, setSortParam] = useState('id,desc')
+  const [sortParam, _setSortParam] = useState('id,desc')
   const [activeView, setActiveView] = useState('table')
   const [copiedId, setCopiedId] = useState(null)
 
