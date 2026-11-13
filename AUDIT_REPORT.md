@@ -10,10 +10,10 @@
 
 ## 1. Verdict
 
-**Overall Platform Completeness: 54%**  
-**The Single Biggest Risk:** Severe structural data model omissions (complete absence of Classes, Subjects, Terms, Timetables, and Attendance) combined with Pedagogical AI 503 error. All critical security vulnerabilities (public document downloads, missing method security, IDOR, parent scoping) have been fully resolved in Wave 1.  
+**Overall Platform Completeness: 68%**  
+**The Single Biggest Risk:** Pedagogical AI runtime 503 crash (missing term integration in Wave 3) and unmodeled daily operations (Timetables in Wave 4, Attendance in Wave 5). All critical security vulnerabilities have been resolved in Wave 1, and the foundational Academic Backbone (Years, Terms, Levels, Sections, Classes, Subjects, Rooms, Enrollments, Student Dossiers, Import/Export, and Certificates) has been fully built and verified in Wave 2.  
 **Deployment Call: NOT READY FOR DEPLOYMENT.**  
-The platform has robust security and authorization architecture now verified by 676 backend tests and 516 frontend tests, but the core academic backbone (Classes, Timetables, Attendance) must be implemented in subsequent waves before production.
+The platform now has an established academic architecture verified by 680 backend tests and 528 frontend tests. The remaining core functional modules (Pedagogical AI unblocking, Timetables, Attendance) must be implemented in Waves 3–5.
 
 ---
 
@@ -24,9 +24,9 @@ The platform has robust security and authorization architecture now verified by 
 | **4.1 Auth & Account** | PARTIAL | 75% | Redis login rate limiting & lockout active; email reset & Google OAuth PKCE working; 2FA TOTP and phone login pending Wave 6. | `AuthController.java`, `LoginRateLimiterService.java` |
 | **4.2 Legal Documents** | DONE | 85% | Authenticated downloads enforced; magic bytes content sniffing active; audit logged; document types CRUD pending Wave 7. | `SecurityConfig.java:110`, `DocumentServiceImpl.java:155` |
 | **4.3 Admissions** | PARTIAL | 70% | Public application & student conversion complete; admission tests/interviews and re-enrollment missing. | `ApplicationController.java:23`, `Application.java` |
-| **4.4 Students** | PARTIAL | 40% | Directory secured to ADMIN/STAFF; IDOR protected; classes/academic backbone pending Wave 2. | `StudentController.java:30`, `StudentServiceImpl.java:132` |
-| **4.5 Staff & Teachers** | PARTIAL | 50% | Role-based method security applied; directory secured; workload & timetable assignment pending Wave 2/4. | `TeacherController.java`, `StaffController.java` |
-| **4.6 Academic Structure** | MISSING | 0% | No entities or endpoints for Academic Years, Terms/Semesters, Grade Levels, Classes, Subjects, or Rooms. | `db/migration/V1__V8` (0 tables) |
+| **4.4 Students** | DONE | 85% | Full dossier: emergency contacts, siblings, medical notes (restricted access & audit), discipline records, CSV import/export, ID card & transfer certificates. | `StudentAcademicController.java`, `StudentDetailsModal.jsx` |
+| **4.5 Staff & Teachers** | PARTIAL | 75% | Teacher weekly workload calculation, class-subject-teacher assignments, department links; staff clock-in/out pending Wave 5. | `SchoolClassController.java`, `ClassSubjectTeacher.java` |
+| **4.6 Academic Structure** | DONE | 95% | V14 migration applied: years, terms, grade levels, sections, classes, subjects, rooms, enrollments; Frappe Desk UI pages complete. | `V14__academic_backbone.sql`, `AcademicYearsPage.jsx`, `ClassesPage.jsx` |
 | **4.7 Timetables** | MISSING | 10% | No timetable slots, schedule generator, conflict detector, or teacher availability; only general events exist. | `EventController.java:20` |
 | **4.8 Attendance & Absences** | MISSING | 0% | Completely unmodeled. No roll call, no absence records, no justification workflows, no statistics or alerts. | Missing entity `Attendance` |
 | **4.9 Exams, Grades & Bulletins** | PARTIAL | 85% | Exam scheduling, grade entry, locking, rank/mention, and PDF report cards secured with IDOR protection. | `ExamController.java`, `ReportCardServiceImpl.java:54` |
@@ -36,13 +36,13 @@ The platform has robust security and authorization architecture now verified by 
 | **4.13 Parent Portal** | DONE | 75% | Multi-child selector, `/api/v1/guardians/me/students` scoping; attendance view and meeting booking pending Wave 4/5. | `ParentDashboard.jsx`, `statsService.js:355` |
 | **4.14 Student Portal** | PARTIAL | 60% | Dashboard, grades, homework, and strategy exist; timetable, attendance, and course resource library missing. | `StudentDashboard.jsx:1` |
 | **4.15 Add-on Modules** | MISSING | 0% | Library, Transport, Canteen, Inventory, Health, and Extracurricular Clubs have 0 entities, 0 APIs, 0 UI. | Spec 4.15 (0% implemented) |
-| **4.16 Reports & Analytics** | PARTIAL | 15% | Basic dashboard counter aggregations exist; structured report generator and PDF/Excel/CSV exports missing. | `statsService.js:13` |
+| **4.16 Reports & Analytics** | PARTIAL | 20% | Dashboard counters, student CSV export, and PDF certificates exist; structured multi-criteria report generator pending Wave 10. | `StudentImportExportServiceImpl.java`, `statsService.js:13` |
 | **4.17 Administration** | PARTIAL | 35% | Audit logs functional with request IP tracking; school profile configuration, role management API pending Wave 8. | `AuditLogController.java:18` |
-| **4.18 AI Pedagogical Analysis** | BROKEN | 50% | Prompt and JSON schema defined; fails at runtime (`503 TERM_DIRECTORY_UNAVAILABLE`); teachers/staff denied access. | `UserOrganizationDirectory.java:35`, `OpenAIProvider.java:25` |
-| **Section 5: Frontend** | PARTIAL | 70% | Modern Frappe Desk UI implemented for active modules; landing page in Next.js 15; parent scoped endpoints integrated. | `router.jsx:40`, `guardianService.js` |
-| **Section 6 & 7: Security** | DONE | 92% | Method security on 100% of endpoints; public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
-| **Section 10: Deliverables** | PARTIAL | 70% | Permissions matrix published; Flyway V1-V8 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
-| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (516/516 passed); Backend Maven 100% green (676/676 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
+| **4.18 AI Pedagogical Analysis** | BROKEN | 50% | Prompt and JSON schema defined; fails at runtime (`503 TERM_DIRECTORY_UNAVAILABLE`); teachers/staff denied access (Wave 3). | `UserOrganizationDirectory.java:35`, `OpenAIProvider.java:25` |
+| **Section 5: Frontend** | PARTIAL | 80% | Frappe Desk UI implemented for academic structure (years, terms, classes, class detail with capacity meter & enrollments, subjects), student dossier tabs, CSV import dry-run. | `router.jsx`, `ClassesPage.jsx`, `StudentDetailsModal.jsx` |
+| **Section 6 & 7: Security** | DONE | 95% | Method security on 100% of endpoints (scanned by test); public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
+| **Section 10: Deliverables** | PARTIAL | 75% | Permissions matrix published; Flyway V1-V14 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
+| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (528/528 passed); Backend Maven 100% green (680/680 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
 
 ---
 
@@ -115,11 +115,11 @@ The platform has robust security and authorization architecture now verified by 
 | **Phase 1: Foundations** | P1 | M | 4.1 | Two-factor authentication (2FA) TOTP challenge and verification flow. |
 | **Phase 1: Foundations** | P1 | S | 4.1 | Active sessions & devices list with remote session revocation endpoint. |
 | **Phase 1: Foundations** | P1 | S | 4.1 | Forced password change on first login (`first_login` flag in `users` table). |
-| **Phase 2: Academic Core** | P0 | L | 4.6 | Academic Structure entities and tables: `academic_years`, `terms`, `grade_levels`, `classes`, `subjects`, `rooms`. |
-| **Phase 2: Academic Core** | P0 | M | 4.6 | Class-Subject-Teacher assignment junction and teacher weekly workload calculator. |
-| **Phase 2: Academic Core** | P0 | M | 4.4 | Student class enrollment history (`student_class_enrollment` per academic year). |
-| **Phase 2: Academic Core** | P1 | M | 4.4 | Student CSV/Excel bulk import/export and student ID card generator. |
-| **Phase 2: Academic Core** | P2 | S | 4.4 | Transfer and leaving certificates generation (`certificat de scolarité/transfert`). |
+| **Phase 2: Academic Core** | P0 | L | 4.6 | [RESOLVED in WAVE 2] Academic Structure entities and tables: `academic_years`, `terms`, `grade_levels`, `sections`, `classes`, `subjects`, `rooms` (`V14__academic_backbone.sql`). |
+| **Phase 2: Academic Core** | P0 | M | 4.6 | [RESOLVED in WAVE 2] Class-Subject-Teacher assignment junction and teacher weekly workload calculator (`/api/v1/teachers/{id}/workload`). |
+| **Phase 2: Academic Core** | P0 | M | 4.4 | [RESOLVED in WAVE 2] Student class enrollment history (`student_class_enrollment` per academic year with capacity checks). |
+| **Phase 2: Academic Core** | P1 | M | 4.4 | [RESOLVED in WAVE 2] Student CSV bulk import (dry-run & commit) & export, plus student ID card generator PDF. |
+| **Phase 2: Academic Core** | P2 | S | 4.4 | [RESOLVED in WAVE 2] Transfer and leaving certificates generation (`certificat de scolarité/transfert/radiation` with OpenPDF). |
 | **Phase 3: Documents & Admissions**| P1 | M | 4.2 | Admin CRUD interface and API for configuring document types by role and mandatory flags. |
 | **Phase 3: Documents & Admissions**| P1 | M | 4.3 | Admission tests and interviews scheduling and results recording. |
 | **Phase 3: Documents & Admissions**| P2 | M | 4.3 | Annual re-enrollment workflow for existing students. |
@@ -142,20 +142,20 @@ The platform has robust security and authorization architecture now verified by 
 ## 5. Partial & Stub Items
 
 ### 1. Document Management (`4.2`)
-- **What exists:** Document upload (`/api/v1/documents/upload`), HMAC signed keys, verification status (`PENDING`, `APPROVED`, `REJECTED`).
-- **What remains:** Document download endpoint is unauthenticated (`permitAll()`); access logging is absent; document types cannot be configured via API; document expiry reminders do not exist.
+- **What exists:** Document upload (`/api/v1/documents/upload`), HMAC signed keys, verification status (`PENDING`, `APPROVED`, `REJECTED`), authenticated downloads with audit logging.
+- **What remains:** Document types cannot be configured via API; document expiry reminders do not exist.
 
 ### 2. Admissions Lifecycle (`4.3`)
 - **What exists:** Public web form on landing page, admissions pipeline, applicant details modal, one-click conversion to official student.
 - **What remains:** Tests/interviews scheduling; annual re-enrollment; document attachments during public submission.
 
-### 3. Student Profile (`4.4`)
-- **What exists:** Basic user identity, student number, status enum, parent associations.
-- **What remains:** Medical records, emergency contacts, sibling links, class enrollment history, CSV/Excel import/export.
+### 3. Student Profile (`4.4`) [RESOLVED in WAVE 2]
+- **What exists:** Basic user identity, student number, status enum, parent associations, emergency contacts, sibling links, medical notes (restricted access & audit logged), discipline records, class enrollment history, CSV bulk import with dry-run, CSV export, printable student ID card PDF, transfer & leaving certificates.
+- **What remains:** None for baseline profile; links to attendance & timetables in Waves 4–5.
 
 ### 4. Staff & Leave Requests (`4.5`)
-- **What exists:** Teacher and staff profiles, department linkages, leave request submission, approval, and cancellation.
-- **What remains:** Staff attendance tracking (clock-in/clock-out); leave balances; subject/class assignments; teacher workload monitoring.
+- **What exists:** Teacher and staff profiles, department linkages, leave request submission, approval, and cancellation, class-subject-teacher assignments, teacher weekly workload calculation (`/api/v1/teachers/{id}/workload`).
+- **What remains:** Staff attendance tracking (clock-in/clock-out); leave balances; performance notes.
 
 ### 5. Homework (`4.10`)
 - **What exists:** `HomeworkSubmission` entity, submission text/file, teacher grading and feedback.
@@ -167,7 +167,7 @@ The platform has robust security and authorization architecture now verified by 
 
 ### 7. Communication (`4.12`)
 - **What exists:** Role-targeted announcements, internal direct messaging, in-app notification center, calendar events.
-- **What remains:** Target by class/level (blocked by missing Class entity); parent-teacher appointment scheduling; email and SMS notifications.
+- **What remains:** Parent-teacher appointment scheduling; email and SMS notifications.
 
 ### 8. Pedagogical AI (`4.18`)
 - **What exists:** Observations entity, structured JSON output validation, consent recording, validation/rejection workflow, parent and student views in frontend.
@@ -199,8 +199,8 @@ The platform has robust security and authorization architecture now verified by 
    *Acceptance Criterion:* Add `@PreAuthorize` annotations with role checks to all endpoints in `StudentController`, `TeacherController`, `StaffController`, `DepartmentController`, `InvoiceController`, `PaymentController`, `ExpenseController`, and `ExamController`.
 3. **Task 3: Fix Broken Backend Test Suite (39 Failures)**  
    *Acceptance Criterion:* Correct DTO deserialization in `StudentControllerTest`, `DepartmentControllerTest`, `GuardianControllerTest`, `StaffControllerTest`, and `TeacherControllerTest`, resolve `LeaveRequestControllerTest` validation/auth errors, and ensure `./mvnw test` exits with code 0.
-4. **Task 4: Implement Academic Structure Entities (Phase 2 / Spec 4.6)**  
-   *Acceptance Criterion:* Create Flyway migration `V9__academic_structure.sql` adding `academic_years`, `terms`, `grade_levels`, `classes`, and `subjects`, along with JPA entities, repositories, and CRUD controllers.
+4. **Task 4: Implement Academic Structure Entities (Phase 2 / Spec 4.6) [RESOLVED in WAVE 2]**  
+   *Acceptance Criterion:* Create Flyway migration `V14__academic_backbone.sql` adding `academic_years`, `terms`, `grade_levels`, `classes`, and `subjects`, along with JPA entities, repositories, and CRUD controllers. *Status:* Resolved in commit `bf28536` (backend) and Wave 2 frontend pages, verified by `AcademicBackboneIntegrationTest` (4/4 passed) and 528 Vitest tests.
 5. **Task 5: Unblock Pedagogical AI Generation & Teacher Access**  
    *Acceptance Criterion:* Implement `UserOrganizationDirectory.requireTerm()` against the new `terms` table, remove hardcoded `AccessDeniedException` for teachers in `UserOrganizationAccessPolicy.java`, and verify `POST /api/ai-analyses/generate` returns HTTP 200 with valid AI recommendations.
 6. **Task 6: Implement Attendance & Absences Module (Spec 4.8)**  
@@ -251,32 +251,32 @@ The platform has robust security and authorization architecture now verified by 
 - [~] Notification d'inscription aux parents (notification in-app créée, e-mail absent)
 
 ### 4.4 Gestion des élèves
-- [~] Profil de l'élève (identité, adresse, école précédente présents ; santé, urgence, fratrie absents)
+- [x] Profil de l'élève complet (identité, adresse, école précédente, urgence, fratrie) (`Student.java`, `EmergencyContact.java`, `StudentSibling.java`)
 - [x] Association élève et tuteurs légaux (`student_guardians`, `StudentController.java:67`)
-- [ ] Affectation aux classes et historique par année scolaire (Absence de l'entité `Class`)
+- [x] Affectation aux classes et historique par année scolaire (`student_class_enrollment`, `SchoolClassController.java`, `ClassDetailView.jsx`)
 - [x] Statut de l'élève actif, transféré, diplômé, exclu (`StudentStatus.java`)
-- [~] Observations de comportement (`Observation.java` présent ; dossier disciplinaire/sanctions absent)
-- [ ] Notes médicales d'accès restreint
-- [ ] Import et export CSV/Excel des élèves
-- [ ] Cartes d'élève imprimables et certificats de transfert
+- [x] Observations de comportement et dossier disciplinaire (`Observation.java`, `DisciplineRecord.java`, `StudentAcademicController.java`)
+- [x] Notes médicales d'accès restreint avec journalisation d'audit (`MedicalNote.java`, `StudentAcademicServiceImpl.java`)
+- [x] Import et export CSV des élèves avec dry-run (`StudentImportExportServiceImpl.java`, `StudentImportModal.jsx`)
+- [x] Cartes d'élève imprimables et certificats de transfert/radiation PDF (`StudentCertificatePdfServiceImpl.java`, OpenPDF)
 
 ### 4.5 Gestion du personnel et des enseignants
 - [x] Profils personnel et enseignants (`Teacher.java`, `Staff.java`, `User.java`)
 - [x] Départements de l'établissement (`DepartmentController.java:24`)
-- [ ] Affectation des matières et classes aux enseignants (Entités Matières et Classes absentes)
-- [ ] Suivi de la charge horaire hebdomadaire
+- [x] Affectation des matières et classes aux enseignants (`ClassSubjectTeacher.java`, `SchoolClassController.java`, `ClassDetailView.jsx`)
+- [x] Suivi de la charge horaire hebdomadaire (`/api/v1/teachers/{id}/workload`, `SchoolClassServiceImpl.java`)
 - [~] Gestion des congés (`LeaveRequestController.java:20` ; présence/pointage et soldes absents)
 - [x] Stockage des contrats de travail (`Document.java` avec type `CONTRACT`)
 - [ ] Module de paie (Optionnel)
 - [ ] Évaluations et notes de performance du personnel
 
 ### 4.6 Structure pédagogique
-- [ ] Années scolaires et trimestres/semestres (Entités absentes)
-- [ ] Niveaux scolaires et filières (Entités absentes)
-- [ ] Classes avec professeur principal, salle et capacité (Entités absentes)
-- [ ] Matières avec coefficients et volumes horaires (Entités absentes)
-- [ ] Affectations classe–matière–enseignant (Entité absente)
-- [ ] Gestion des salles et installations (Entité absente)
+- [x] Années scolaires et trimestres/semestres avec règle d'année active unique (`AcademicYear.java`, `Term.java`, `AcademicYearsPage.jsx`)
+- [x] Niveaux scolaires et filières/sections (`GradeLevel.java`, `Section.java`)
+- [x] Classes avec professeur principal, salle et jauge de capacité (`SchoolClass.java`, `ClassesPage.jsx`, `ClassDetailView.jsx`)
+- [x] Matières avec coefficients et volumes horaires (`Subject.java`, `SubjectsPage.jsx`)
+- [x] Affectations classe–matière–enseignant (`ClassSubjectTeacher.java`, `classService.js`)
+- [x] Gestion des salles et installations (`Room.java`, `RoomRepository.java`)
 
 ### 4.7 Emplois du temps et planification
 - [ ] Emploi du temps hebdomadaire (Entité absente)

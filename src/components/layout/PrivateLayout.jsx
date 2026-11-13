@@ -7,6 +7,7 @@ import {
   Briefcase,
   Users,
   Building2,
+  School,
   ClipboardCheck,
   CreditCard,
   FileSpreadsheet,
@@ -74,6 +75,9 @@ export function PrivateLayout() {
 
   const getPageTitle = (pathname) => {
     if (pathname.startsWith('/dashboard')) return t('nav.dashboard', 'Dashboard')
+    if (pathname.startsWith('/academic-years')) return 'Années Scolaires'
+    if (pathname.startsWith('/classes')) return 'Classes & Cohortes'
+    if (pathname.startsWith('/subjects')) return 'Matières & Coeffs'
     if (pathname.startsWith('/students')) return t('nav.students', 'Students')
     if (pathname.startsWith('/teachers')) return t('nav.teachers', 'Teachers')
     if (pathname.startsWith('/staff')) return t('nav.staff', 'Staff')
@@ -172,6 +176,27 @@ export function PrivateLayout() {
       to: '/admissions',
       icon: ClipboardCheck,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
+    {
+      label: 'Classes & Cohortes',
+      to: '/classes',
+      icon: School,
+      roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
+    {
+      label: 'Années Scolaires',
+      to: '/academic-years',
+      icon: Calendar,
+      roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff'],
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
+    {
+      label: 'Matières & Coeffs',
+      to: '/subjects',
+      icon: BookOpen,
+      roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
       section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
     {

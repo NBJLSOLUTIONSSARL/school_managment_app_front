@@ -8,6 +8,10 @@ import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage'
 import { GoogleCallbackPage } from '@/routes/GoogleCallbackPage'
 import { DashboardPage } from '@/routes/DashboardPage'
+import { AcademicYearsPage } from '@/routes/AcademicYearsPage'
+import { ClassesPage } from '@/routes/ClassesPage'
+import { ClassDetailPage } from '@/routes/ClassDetailPage'
+import { SubjectsPage } from '@/routes/SubjectsPage'
 import { StudentListPage } from '@/routes/StudentListPage'
 import { TeacherListPage } from '@/routes/TeacherListPage'
 import { StaffListPage } from '@/routes/StaffListPage'
@@ -87,6 +91,38 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: '/academic-years',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
+            <AcademicYearsPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/classes',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <ClassesPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/classes/:id',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <ClassDetailPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/subjects',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <SubjectsPage />
+          </RoleGuard>
+        ),
       },
       {
         path: '/students',

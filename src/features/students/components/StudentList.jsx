@@ -8,6 +8,8 @@ import {
   Copy,
   MapPin,
   Check,
+  UploadCloud,
+  Download,
 } from 'lucide-react'
 import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
 import { PaginatedTable } from '@/components/ui/PaginatedTable'
@@ -25,6 +27,8 @@ import { studentService } from '../api/studentService'
 import { StudentFormModal } from './StudentFormModal'
 import { StudentDetailsModal } from './StudentDetailsModal'
 import { StudentGuardianModal } from './StudentGuardianModal'
+import { StudentImportModal } from './StudentImportModal'
+import { studentAcademicService } from '@/features/academics/api/studentAcademicService'
 
 export function StudentList() {
   const { success, error: toastError } = useToast()
@@ -53,11 +57,19 @@ export function StudentList() {
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
   const [editingStudent, setEditingStudent] = useState(null)
   const [detailStudent, setDetailStudent] = useState(null)
   const [guardianTargetStudent, setGuardianTargetStudent] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleExportCsv = async () => {
+    const res = await studentAcademicService.exportStudentsCsv()
+    if (!res.success) {
+      toastError(res.error?.message || "Erreur lors de l'export CSV")
+    }
+  }
 
   // Load students from real backend
   const loadStudents = useCallback(
@@ -296,6 +308,18 @@ export function StudentList() {
         title="Students"
         count={totalItems}
         countLabel="students"
+        secondaryActions={[
+          {
+            label: 'Importer CSV',
+            icon: UploadCloud,
+            onClick: () => setIsImportOpen(true),
+          },
+          {
+            label: 'Exporter CSV',
+            icon: Download,
+            onClick: handleExportCsv,
+          },
+        ]}
         primaryAction={
           canCreate
             ? {
@@ -462,6 +486,14 @@ export function StudentList() {
             setGuardianTargetStudent(null)
             loadStudents()
           }}
+        />
+      )}
+
+      {isImportOpen && (
+        <StudentImportModal
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          onSuccess={loadStudents}
         />
       )}
 
