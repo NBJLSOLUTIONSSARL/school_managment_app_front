@@ -3,7 +3,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Alert } from '@/components/ui/Alert'
 import { useI18n } from '@/hooks/useI18n'
 
-export function RecordDecisionModal({ isOpen, onClose, application, onDecisionSaved }) {
+export function RecordDecisionModal({ isOpen, onClose, application, onDecisionSaved, onSaved }) {
   const { t } = useI18n()
   const [status, setStatus] = useState(application?.status || 'UNDER_REVIEW')
   const [decisionNote, setDecisionNote] = useState(application?.decisionNote || '')
@@ -17,7 +17,10 @@ export function RecordDecisionModal({ isOpen, onClose, application, onDecisionSa
     setLoading(true)
     setError(null)
     try {
-      await onDecisionSaved(application.id, { status, decisionNote })
+      const saveFn = onDecisionSaved || onSaved
+      if (typeof saveFn === 'function') {
+        await saveFn(application.id, { status, decisionNote })
+      }
       onClose()
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Erreur lors de la prise de décision.')

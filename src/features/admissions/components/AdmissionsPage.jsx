@@ -116,7 +116,11 @@ export function AdmissionsPage() {
             <span className="font-semibold text-[#111827] text-xs hover:underline block truncate">
               {app.candidateName}
             </span>
-            <span className="text-[11px] text-[#6B7280]">Dossier #{app.id}</span>
+            <span className="text-[11px] text-[#6B7280]">
+              {app.student
+                ? `Inscrit (Matricule: ${app.student.studentNumber || app.student.id})`
+                : `Dossier #${app.id}`}
+            </span>
           </div>
         </div>
       ),
@@ -169,7 +173,7 @@ export function AdmissionsPage() {
         const statusMap = {
           ACCEPTED: { badge: 'Complete', label: 'Admis' },
           UNDER_REVIEW: { badge: 'Follow-Up', label: 'En cours' },
-          WAITLISTED: { badge: 'In Negotiation', label: 'Liste d’attente' },
+          WAITLISTED: { badge: 'In Negotiation', label: "Liste d'attente" },
           REJECTED: { badge: 'To Contact', label: 'Refusé' },
           SUBMITTED: { badge: 'Follow-Up', label: 'Nouveau' },
         }
@@ -207,11 +211,11 @@ export function AdmissionsPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
       <DocTypePageHead
         icon={ClipboardCheck}
-        title="Gestion des Admissions"
+        title="Gestion des Admissions & Candidatures"
         count={totalElements}
         countLabel="candidatures"
         primaryAction={{
-          label: 'Enrich data',
+          label: 'Actualiser',
           onClick: () => fetchApplications(),
         }}
       />
@@ -222,8 +226,8 @@ export function AdmissionsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={ClipboardCheck}
-          title="Active Opportunities"
-          value={`${totalElements} active`}
+          title="Total Candidatures"
+          value={`${totalElements} dossiers`}
           trendValue="↗ 3.5%"
           trendType="positive"
         />
@@ -250,6 +254,48 @@ export function AdmissionsPage() {
         />
       </div>
 
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {[
+          { id: 'ALL', label: 'Toutes les candidatures' },
+          { id: 'UNDER_REVIEW', label: "En cours d'examen" },
+          { id: 'ACCEPTED', label: 'Admis' },
+          { id: 'WAITLISTED', label: "Liste d'attente" },
+          { id: 'REJECTED', label: 'Refusés' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => {
+              setStatusFilter(tab.id)
+              setPage(0)
+            }}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              statusFilter === tab.id
+                ? 'bg-primary-default text-white shadow-xs'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <select
+          aria-label="Filtrer par statut"
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value)
+            setPage(0)
+          }}
+          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 ml-auto"
+        >
+          <option value="ALL">Tous les statuts ({totalElements})</option>
+          <option value="SUBMITTED">Nouveaux (SUBMITTED)</option>
+          <option value="UNDER_REVIEW">En cours d'examen</option>
+          <option value="ACCEPTED">Admis / Acceptés</option>
+          <option value="WAITLISTED">Liste d'attente</option>
+          <option value="REJECTED">Refusés</option>
+        </select>
+      </div>
+
       <TableToolbar
         activeView={activeView}
         onViewChange={setActiveView}
@@ -274,18 +320,21 @@ export function AdmissionsPage() {
         ]}
       />
 
-      <PaginatedTable
-        columns={columns}
-        data={filteredApplications}
-        totalItems={totalElements}
-        pageSize={15}
-        page={page + 1}
-        totalPages={totalPages}
-        onPageChange={(p) => setPage(p - 1)}
-        isLoading={loading}
-        enableSelection
-        onRowClick={(app) => handleOpenDetail(app)}
-      />
+      {!error && (
+        <PaginatedTable
+          columns={columns}
+          data={filteredApplications}
+          totalItems={totalElements}
+          pageSize={15}
+          page={page + 1}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p - 1)}
+          isLoading={loading}
+          enableSelection
+          emptyTitle="Aucun dossier trouvé"
+          onRowClick={(app) => handleOpenDetail(app)}
+        />
+      )}
 
       {/* Modals */}
       {detailModalOpen && (
@@ -296,7 +345,13 @@ export function AdmissionsPage() {
             setDetailModalOpen(false)
             setSelectedApplication(null)
           }}
-          onRecordDecision={() => {
+          onOpenDecision={(app) => {
+            if (app) setSelectedApplication(app)
+            setDetailModalOpen(false)
+            setDecisionModalOpen(true)
+          }}
+          onRecordDecision={(app) => {
+            if (app) setSelectedApplication(app)
             setDetailModalOpen(false)
             setDecisionModalOpen(true)
           }}
@@ -312,6 +367,7 @@ export function AdmissionsPage() {
             setDecisionModalOpen(false)
             setSelectedApplication(null)
           }}
+          onDecisionSaved={handleDecisionSaved}
           onSaved={handleDecisionSaved}
         />
       )}

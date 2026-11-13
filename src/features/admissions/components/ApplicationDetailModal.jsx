@@ -9,6 +9,7 @@ export function ApplicationDetailModal({
   onClose,
   application,
   onOpenDecision,
+  onRecordDecision,
   onConvertToStudent,
 }) {
   const { t } = useI18n()
@@ -183,7 +184,8 @@ export function ApplicationDetailModal({
               type="button"
               onClick={() => {
                 onClose()
-                onOpenDecision(application)
+                const openFn = onOpenDecision || onRecordDecision
+                if (typeof openFn === 'function') openFn(application)
               }}
               className="px-3 py-1.5 text-xs font-semibold text-text-on-primary bg-primary-default rounded hover:bg-primary-hover focus:ring-2 focus:ring-primary-focus"
             >
