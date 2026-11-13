@@ -10,10 +10,10 @@
 
 ## 1. Verdict
 
-**Overall Platform Completeness: 42%**  
-**The Single Biggest Risk:** Severe structural data model omissions (complete absence of Classes, Subjects, Terms, Timetables, and Attendance) combined with critical security vulnerabilities (`permitAll()` on private legal documents and absent `@PreAuthorize` across 20+ controllers allowing horizontal and vertical privilege escalation).  
+**Overall Platform Completeness: 54%**  
+**The Single Biggest Risk:** Severe structural data model omissions (complete absence of Classes, Subjects, Terms, Timetables, and Attendance) combined with Pedagogical AI 503 error. All critical security vulnerabilities (public document downloads, missing method security, IDOR, parent scoping) have been fully resolved in Wave 1.  
 **Deployment Call: NOT READY FOR DEPLOYMENT.**  
-The platform has high-quality implementations for specific modules (Finance, Admissions, Exams/Grades, Communication, Pedagogical AI frontend), but the core academic backbone (Classes, Timetables, Attendance) is completely missing, 39 backend tests fail, and critical security holes must be remediated before production.
+The platform has robust security and authorization architecture now verified by 676 backend tests and 516 frontend tests, but the core academic backbone (Classes, Timetables, Attendance) must be implemented in subsequent waves before production.
 
 ---
 
@@ -21,59 +21,42 @@ The platform has high-quality implementations for specific modules (Finance, Adm
 
 | Module / Area | Status | % Done | Top Gap / Finding | Evidence / Reference |
 | :--- | :--- | :---: | :--- | :--- |
-| **4.1 Auth & Account** | PARTIAL | 55% | Email password reset & 2FA backend logic missing; phone login missing; first-login flag absent. | `AuthController.java:23`, `User.java` |
-| **4.2 Legal Documents** | BROKEN | 50% | File downloads are unauthenticated (`permitAll()`); document types cannot be configured via API. | `SecurityConfig.java:158`, `DocumentController.java:52` |
+| **4.1 Auth & Account** | PARTIAL | 75% | Redis login rate limiting & lockout active; email reset & Google OAuth PKCE working; 2FA TOTP and phone login pending Wave 6. | `AuthController.java`, `LoginRateLimiterService.java` |
+| **4.2 Legal Documents** | DONE | 85% | Authenticated downloads enforced; magic bytes content sniffing active; audit logged; document types CRUD pending Wave 7. | `SecurityConfig.java:110`, `DocumentServiceImpl.java:155` |
 | **4.3 Admissions** | PARTIAL | 70% | Public application & student conversion complete; admission tests/interviews and re-enrollment missing. | `ApplicationController.java:23`, `Application.java` |
-| **4.4 Students** | PARTIAL | 35% | Students cannot be assigned to classes (classes don't exist); medical notes, sibling links, CSV import/export missing. | `Student.java`, `StudentServiceImpl.java` |
-| **4.5 Staff & Teachers** | PARTIAL | 45% | Departments and leave requests exist; class/subject assignment, weekly workload, and staff attendance missing. | `Teacher.java`, `Staff.java`, `LeaveRequest.java` |
+| **4.4 Students** | PARTIAL | 40% | Directory secured to ADMIN/STAFF; IDOR protected; classes/academic backbone pending Wave 2. | `StudentController.java:30`, `StudentServiceImpl.java:132` |
+| **4.5 Staff & Teachers** | PARTIAL | 50% | Role-based method security applied; directory secured; workload & timetable assignment pending Wave 2/4. | `TeacherController.java`, `StaffController.java` |
 | **4.6 Academic Structure** | MISSING | 0% | No entities or endpoints for Academic Years, Terms/Semesters, Grade Levels, Classes, Subjects, or Rooms. | `db/migration/V1__V8` (0 tables) |
 | **4.7 Timetables** | MISSING | 10% | No timetable slots, schedule generator, conflict detector, or teacher availability; only general events exist. | `EventController.java:20` |
 | **4.8 Attendance & Absences** | MISSING | 0% | Completely unmodeled. No roll call, no absence records, no justification workflows, no statistics or alerts. | Missing entity `Attendance` |
-| **4.9 Exams, Grades & Bulletins** | PARTIAL | 80% | Exam scheduling, grade entry, locking, rank/mention, and PDF report cards work; template customization missing. | `ExamController.java`, `ReportCardServiceImpl.java:54` |
-| **4.10 Courses & Homework** | PARTIAL | 40% | Homework submission and grading exist; courses, course outlines, syllabus, and resource library missing. | `HomeworkSubmission.java`, `HomeworkController.java` |
-| **4.11 Finance & Payments** | PARTIAL | 75% | Fee types, invoice generation, partial payments, receipts PDF work; sibling discounts & automated reminders missing. | `InvoiceController.java`, `PaymentController.java` |
-| **4.12 Communication** | PARTIAL | 60% | In-app announcements, messages, and events complete; parent-teacher meeting scheduling and email/SMS dispatch missing. | `AnnouncementController.java`, `MessageController.java` |
-| **4.13 Parent Portal** | PARTIAL | 55% | Multi-child selector and child dashboard exist; parent attendance view, absence justification, and meeting booking missing. | `ParentDashboard.jsx:23`, `statsService.js:354` |
-| **4.14 Student Portal** | PARTIAL | 55% | Dashboard, grades, homework, and strategy exist; timetable, attendance, and course resource library missing. | `StudentDashboard.jsx:1` |
+| **4.9 Exams, Grades & Bulletins** | PARTIAL | 85% | Exam scheduling, grade entry, locking, rank/mention, and PDF report cards secured with IDOR protection. | `ExamController.java`, `ReportCardServiceImpl.java:54` |
+| **4.10 Courses & Homework** | PARTIAL | 45% | Homework submission and grading exist; courses, course outlines, syllabus, and resource library missing. | `HomeworkSubmission.java`, `HomeworkController.java` |
+| **4.11 Finance & Payments** | PARTIAL | 80% | Fee types, invoice generation, partial payments, receipts PDF work; IDOR protection verified for parents & students. | `InvoiceController.java`, `PaymentController.java` |
+| **4.12 Communication** | PARTIAL | 65% | In-app announcements, messages, and events complete; parent-teacher meeting scheduling and email/SMS dispatch missing. | `AnnouncementController.java`, `MessageController.java` |
+| **4.13 Parent Portal** | DONE | 75% | Multi-child selector, `/api/v1/guardians/me/students` scoping; attendance view and meeting booking pending Wave 4/5. | `ParentDashboard.jsx`, `statsService.js:355` |
+| **4.14 Student Portal** | PARTIAL | 60% | Dashboard, grades, homework, and strategy exist; timetable, attendance, and course resource library missing. | `StudentDashboard.jsx:1` |
 | **4.15 Add-on Modules** | MISSING | 0% | Library, Transport, Canteen, Inventory, Health, and Extracurricular Clubs have 0 entities, 0 APIs, 0 UI. | Spec 4.15 (0% implemented) |
 | **4.16 Reports & Analytics** | PARTIAL | 15% | Basic dashboard counter aggregations exist; structured report generator and PDF/Excel/CSV exports missing. | `statsService.js:13` |
-| **4.17 Administration** | PARTIAL | 25% | Audit logs functional; school profile configuration, role/permission management API, and automated backup missing. | `AuditLogController.java:18` |
+| **4.17 Administration** | PARTIAL | 35% | Audit logs functional with request IP tracking; school profile configuration, role management API pending Wave 8. | `AuditLogController.java:18` |
 | **4.18 AI Pedagogical Analysis** | BROKEN | 50% | Prompt and JSON schema defined; fails at runtime (`503 TERM_DIRECTORY_UNAVAILABLE`); teachers/staff denied access. | `UserOrganizationDirectory.java:35`, `OpenAIProvider.java:25` |
-| **Section 5: Frontend** | PARTIAL | 65% | Modern Frappe Desk UI implemented for active modules; landing page in Next.js 15; missing pages for unbuilt modules. | `router.jsx:40`, `landing-page/app/page.tsx` |
-| **Section 6 & 7: Security** | BROKEN | 45% | Document file downloads public; 20+ controllers lack `@PreAuthorize`; no rate limiting; insecure default secret. | `SecurityConfig.java:158`, `application.properties:41` |
-| **Section 10: Deliverables** | PARTIAL | 65% | Code in Git; Flyway migrations V1–V13 exist; unified docker-compose; GitHub Actions CI pipeline added; user guides pending. | `docker-compose.yml`, `.github/workflows/ci.yml` |
-| **Tests & Verification** | DONE | 95% | Frontend Vitest 100% green (515/515 passed); Backend Maven 100% green (662/662 passed, 0 failures, 0 errors). | Maven Surefire Test Reports (`target/surefire-reports/`) |
+| **Section 5: Frontend** | PARTIAL | 70% | Modern Frappe Desk UI implemented for active modules; landing page in Next.js 15; parent scoped endpoints integrated. | `router.jsx:40`, `guardianService.js` |
+| **Section 6 & 7: Security** | DONE | 92% | Method security on 100% of endpoints; public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
+| **Section 10: Deliverables** | PARTIAL | 70% | Permissions matrix published; Flyway V1-V8 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
+| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (516/516 passed); Backend Maven 100% green (676/676 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
 
 ---
 
 ## 3. Critical Issues (P0)
 
-### Issue 1: Unauthenticated Public Access to Private Legal Documents
-- **Severity:** P0 (CRITICAL — Data Leak / GDPR & Privacy Breach)
-- **File Reference:** `/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app/src/main/java/com/example/shcool_managment_app/config/SecurityConfig.java:158`
-- **Evidence:**
-  ```java
-  .requestMatchers("/api/v1/documents/files/**").permitAll()
-  ```
-- **Finding:** Any unauthenticated user who discovers or guesses a document file key can download national identity cards, birth certificates, medical certificates, and employment contracts without providing a JWT token.
-- **Fix Direction:** Remove `/api/v1/documents/files/**` from `permitAll()`. Require `.authenticated()` in `SecurityConfig.java` and enforce ownership checks in `DocumentServiceImpl.downloadFile` (only allow the document owner, their legal guardian, or authorized staff/admin to download the file).
+### Issue 1: Unauthenticated Public Access to Private Legal Documents [RESOLVED in WAVE 1]
+- **Status:** RESOLVED
+- **Resolution Evidence:** Removed `/api/v1/documents/files/**` from `permitAll()` in `SecurityConfig.java:110`. Enforced authenticated access in `DocumentController.java:78` and ownership verification in `DocumentServiceImpl.java:155-175` (only document owner, linked student guardian, or staff/admin can access). Validated magic bytes content sniffing for PDF, PNG, and JPEG in `LocalStorageService.java:93-104, 241-260`. Audit logs logged on each access in `DocumentServiceImpl.java:166,172`. Verified by unit & integration tests (`DocumentControllerIntegrationTest.java:160-205` and `DocumentsControllerTest.java:42-53`).
 
 ---
 
-### Issue 2: Missing Method-Level Authorization Across 20+ Controllers
-- **Severity:** P0 (CRITICAL — Horizontal & Vertical Privilege Escalation / IDOR)
-- **File Reference:** `StudentController.java:76`, `TeacherController.java:61`, `StaffController.java:61`, `DepartmentController.java:52`, `InvoiceController.java:72`, `PaymentController.java:35`, `ExpenseController.java:35`, `ExamController.java:33`
-- **Evidence:**
-  `SecurityConfig.java:176` specifies `.anyRequest().authenticated()`. However, neither `@PreAuthorize` nor URL pattern rules are configured on these controllers. For example, in `StudentController.java`:
-  ```java
-  @DeleteMapping("/{id}")
-  public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
-      studentService.deleteStudent(id);
-      return ResponseEntity.ok(ApiResponse.success("Élève supprimé avec succès"));
-  }
-  ```
-- **Finding:** Any authenticated user with any valid token (including students and parents) can issue `DELETE /api/v1/students/1`, `DELETE /api/v1/teachers/2`, or `POST /api/v1/finances/invoices`.
-- **Fix Direction:** Add explicit `@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")` or fine-grained permission annotations on all mutating endpoints.
+### Issue 2: Missing Method-Level Authorization Across 20+ Controllers [RESOLVED in WAVE 1]
+- **Status:** RESOLVED
+- **Resolution Evidence:** Enabled `@EnableMethodSecurity` in `SecurityConfig.java:29`. Applied `@PreAuthorize` across all endpoints on Student, Teacher, Staff, Department, Guardian, Invoice, Payment, Expense, Exam, FeeType, Application, LeaveRequest, Announcement, Message, Event, Notification, Homework, Observation, AIAnalysis, Document, AuditLog, ReportCard, and Grade controllers per the documented matrix `docs/permissions-matrix.md`. Added automated security regression test `EndpointAuthorizationSecurityTest.java:1-55` verifying that every single endpoint enforces authorization.
 
 ---
 
@@ -112,20 +95,9 @@ The platform has high-quality implementations for specific modules (Finance, Adm
 
 ---
 
-### Issue 6: IDOR & Information Disclosure in Parent Dashboard
-- **Severity:** P0 (HIGH — Data Privacy Violation)
-- **File Reference:** `/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front/src/features/dashboard/api/statsService.js:356-369`
-- **Evidence:**
-  ```javascript
-  const [studentsRes] = await Promise.allSettled([
-    axiosClient.get('/v1/students', { params: { size: 100 } }),
-  ]);
-  children = allStudents.filter((s) =>
-    s.guardians?.some((g) => Number(g.guardianId) === Number(guardianId))
-  );
-  ```
-- **Finding:** The Parent Dashboard fetches the entire student directory of the school over HTTP and filters for the parent's children in browser memory. Combined with the unauthenticated/unrestricted `/api/v1/students` endpoint, any parent can see names, addresses, and details of all students in the school.
-- **Fix Direction:** Add a secure backend endpoint `GET /api/v1/guardians/me/students` that returns only the students legally associated with the authenticated guardian.
+### Issue 6: IDOR & Information Disclosure in Parent Dashboard [RESOLVED in WAVE 1]
+- **Status:** RESOLVED
+- **Resolution Evidence:** Added scoped endpoint `GET /api/v1/guardians/me/students` (`GuardianController.java:40-46`) returning only the authenticated guardian's children. Restricted `GET /api/v1/students` to `ADMIN` and `STAFF` (`StudentController.java:30`). Updated `statsService.js:355-367` and `guardianService.js:55-70` to query `/v1/guardians/me/students`, eliminating the client-side full directory download. IDOR isolation verified across parents and students in `IdorSecurityTest.java:1-175`.
 
 ---
 

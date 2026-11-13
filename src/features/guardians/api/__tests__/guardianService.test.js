@@ -105,6 +105,19 @@ describe('guardianService', () => {
       expect(result.data.every((s) => s.user.lastName === 'Sow')).toBe(true)
     })
 
+    it('returns authenticated parent students via getMyChildren', async () => {
+      const getSpy = vi.spyOn(axiosClient, 'get').mockResolvedValue({
+        status: 200,
+        data: { success: true, data: students },
+      })
+
+      const result = await guardianService.getMyChildren()
+
+      expect(getSpy).toHaveBeenCalledWith('/v1/guardians/me/students')
+      expect(result.success).toBe(true)
+      expect(result.data).toHaveLength(2)
+    })
+
     it('returns an empty student list when the guardian has no linked students', async () => {
       vi.spyOn(axiosClient, 'get').mockResolvedValue({
         status: 200,
