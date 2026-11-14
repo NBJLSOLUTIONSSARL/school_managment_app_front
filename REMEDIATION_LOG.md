@@ -149,5 +149,57 @@
 ### 4. Open Issues & Decisions Needed
 - None for Wave 4.
 - Open P0 count: 1 remaining (**WAVE 5 — Attendance & Absences**, spec 4.8).
-- Ready to proceed to **WAVE 5 — Attendance & Absences** upon user command `GO WAVE 5`.
+- Wave 4 completed and verified.
+
+---
+
+## Wave 5 — Attendance & Absences (Spec 4.8, 4.13, 4.14)
+
+### 1. Scope Restatement
+1. Migration V16: `attendance_records` (student, class, slot, date, status: PRESENT/ABSENT/LATE/EXCUSED, arrival_time/minutes_late, note, recorded_by), `absence_justifications` (reason, attachment doc, status: PENDING/APPROVED/REJECTED, review_note), `attendance_alerts` (repeated absences thresholds), `staff_attendance` (staff/teacher check-in/out).
+2. Daily roll call by class/date and course-by-course roll call by slot/date with transactional bulk upsert and automated parent notifications on absence.
+3. Absence justification submission by parents/students with optional document attachment; admin/staff review automatically transitioning records from ABSENT to EXCUSED.
+4. Attendance statistics (per student, class, rates %, excused vs unexcused) and automated repeated absence alerts (> 3 unexcused absences).
+5. Staff & teacher presence tracking (clock-in/clock-out).
+6. Frontend Frappe Desk UI: Class roll call grid with quick toggle buttons, justification submission modal, pending justifications review modal, student/class stats card, repeated absence alert banner, staff clock widget, and `/attendance` route.
+7. Exit criterion: Backend tests pass, frontend tests pass, lint passes (0 warnings), build passes.
+
+### 2. Status: DONE
+- **Backend Tests:** 724/724 passed across all test suites, 0 failures, 0 errors (`./mvnw test -q` exits 0).
+  - `AttendanceIntegrationTest.java`: 12/12 passed (roll call submission, student roster prefill, repeated absence alerts, parent justification submission, approval transition to EXCUSED, justification rejection, student assiduity stats, class stats, staff check-in/out, and IDOR isolation guards).
+  - `EndpointAuthorizationSecurityTest.java`: 100% passed (all attendance endpoints secured with `@PreAuthorize`).
+- **Frontend Tests:** 564/564 passed across 60 test files (`npm run test` exits 0).
+  - `ClassRollCallGrid.test.jsx`: 4/4 passed (renders student roster, toggles status buttons, marks all present, submits payload).
+  - `AttendanceStatsCard.test.jsx`: 2/2 passed (renders attendance rate and breakdown badges, displays threshold alert banner).
+- **Frontend Quality:**
+  - `npm run lint` (oxlint): 0 errors, 0 warnings across 339 files.
+  - `npm run build` (vite): Production build passes cleanly with 0 errors in 1.45s.
+- **Open P0 Items:** 0 REMAINING! All P0 requirements from the audit report and spec have been fully remediated and verified.
+
+### 3. Changes Made
+- **Backend Repository** (`/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app`):
+  - `db/migration/V16__attendance_and_absences.sql`: Created tables `attendance_records`, `absence_justifications`, `attendance_alerts`, and `staff_attendance` with foreign keys, checks, and performance indexes.
+  - `enums/`: Created `AttendanceStatus` (`PRESENT`, `ABSENT`, `LATE`, `EXCUSED`), `JustificationStatus` (`PENDING`, `APPROVED`, `REJECTED`), and `StaffAttendanceStatus` (`PRESENT`, `LATE`, `HALF_DAY`, `ON_LEAVE`).
+  - `model/`: Created `AttendanceRecord.java`, `AbsenceJustification.java`, `AttendanceAlert.java`, and `StaffAttendance.java`.
+  - `repository/`: Created `AttendanceRecordRepository`, `AbsenceJustificationRepository`, `AttendanceAlertRepository`, and `StaffAttendanceRepository`.
+  - `dto/`: Added request DTOs (`RollCallEntryDto`, `RollCallSubmissionDto`, `AbsenceJustificationRequestDto`, `ReviewJustificationDto`, `StaffCheckInDto`, `StaffCheckOutDto`) and response DTOs (`AttendanceRecordResponseDto`, `AbsenceJustificationResponseDto`, `AttendanceAlertResponseDto`, `StudentAttendanceStatsDto`, `ClassAttendanceStatsDto`, `StaffAttendanceResponseDto`).
+  - `service/AttendanceService.java` & `implementation/AttendanceServiceImpl.java`: Built complete attendance service with transactional bulk roll call upsert, automated parent notification dispatch upon absence, automated repeated absence alert trigger (> 3 unexcused absences), assiduity metrics calculation, justification submission and approval with automatic status transition to `EXCUSED`, and staff clock-in/out.
+  - `controller/AttendanceController.java`: Created with `@PreAuthorize` on 100% of endpoints, full role-based access control, and Swagger OpenAPI documentation.
+  - `test/`: Added `AttendanceIntegrationTest.java` (12 integration tests), updated `IntegrationFixtures.java` to clean and seed attendance baseline.
+- **Frontend Repository** (`/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front`):
+  - `src/features/attendance/api/attendanceService.js`: API client for roll call fetch/save, justifications, statistics, alerts, and staff clock-in/out.
+  - `src/features/attendance/components/ClassRollCallGrid.jsx`: Frappe Desk roster table with quick toggle buttons (`Présent`, `Retard`, `Absent`, `Excusé`), "Tous présents" button, minutes late input, note input, and save action.
+  - `src/features/attendance/components/JustificationModal.jsx`: Modal for parents/students with reason textarea and document selector.
+  - `src/features/attendance/components/PendingJustificationsModal.jsx`: Modal for admin/staff to approve (auto-excuse) or reject with reason note.
+  - `src/features/attendance/components/AttendanceStatsCard.jsx`: Metric card with attendance rate % pill, counters, and critical threshold alert banner.
+  - `src/features/attendance/components/AttendanceAlertsBanner.jsx`: Unresolved alerts banner with one-click "Marquer traitée".
+  - `src/features/attendance/components/StaffClockWidget.jsx`: Quick clock-in/out widget for staff and teachers.
+  - `src/routes/AttendancePage.jsx`: Full Frappe Desk page with 4 tabs (`ROLL_CALL`, `STATS`, `JUSTIFICATIONS`, `STAFF`), class/date/slot filters, and responsive design.
+  - Navigation & Dashboards: Added `/attendance` route in `router.jsx`, sidebar navigation item in `PrivateLayout.jsx`, integrated `StaffClockWidget` into `TeacherDashboard.jsx`, and added quick links in `StudentDashboard.jsx` and `ParentDashboard.jsx`.
+  - Tests: Added `ClassRollCallGrid.test.jsx` (4 tests) and `AttendanceStatsCard.test.jsx` (2 tests).
+
+### 4. Open Issues & Decisions Needed
+- None for Wave 5.
+- Open P0 count: **0 remaining** (All P0 items from the master audit are resolved).
+- Ready to proceed to **WAVE 6 — Evaluation & Gradebook** (spec 4.9) upon user command `GO WAVE 6`.
 

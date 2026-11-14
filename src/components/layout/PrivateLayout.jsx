@@ -20,6 +20,7 @@ import {
   Compass,
   Megaphone,
   Calendar,
+  CalendarCheck,
   Mail,
   Palmtree,
   ShieldAlert,
@@ -78,6 +79,7 @@ export function PrivateLayout() {
     if (pathname.startsWith('/academic-years')) return 'Années Scolaires'
     if (pathname.startsWith('/classes')) return 'Classes & Cohortes'
     if (pathname.startsWith('/timetables')) return 'Emplois du temps'
+    if (pathname.startsWith('/attendance')) return 'Assiduité & Présences'
     if (pathname.startsWith('/subjects')) return 'Matières & Coeffs'
     if (pathname.startsWith('/students')) return t('nav.students', 'Students')
     if (pathname.startsWith('/teachers')) return t('nav.teachers', 'Teachers')
@@ -190,6 +192,12 @@ export function PrivateLayout() {
       label: 'Emplois du temps',
       to: '/timetables',
       icon: Calendar,
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
+    {
+      label: 'Assiduité & Présences',
+      to: '/attendance',
+      icon: CalendarCheck,
       section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
     {

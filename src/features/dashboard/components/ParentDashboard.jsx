@@ -182,7 +182,7 @@ export function ParentDashboard() {
               title="Attendance"
               value={loading ? '...' : (currentChild?.attendance ? `${currentChild.attendance}%` : '97.0%')}
               icon={CheckCircle2}
-              onClick={() => navigate('/observations')}
+              onClick={() => navigate('/attendance')}
             />
             <StatCard
               variant="mediumBlue"

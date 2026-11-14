@@ -161,7 +161,7 @@ export function StudentDashboard() {
           title="Attendance"
           value={loading ? '...' : (stats?.attendanceRate ? `${stats.attendanceRate}%` : '98.0%')}
           icon={TrendingUp}
-          onClick={() => navigate('/observations')}
+          onClick={() => navigate('/attendance')}
         />
       </div>
 
