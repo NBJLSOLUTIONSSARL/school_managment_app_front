@@ -102,6 +102,52 @@
   - `src/features/pedagogical-ai/api/__tests__/aiAnalysesApi.test.js`: 10+ test cases. ✅
   - `src/features/pedagogical-ai/components/__tests__/PeriodComparisonView.test.jsx`: 5 UI test suites. ✅
 
+---
+
+## Wave 4 — Timetables (spec 4.7)
+
+### 1. Scope Restatement
+1. Migration V15: `timetable_slots` enhanced (class, subject, teacher, room, weekday, start, end, term), `teacher_availability`, `timetable_exceptions` (substitution, cancellation, holiday, event), `school_calendar`.
+2. Transactional schedule conflict detection: interval validation, teacher availability windows, teacher double-booking, classroom double-booking, and class double-booking returning detailed `TimetableConflictException` (HTTP 409 Conflict).
+3. Views: per class, teacher, student, and room. OpenPDF weekly schedule PDF export (`/api/v1/timetables/pdf`). Frappe Desk UI timetable matrix, modal with live conflict banner, and today's schedule widget across Teacher, Student, and Parent dashboards.
+4. Comprehensive testing: Unit test suite for conflict detector, integration test suite for slots/availability/exceptions/calendar/PDF, Vitest tests for weekly grid and dashboard widgets.
+
+### 2. Status: DONE
+- **Backend Tests:** 712/712 passed, 0 failures, 0 errors (`./mvnw test` exits 0).
+  - `TimetableConflictServiceTest`: 8/8 passed (time overlap, boundary checks, teacher double-booking, room double-booking, class double-booking, teacher unavailability windows).
+  - `TimetableIntegrationTest`: 13/13 passed (admin slot creation, student view, teacher view, conflict rejection, PDF export, availability manager, exception management, calendar events).
+  - `FlywayUpgradeTest`: 2/2 passed (V1–V15 migrations verified).
+- **Frontend Tests:** 558/558 passed across 58 test files (`npm run test` exits 0).
+  - `WeeklyTimetableGrid.test.jsx`: 4/4 passed (renders days/time headers, displays subject/room badges, highlights exceptions, calls onCellClick).
+  - `TodayScheduleWidget.test.jsx`: 2/2 passed (renders today's courses, handles empty states).
+- **Frontend Quality:**
+  - `npm run lint` (oxlint): 0 errors, 0 warnings across 328 files.
+  - `npm run build` (vite): Production build passes cleanly with 0 errors.
+
+### 3. Changes Made
+- **Backend Repository** (`/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app`):
+  - `db/migration/V15__timetable_enhancements.sql`: Added columns `class_id`, `subject_id`, `term_id` and indexes to `timetable_slots`; created `teacher_availability`, `timetable_exceptions`, `school_calendar` tables; populated baseline seeds.
+  - `model/`: Updated `TimetableSlot.java`, `Timetable.java`; created `TeacherAvailability.java`, `TimetableException.java`, `SchoolCalendarEvent.java`.
+  - `repository/`: Created `TeacherAvailabilityRepository`, `TimetableExceptionRepository`, `SchoolCalendarRepository`; updated `TimetableSlotRepository`, `TeacherRepository` (`findByUserId`).
+  - `service/TimetableConflictService.java` & `implementation/TimetableConflictServiceImpl.java`: Built transactional conflict detection engine enforcing valid time intervals, teacher availability windows, and teacher/room/class overlap prevention.
+  - `exception/TimetableConflictException.java`: Added with conflict type, reason, and conflicting slot reference; handled in `GlobalExceptionHandler.java` (HTTP 409).
+  - `dto/`: Added `TimetableSlotCreateDto`, `TimetableSlotUpdateDto`, `TimetableSlotResponseDto`, `TeacherAvailabilityRequestDto`, `TeacherAvailabilityResponseDto`, `TimetableExceptionRequestDto`, `TimetableExceptionResponseDto`, `SchoolCalendarRequestDto`, `SchoolCalendarResponseDto`.
+  - `service/TimetableService.java` & `implementation/TimetableServiceImpl.java`: Implemented slot CRUD, class/teacher/room/student schedule views, role-scoped today's schedule, weekly schedule PDF generator using OpenPDF, availability/exception/calendar CRUD.
+  - `controller/TimetableController.java`: Updated with `@PreAuthorize`, `@Valid`, Swagger documentation, and new endpoints.
+  - `test/`: Added `TimetableConflictServiceTest.java` (8 unit tests), `TimetableIntegrationTest.java` (13 integration tests), updated `IntegrationFixtures.java` and `DefaultAccessSecurityTest.java`.
+- **Frontend Repository** (`/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front`):
+  - `src/features/timetables/api/timetableService.js`: API client with slot CRUD, class/teacher/room views, my schedule, today's schedule, PDF download, teacher availability, exceptions, and calendar events.
+  - `src/features/timetables/components/WeeklyTimetableGrid.jsx`: Frappe Desk weekly matrix (Monday–Saturday, 08:00–18:00), subject chips, room badges, teacher names, and cancelled/substituted tags.
+  - `src/features/timetables/components/TimetableSlotModal.jsx`: Slot creation/edition modal with class/subject/teacher/room selects, weekday picker, time bounds, and 409 Conflict error banner.
+  - `src/features/timetables/components/TodayScheduleWidget.jsx`: Dashboard widget showing today's timeline with time indicator, active course highlight, room info, and link to full schedule.
+  - `src/features/timetables/components/TeacherAvailabilityModal.jsx`: Modal to manage teacher recurrent unavailability slots.
+  - `src/features/timetables/components/TimetableExceptionsModal.jsx`: Modal to schedule substitutions, cancellations, and room reassignments.
+  - `src/routes/TimetablePage.jsx`: Full Frappe Desk page with Class/Teacher/Room view switcher, term filter, quick-add cell triggers, PDF export, and management modals.
+  - Navigation & Dashboards: Added `/timetables` route in `router.jsx`, sidebar navigation item in `PrivateLayout.jsx`, integrated `TodayScheduleWidget` into `TeacherDashboard.jsx`, `StudentDashboard.jsx`, and `ParentDashboard.jsx`.
+  - Tests: Added `WeeklyTimetableGrid.test.jsx` and `TodayScheduleWidget.test.jsx`.
+
 ### 4. Open Issues & Decisions Needed
-- **3.5 Async (note):** The generate() method uses `Propagation.NOT_SUPPORTED` with separate transaction boundaries. The frontend client includes full polling logic (`pollAnalysisStatus`). True `@Async` background execution (HTTP returns immediately with `PENDING`) requires adding `PENDING`/`PROCESSING` values to the `AnalysisStatus` enum in the full backend codebase — this is a Flyway data-type migration and should be tracked as a refinement in Wave 8 (admin settings) when enum migration is scoped. Current behaviour: synchronous generation with status endpoint available for future async upgrade.
-- No other blockers. Ready to proceed to **WAVE 4 — Timetables** upon user command `GO WAVE 4`.
+- None for Wave 4.
+- Open P0 count: 1 remaining (**WAVE 5 — Attendance & Absences**, spec 4.8).
+- Ready to proceed to **WAVE 5 — Attendance & Absences** upon user command `GO WAVE 5`.
+

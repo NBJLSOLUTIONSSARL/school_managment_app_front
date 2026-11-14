@@ -38,6 +38,7 @@ import { LeaveRequestListPage } from '@/routes/LeaveRequestListPage'
 import { AuditLogListPage } from '@/routes/AuditLogListPage'
 import { AdmissionsPage } from '@/routes/AdmissionsPage'
 import { InvoicesPage } from '@/routes/InvoicesPage'
+import { TimetablePage } from '@/routes/TimetablePage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
 
 export const router = createBrowserRouter([
@@ -113,6 +114,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
             <ClassDetailPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/timetables',
+        element: (
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student', 'ROLE_PARENT', 'parent']}>
+            <TimetablePage />
           </RoleGuard>
         ),
       },

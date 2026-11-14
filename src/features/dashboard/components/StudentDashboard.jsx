@@ -15,6 +15,7 @@ import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
 import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
+import { TodayScheduleWidget } from '@/features/timetables'
 import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
 
@@ -163,6 +164,9 @@ export function StudentDashboard() {
           onClick={() => navigate('/observations')}
         />
       </div>
+
+      {/* Today's Timetable Widget */}
+      <TodayScheduleWidget title="Mes cours d'aujourd'hui" />
 
       {/* Middle Row: Trend Wave Chart + Radial Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

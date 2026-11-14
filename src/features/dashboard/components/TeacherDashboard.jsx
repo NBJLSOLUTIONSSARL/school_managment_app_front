@@ -15,6 +15,7 @@ import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
 import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
+import { TodayScheduleWidget } from '@/features/timetables'
 import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
 
@@ -164,6 +165,9 @@ export function TeacherDashboard() {
           onClick={() => navigate('/grades')}
         />
       </div>
+
+      {/* Today's Timetable Widget */}
+      <TodayScheduleWidget title="Mon emploi du temps du jour" />
 
       {/* Middle Row: Trend Wave Chart + Radial Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

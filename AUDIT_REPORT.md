@@ -10,10 +10,10 @@
 
 ## 1. Verdict
 
-**Overall Platform Completeness: 73%**  
-**The Single Biggest Risk:** Unmodeled daily operations (Timetables in Wave 4, Attendance in Wave 5). The Pedagogical AI module is now fully unblocked: `requireTerm()` wired to DB, teacher/staff access via real class assignments, grades/averages fed into prompt, multilingual prompts (FR/EN/AR), period comparison endpoint and UI implemented in Wave 3.  
+**Overall Platform Completeness: 78%**  
+**The Single Biggest Risk:** Unmodeled daily operations (Attendance in Wave 5). Timetables are now fully operational with weekly schedule grid, transactional room/teacher/class conflict detection, teacher availability manager, substitutions/exceptions, school calendar events, and OpenPDF schedule export.  
 **Deployment Call: NOT READY FOR DEPLOYMENT.**  
-The platform now has an established academic architecture verified by 680 backend tests and 552 frontend tests. The remaining core functional modules (Timetables, Attendance) must be implemented in Waves 4–5.
+The platform now has an established academic architecture and complete timetable operations verified by 712 backend tests and 558 frontend tests. The remaining core daily operation module (Attendance) must be implemented in Wave 5.
 
 ---
 
@@ -27,7 +27,7 @@ The platform now has an established academic architecture verified by 680 backen
 | **4.4 Students** | DONE | 85% | Full dossier: emergency contacts, siblings, medical notes (restricted access & audit), discipline records, CSV import/export, ID card & transfer certificates. | `StudentAcademicController.java`, `StudentDetailsModal.jsx` |
 | **4.5 Staff & Teachers** | PARTIAL | 75% | Teacher weekly workload calculation, class-subject-teacher assignments, department links; staff clock-in/out pending Wave 5. | `SchoolClassController.java`, `ClassSubjectTeacher.java` |
 | **4.6 Academic Structure** | DONE | 95% | V14 migration applied: years, terms, grade levels, sections, classes, subjects, rooms, enrollments; Frappe Desk UI pages complete. | `V14__academic_backbone.sql`, `AcademicYearsPage.jsx`, `ClassesPage.jsx` |
-| **4.7 Timetables** | MISSING | 10% | No timetable slots, schedule generator, conflict detector, or teacher availability; only general events exist. | `EventController.java:20` |
+| **4.7 Timetables** | DONE | 90% | Weekly schedule grid with day columns & time slots; transactional room, teacher & class double-booking conflict detection (409 Conflict); teacher availability manager; substitutions/cancellations; calendar events; PDF timetable export via OpenPDF. Auto-generator pending Wave 10. | `TimetableController.java`, `TimetableConflictServiceImpl.java`, `WeeklyTimetableGrid.jsx`, `TimetablePage.jsx` |
 | **4.8 Attendance & Absences** | MISSING | 0% | Completely unmodeled. No roll call, no absence records, no justification workflows, no statistics or alerts. | Missing entity `Attendance` |
 | **4.9 Exams, Grades & Bulletins** | PARTIAL | 85% | Exam scheduling, grade entry, locking, rank/mention, and PDF report cards secured with IDOR protection. | `ExamController.java`, `ReportCardServiceImpl.java:54` |
 | **4.10 Courses & Homework** | PARTIAL | 45% | Homework submission and grading exist; courses, course outlines, syllabus, and resource library missing. | `HomeworkSubmission.java`, `HomeworkController.java` |
@@ -42,7 +42,7 @@ The platform now has an established academic architecture verified by 680 backen
 | **Section 5: Frontend** | PARTIAL | 80% | Frappe Desk UI implemented for academic structure (years, terms, classes, class detail with capacity meter & enrollments, subjects), student dossier tabs, CSV import dry-run. | `router.jsx`, `ClassesPage.jsx`, `StudentDetailsModal.jsx` |
 | **Section 6 & 7: Security** | DONE | 95% | Method security on 100% of endpoints (scanned by test); public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
 | **Section 10: Deliverables** | PARTIAL | 75% | Permissions matrix published; Flyway V1-V14 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
-| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (552/552 passed); Backend Maven 100% green (680/680 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
+| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (558/558 passed across 58 test files); Backend Maven 100% green (712/712 passed, 0 failures, 0 errors across all integration & unit suites). | Surefire Reports (`target/surefire-reports/`), Vitest |
 
 ---
 
@@ -60,32 +60,15 @@ The platform now has an established academic architecture verified by 680 backen
 
 ---
 
-### Issue 3: Pedagogical AI Runtime 503 Crash on Generation
-- **Severity:** P0 (CRITICAL — Broken Core Feature)
-- **File Reference:** `/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app/src/main/java/com/example/shcool_managment_app/providers/UserOrganizationDirectory.java:35-37`
-- **Evidence:**
-  ```java
-  @Override
-  public TermWindow requireTerm(Long id) {
-      throw new PedagogicalException(HttpStatus.SERVICE_UNAVAILABLE, "TERM_DIRECTORY_UNAVAILABLE",
-          "Le module des périodes pédagogiques n'est pas encore intégré");
-  }
-  ```
-- **Finding:** When any user calls `POST /api/ai-analyses/generate`, `AIAnalysisService.prepare()` executes `directory.requireTerm(request.termId())`, which directly throws `503 SERVICE_UNAVAILABLE`. AI analysis generation is currently 100% non-functional in the backend.
-- **Fix Direction:** Create the `academic_years` and `terms` entities (Module 4.6), or implement a fallback `TermWindow` provider based on current calendar dates until Module 4.6 is fully persisted.
+### Issue 3: Pedagogical AI Runtime 503 Crash on Generation [RESOLVED in WAVE 3]
+- **Status:** RESOLVED
+- **Resolution Evidence:** Wired `UserOrganizationDirectory.requireTerm()` to `TermRepository` in the database, removing the 503 stub. Verified by unit & integration tests (`UserOrganizationDirectoryTest`, `AIAnalysisWave3IntegrationTest`).
 
 ---
 
-### Issue 4: Hardcoded `AccessDeniedException` Blocking Teachers and Staff from Observations
-- **Severity:** P0 (CRITICAL — Broken Business Workflow)
-- **File Reference:** `/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app/src/main/java/com/example/shcool_managment_app/security/UserOrganizationAccessPolicy.java:40-42`
-- **Evidence:**
-  ```java
-  case TEACHER -> throw new AccessDeniedException("Affectation enseignant-élève indisponible");
-  case STAFF -> throw new AccessDeniedException("Périmètre pédagogique du personnel indisponible");
-  ```
-- **Finding:** Spec 4.18 dictates that teachers enter pedagogical observations and review AI analyses. In the code, all calls to `policy.require(studentId, ...)` from teachers or staff unconditionally throw `AccessDeniedException`.
-- **Fix Direction:** Implement teacher-student relationships via classes or departments, and grant teachers access to their students rather than throwing a hardcoded exception.
+### Issue 4: Hardcoded `AccessDeniedException` Blocking Teachers and Staff from Observations [RESOLVED in WAVE 3]
+- **Status:** RESOLVED
+- **Resolution Evidence:** Implemented real DB query in `UserOrganizationAccessPolicy.java` verifying student enrollment in classes assigned to the requesting teacher, and checking granular role permissions for staff. Verified by `UserOrganizationAccessPolicyTest`.
 
 ---
 
@@ -124,7 +107,7 @@ The platform now has an established academic architecture verified by 680 backen
 | **Phase 3: Documents & Admissions**| P1 | M | 4.3 | Admission tests and interviews scheduling and results recording. |
 | **Phase 3: Documents & Admissions**| P2 | M | 4.3 | Annual re-enrollment workflow for existing students. |
 | **Phase 4: Daily Operations** | P0 | L | 4.8 | Attendance & Absences module: daily & per-course roll call, justifications with attachments, absence alerts. |
-| **Phase 4: Daily Operations** | P0 | L | 4.7 | Timetable module: weekly schedule slots, room/teacher conflict detection, teacher availability, PDF timetable export. |
+| **Phase 4: Daily Operations** | P0 | L | 4.7 | [RESOLVED in WAVE 4] Timetable module: weekly schedule slots, room/teacher/class conflict detection, teacher availability, exceptions/substitutions, and PDF timetable export. |
 | **Phase 4: Daily Operations** | P1 | M | 4.10 | Course space and pedagogical resource library (sharing syllabus, slides, and links between teachers). |
 | **Phase 5: Evaluation** | P1 | M | 4.9 | Configurable report card templates and multi-period student progress curves. |
 | **Phase 6: Finances** | P1 | M | 4.11 | Sibling discounts, scholarship deductions, and automated payment overdue reminders. |
@@ -207,8 +190,8 @@ The platform now has an established academic architecture verified by 680 backen
    *Acceptance Criterion:* Create `attendances` table with status (`PRESENT`, `ABSENT`, `LATE`, `EXCUSED`), roll call endpoint by class/date, parent justification with file upload, and student attendance rate calculation.
 7. **Task 7: Secure Parent Dashboard Data Access**  
    *Acceptance Criterion:* Implement `GET /api/v1/guardians/me/students` returning strictly the children of the authenticated parent, and update `ParentDashboard.jsx` to consume this endpoint instead of downloading the full student directory.
-8. **Task 8: Implement Timetables & Schedule Conflict Detection (Spec 4.7)**  
-   *Acceptance Criterion:* Implement `timetable_slots` entity (day, time slot, class, subject, teacher, room), double-booking validation on teacher and room, and PDF export for weekly schedules.
+8. **Task 8: Implement Timetables & Schedule Conflict Detection (Spec 4.7)** [RESOLVED in WAVE 4]  
+   *Acceptance Criterion:* Implement `timetable_slots` entity (day, time slot, class, subject, teacher, room), double-booking validation on teacher and room, and PDF export for weekly schedules. Verified with 8 unit tests in `TimetableConflictServiceTest`, 13 integration tests in `TimetableIntegrationTest`, and Frappe Desk UI in `TimetablePage.jsx`.
 9. **Task 9: Implement Password Reset & Email Infrastructure (Spec 4.1)**  
    *Acceptance Criterion:* Add `spring-boot-starter-mail`, implement `/api/v1/auth/forgot-password` and `/api/v1/auth/reset-password` with expiring token validation, and send HTML password reset emails.
 10. **Task 10: Create Unified Docker Stack & CI/CD Pipeline (Spec Section 10)**  
@@ -278,13 +261,13 @@ The platform now has an established academic architecture verified by 680 backen
 - [x] Affectations classe–matière–enseignant (`ClassSubjectTeacher.java`, `classService.js`)
 - [x] Gestion des salles et installations (`Room.java`, `RoomRepository.java`)
 
-### 4.7 Emplois du temps et planification
-- [ ] Emploi du temps hebdomadaire (Entité absente)
-- [ ] Détection des conflits de réservation (Enseignant, salle, classe)
-- [ ] Disponibilités des enseignants
-- [ ] Gestion des exceptions, remplacements et cours annulés
-- [~] Calendrier des événements et examens (`EventController.java:20`)
-- [ ] Export PDF de l'emploi du temps
+### 4.7 Emplois du temps et planification [RESOLVED in WAVE 4]
+- [x] Emploi du temps hebdomadaire (`TimetableSlot.java`, `WeeklyTimetableGrid.jsx`, `TimetablePage.jsx`)
+- [x] Détection des conflits de réservation (Enseignant, salle, classe) (`TimetableConflictServiceImpl.java`, `TimetableConflictException.java`)
+- [x] Disponibilités des enseignants (`TeacherAvailability.java`, `TeacherAvailabilityModal.jsx`)
+- [x] Gestion des exceptions, remplacements et cours annulés (`TimetableException.java`, `TimetableExceptionsModal.jsx`)
+- [x] Calendrier des événements et examens (`SchoolCalendarEvent.java`, `SchoolCalendarRepository.java`)
+- [x] Export PDF de l'emploi du temps (`TimetableServiceImpl.java:exportWeeklySchedulePdf`, OpenPDF)
 
 ### 4.8 Gestion des absences et retards
 - [ ] Appel quotidien ou par cours par les enseignants

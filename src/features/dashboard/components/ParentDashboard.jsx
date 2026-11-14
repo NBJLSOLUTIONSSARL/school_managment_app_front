@@ -16,6 +16,7 @@ import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
 import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
+import { TodayScheduleWidget } from '@/features/timetables'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
@@ -198,6 +199,9 @@ export function ParentDashboard() {
               onClick={() => navigate('/finances/invoices')}
             />
           </div>
+
+          {/* Today's Timetable Widget */}
+          <TodayScheduleWidget title="Emploi du temps de la journée" />
 
           {/* Middle Row: Trend Wave Chart + Radial Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

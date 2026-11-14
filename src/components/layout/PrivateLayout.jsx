@@ -77,6 +77,7 @@ export function PrivateLayout() {
     if (pathname.startsWith('/dashboard')) return t('nav.dashboard', 'Dashboard')
     if (pathname.startsWith('/academic-years')) return 'Années Scolaires'
     if (pathname.startsWith('/classes')) return 'Classes & Cohortes'
+    if (pathname.startsWith('/timetables')) return 'Emplois du temps'
     if (pathname.startsWith('/subjects')) return 'Matières & Coeffs'
     if (pathname.startsWith('/students')) return t('nav.students', 'Students')
     if (pathname.startsWith('/teachers')) return t('nav.teachers', 'Teachers')
@@ -183,6 +184,12 @@ export function PrivateLayout() {
       to: '/classes',
       icon: School,
       roles: ['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher'],
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
+    {
+      label: 'Emplois du temps',
+      to: '/timetables',
+      icon: Calendar,
       section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
     },
     {
