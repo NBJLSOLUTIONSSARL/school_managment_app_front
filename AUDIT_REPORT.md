@@ -10,10 +10,10 @@
 
 ## 1. Verdict
 
-**Overall Platform Completeness: 68%**  
-**The Single Biggest Risk:** Pedagogical AI runtime 503 crash (missing term integration in Wave 3) and unmodeled daily operations (Timetables in Wave 4, Attendance in Wave 5). All critical security vulnerabilities have been resolved in Wave 1, and the foundational Academic Backbone (Years, Terms, Levels, Sections, Classes, Subjects, Rooms, Enrollments, Student Dossiers, Import/Export, and Certificates) has been fully built and verified in Wave 2.  
+**Overall Platform Completeness: 73%**  
+**The Single Biggest Risk:** Unmodeled daily operations (Timetables in Wave 4, Attendance in Wave 5). The Pedagogical AI module is now fully unblocked: `requireTerm()` wired to DB, teacher/staff access via real class assignments, grades/averages fed into prompt, multilingual prompts (FR/EN/AR), period comparison endpoint and UI implemented in Wave 3.  
 **Deployment Call: NOT READY FOR DEPLOYMENT.**  
-The platform now has an established academic architecture verified by 680 backend tests and 528 frontend tests. The remaining core functional modules (Pedagogical AI unblocking, Timetables, Attendance) must be implemented in Waves 3–5.
+The platform now has an established academic architecture verified by 680 backend tests and 552 frontend tests. The remaining core functional modules (Timetables, Attendance) must be implemented in Waves 4–5.
 
 ---
 
@@ -38,11 +38,11 @@ The platform now has an established academic architecture verified by 680 backen
 | **4.15 Add-on Modules** | MISSING | 0% | Library, Transport, Canteen, Inventory, Health, and Extracurricular Clubs have 0 entities, 0 APIs, 0 UI. | Spec 4.15 (0% implemented) |
 | **4.16 Reports & Analytics** | PARTIAL | 20% | Dashboard counters, student CSV export, and PDF certificates exist; structured multi-criteria report generator pending Wave 10. | `StudentImportExportServiceImpl.java`, `statsService.js:13` |
 | **4.17 Administration** | PARTIAL | 35% | Audit logs functional with request IP tracking; school profile configuration, role management API pending Wave 8. | `AuditLogController.java:18` |
-| **4.18 AI Pedagogical Analysis** | BROKEN | 50% | Prompt and JSON schema defined; fails at runtime (`503 TERM_DIRECTORY_UNAVAILABLE`); teachers/staff denied access (Wave 3). | `UserOrganizationDirectory.java:35`, `OpenAIProvider.java:25` |
+| **4.18 AI Pedagogical Analysis** | DONE | 85% | `requireTerm()` wired to DB (503 removed); teacher/staff access via class assignments; grades+averages in prompt; multilingual (FR/EN/AR); `FakeAIProvider` for tests; `@Scheduled` end-of-term; period comparison endpoint+UI. Async HTTP pending Wave 8 enum migration. | `UserOrganizationDirectory.java:40-47`, `OpenAIProvider.java:55-77`, `AIAnalysisService.java:111-177`, `PeriodComparisonView.jsx` |
 | **Section 5: Frontend** | PARTIAL | 80% | Frappe Desk UI implemented for academic structure (years, terms, classes, class detail with capacity meter & enrollments, subjects), student dossier tabs, CSV import dry-run. | `router.jsx`, `ClassesPage.jsx`, `StudentDetailsModal.jsx` |
 | **Section 6 & 7: Security** | DONE | 95% | Method security on 100% of endpoints (scanned by test); public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
 | **Section 10: Deliverables** | PARTIAL | 75% | Permissions matrix published; Flyway V1-V14 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
-| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (528/528 passed); Backend Maven 100% green (680/680 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
+| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (552/552 passed); Backend Maven 100% green (680/680 passed, 0 failures, 0 errors). | Surefire Reports (`target/surefire-reports/`), Vitest |
 
 ---
 

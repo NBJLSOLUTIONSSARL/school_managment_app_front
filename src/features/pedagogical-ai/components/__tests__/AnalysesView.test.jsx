@@ -589,3 +589,84 @@ describe('AnalysesPage parental consent enforcement', () => {
     await waitFor(() => expect(screen.getByText(/consentement parental actif pour l’analyse IA/i)).toBeInTheDocument())
   })
 })
+
+describe('AnalysesPage async generation & period comparison tab', () => {
+  it('switches between single analyses view and period comparison view tabs', () => {
+    renderPage({ permissions: ['PERM_READ_ANALYSIS'] })
+    const compareTab = screen.getByRole('button', { name: /comparaison de périodes/i })
+    expect(compareTab).toBeInTheDocument()
+
+    fireEvent.click(compareTab)
+    expect(screen.getByLabelText(/période 1/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/période 2/i)).toBeInTheDocument()
+
+    const singleTab = screen.getByRole('button', { name: /analyses par période/i })
+    fireEvent.click(singleTab)
+    expect(screen.getByLabelText(/identifiant élève/i)).toBeInTheDocument()
+  })
+
+  it('passes requested locale in generate payload and handles polling status', async () => {
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'],
+    })
+
+    auth.request.mockImplementation((url, opts) => {
+      if (url.includes('/ai-consents')) {
+        return Promise.resolve({
+          content: [{ id: 1, studentId: 12, guardianId: 1, granted: true, grantedAt: '2026-10-01' }],
+          page: 0,
+          size: 10,
+          totalElements: 1,
+          totalPages: 1,
+        })
+      }
+      if (url.includes('/generate') && opts?.method === 'POST') {
+        return Promise.resolve({
+          id: 42,
+          studentId: 12,
+          termId: 3,
+          status: 'PENDING',
+        })
+      }
+      if (url.includes('/42/status') || url.includes('/status/42')) {
+        return Promise.resolve({
+          id: 42,
+          status: 'COMPLETED',
+          analysisId: 42,
+        })
+      }
+      if (url === '/api/ai-analyses/42') {
+        return Promise.resolve({
+          ...analysis,
+          id: 42,
+          status: 'DRAFT',
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const studentInput = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(studentInput, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getByText(/consentement parental actif/i)).toBeInTheDocument())
+
+    const termInput = screen.getByLabelText(/identifiant période/i)
+    fireEvent.change(termInput, { target: { value: '3' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).pop())
+
+    fireEvent.click(screen.getByRole('button', { name: /générer l’analyse/i }))
+
+    await waitFor(() =>
+      expect(auth.request).toHaveBeenCalledWith(
+        '/api/ai-analyses/generate',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"locale":"fr"'),
+        })
+      )
+    )
+
+    await waitFor(() => expect(screen.getByText(/analyse générée avec succès/i)).toBeInTheDocument())
+  })
+})

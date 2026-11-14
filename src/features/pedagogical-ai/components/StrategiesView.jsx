@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Lock, ShieldAlert } from 'lucide-react'
+import { Lock, ShieldAlert, CornerDownRight } from 'lucide-react'
 import * as yup from 'yup'
 import { useAuth } from '@/features/auth'
 import DocTypePageHead from '@/components/ui/DocTypePageHead'
@@ -734,7 +734,15 @@ export function StrategiesView() {
                         {!actionsLoading && actions.map((action) => (
                           <tr key={action.id} className="hover:bg-frappe-hover/50">
                             <td className="px-3 py-2.5 text-xs text-frappe-dark font-medium">
-                              {action.description}
+                              <div className="flex items-center gap-2">
+                                <span>{action.description}</span>
+                                {action.carriedForward && (
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                    <CornerDownRight className="w-3 h-3 text-amber-600 shrink-0" />
+                                    Reportée
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-3 py-2.5 text-xs text-frappe-dark">
                               {formatDate(action.dueDate)}
