@@ -5,6 +5,8 @@ import ProfileAvatar from '@/features/profile/components/ProfileAvatar'
 import { displayName, roleLabels } from '@/features/profile/utils/profileDisplay'
 import ProfileIcon from '@/features/profile/components/ProfileIcon'
 import GoogleAccountLinkSection from '@/features/profile/components/GoogleAccountLinkSection'
+import TwoFactorSection from '@/features/profile/components/TwoFactorSection'
+import ActiveSessionsSection from '@/features/profile/components/ActiveSessionsSection'
 import './ProfilePage.css'
 
 function Detail({ label, value, icon }) {
@@ -33,7 +35,7 @@ export function ProfileView() {
 
       <section aria-label={t('profile.personalInfo', 'Informations personnelles')} className="profile-card">
         <div className="profile-card-heading">
-          <ProfileAvatar user={user} />
+          <ProfileAvatar user={user} editable={true} />
           <div className="profile-card-identity">
             <h2>{displayName(user)}</h2>
             <p>{roles.map((role) => t(`roles.${role}`, roleLabels[role] || role)).join(' · ')}</p>
@@ -129,6 +131,8 @@ export function ProfileView() {
       )}
 
       <GoogleAccountLinkSection />
+      <TwoFactorSection />
+      <ActiveSessionsSection />
       <LegalDocumentsSection key={`${user.id}:${user.email}`} />
     </div>
   )

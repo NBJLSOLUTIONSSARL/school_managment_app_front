@@ -125,4 +125,62 @@ describe('LoginForm & Session Redirection', () => {
       expect(screen.getByText(/identifiants incorrects/i)).toBeInTheDocument()
     })
   })
+
+  it('supports login with phone number as identifier', async () => {
+    const loginMock = vi.fn().mockResolvedValue(true)
+    renderLoginForm({
+      authValue: { login: loginMock },
+    })
+
+    const identifierInput = document.getElementById('login-email')
+    const passwordInput = document.getElementById('login-password')
+    fireEvent.change(identifierInput, { target: { value: '+33612345678' } })
+    fireEvent.change(passwordInput, { target: { value: 'Secret123!' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^se connecter$/i }))
+
+    await waitFor(() => {
+      expect(loginMock).toHaveBeenCalledWith({
+        email: '+33612345678',
+        password: 'Secret123!',
+      })
+      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument()
+    })
+  })
+
+  it('renders 2FA challenge screen when login requires two-factor authentication', async () => {
+    const loginMock = vi.fn().mockResolvedValue({
+      twoFactorRequired: true,
+      tempToken: 'uuid-temp-token-test',
+    })
+    const verifyTwoFactorLoginMock = vi.fn().mockResolvedValue(true)
+
+    renderLoginForm({
+      authValue: {
+        login: loginMock,
+        verifyTwoFactorLogin: verifyTwoFactorLoginMock,
+      },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /^se connecter$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Authentification à deux facteurs/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/Code de sécurité/i)).toBeInTheDocument()
+    })
+
+    // Enter 6-digit TOTP code and submit
+    const codeInput = document.getElementById('two-factor-code')
+    fireEvent.change(codeInput, { target: { value: '123456' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Valider le code/i }))
+
+    await waitFor(() => {
+      expect(verifyTwoFactorLoginMock).toHaveBeenCalledWith({
+        tempToken: 'uuid-temp-token-test',
+        code: '123456',
+      })
+      expect(screen.getByTestId('dashboard-page')).toBeInTheDocument()
+    })
+  })
 })

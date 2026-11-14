@@ -203,3 +203,60 @@
 - Open P0 count: **0 remaining** (All P0 items from the master audit are resolved).
 - Ready to proceed to **WAVE 6 — Evaluation & Gradebook** (spec 4.9) upon user command `GO WAVE 6`.
 
+---
+
+## Wave 6 — Auth Completion and Email Infrastructure (Spec 4.1, 4.12)
+
+### 1. Scope
+1. Dual login support via standard email OR normalized phone number (`+336...`).
+2. Mandatory password change on first login (`first_login` flag in `users` table) with route guard and forced change screen.
+3. Two-factor authentication (2FA) via RFC 6238 TOTP (HMAC-SHA1, 30s step, 6 digits) with Base32 secret generation, `otpauth://` QR URI generation, login challenge interception, single-use recovery codes (8 codes), setup/enable/disable flows.
+4. Active sessions and devices tracking (`user_sessions` table with user agent parsing, IP address, last activity, current session flag), revocation endpoints, and frontend session management.
+5. Profile photo upload with magic bytes content sniffing (JPEG/PNG/WEBP, max 5MB), private streaming endpoint with HTTP caching headers, and photo deletion.
+6. Email and SMS abstraction with Mailpit integration and vendor-neutral `SmsService` provider interface with logging stub.
+7. Frontend Frappe Desk UI: Dual login form with phone support, 2FA challenge screen, forced password change screen with security criteria, 2FA setup & disable modal in Profile, active sessions management card, and profile avatar upload/crop/delete.
+8. Exit criterion: Backend tests pass, frontend tests pass, lint passes (0 warnings), build passes.
+
+### 2. Status: DONE
+- **Backend Tests:** 730/730 passed across all test suites, 0 failures, 0 errors (`./mvnw test -q` exits 0).
+  - `AuthCompletionIntegrationTest.java`: 6/6 passed (dual login by phone, forced first login password change, 2FA TOTP setup/enable/challenge/verify/recovery/disable, sessions list/revoke, photo upload magic bytes sniffing/stream/delete, and SMS stub).
+  - `EndpointAuthorizationSecurityTest.java`: 100% passed (whitelisted `/api/v1/auth/2fa/challenge/verify`, all endpoints secured with `@PreAuthorize`).
+- **Frontend Tests:** 574/574 passed across 63 test files (`npm run test` exits 0).
+  - `ForcePasswordChangeForm.test.jsx`: 3/3 passed (heading and fields, password criteria enforcement, calls `completeFirstLogin` and redirects).
+  - `TwoFactorSection.test.jsx`: 3/3 passed (disabled badge, setup modal + 6-digit TOTP verification + recovery codes display, enabled badge + disable flow).
+  - `ActiveSessionsSection.test.jsx`: 2/2 passed (renders sessions list upon view, revokes single session and all other sessions).
+  - `LoginForm.test.jsx`: 7/7 passed (dual identifier login, 2FA challenge interception & verification).
+- **Frontend Quality:**
+  - `npm run lint` (oxlint): 0 errors, 0 warnings across 346 files.
+  - `npm run build` (vite): Production build passes cleanly with 0 errors in 1.35s.
+- **Open P0/P1 Items:** 0 open in Wave 6.
+
+### 3. Changes Made
+- **Backend Repository** (`/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app`):
+  - `db/migration/V17__auth_completion_and_sessions.sql`: Added `first_login`, `two_factor_secret`, `two_factor_recovery_codes`, and unique index on `phone` to `users`; created `user_sessions` table with indexes and cascade delete.
+  - `model/`: Updated `User.java` with new auth fields and builder. Created `UserSession.java`.
+  - `repository/`: Updated `UserRepository.java` (added `findByPhone` and `findByEmailOrPhone`). Created `UserSessionRepository.java`.
+  - `security/`: Created `TotpService.java` implementing RFC 6238 TOTP, Base32 codec, 6-digit verification with +/- 1 step window, and 8-char recovery code generator. Updated `CustomUserDetailsService.java` to support dual lookup by email or phone.
+  - `service/sms/`: Created `SmsService.java` and `LoggingSmsProvider.java`.
+  - `dto/`: Created `FirstLoginChangePasswordRequest.java`, `TwoFactorSetupResponseDto.java`, `TwoFactorVerifyRequestDto.java`, `TwoFactorDisableRequestDto.java`, `TwoFactorChallengeVerifyDto.java`, `TwoFactorEnableResponseDto.java`, `UserSessionResponseDto.java`. Updated `UserResponse.java` (`firstLogin`), `TokenResponse.java` (`twoFactorRequired`, `tempToken`), and `LoginRequest.java`.
+  - `service/`: Created `UserSessionService.java` and `UserSessionServiceImpl.java`. Updated `AuthService.java` and `AuthServiceImpl.java` (dual login, 2FA challenge, recovery code fallback, setup, enable, disable, first login password change).
+  - `controller/`: Updated `AuthController.java` (added `/2fa/*`, `/first-login/*`, `/sessions/*`). Updated `UserController.java` (added `/me/photo` upload with magic bytes sniffing, delete, and streaming photo endpoint with HTTP caching). Updated `SecurityConfig.java`.
+  - `test/`: Added `AuthCompletionIntegrationTest.java` (6 tests).
+- **Frontend Repository** (`/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front`):
+  - `src/features/auth/api/authApi.js`: Added API methods for 2FA challenge verify, setup, enable, disable, first login complete, get sessions, revoke session, revoke other sessions, upload photo, and delete photo.
+  - `src/features/auth/context/AuthProvider.jsx`: Added `verifyTwoFactorLogin`, `updateSessionUser`, updated `login` to intercept 2FA challenge.
+  - `src/features/auth/components/LoginForm.jsx`: Updated identifier input label/placeholder for phone support, added 2FA challenge screen with TOTP / recovery code fallback.
+  - `src/features/auth/components/ForcePasswordChangeForm.jsx` & `src/routes/ForcePasswordChangePage.jsx`: Forced password change screen with password security criteria.
+  - `src/components/layout/RoleGuard.jsx` & `src/app/router.jsx`: Added redirect guard for `user.firstLogin` and `/force-password-change` route.
+  - `src/features/profile/components/TwoFactorSection.jsx`: 2FA card with setup modal, Base32 secret copy, `otpauth://` URI, recovery codes display, and disable modal.
+  - `src/features/profile/components/ActiveSessionsSection.jsx`: Active sessions list with device icons, browser/OS/IP details, current session badge, and single/all revoke buttons.
+  - `src/features/profile/components/ProfileAvatar.jsx`: Profile photo upload with MIME & size validation, upload progress spinner, and photo deletion button.
+  - `src/features/profile/components/ProfileView.jsx`: Integrated `TwoFactorSection` and `ActiveSessionsSection`.
+  - Tests: Added `ForcePasswordChangeForm.test.jsx` (3 tests), `TwoFactorSection.test.jsx` (3 tests), `ActiveSessionsSection.test.jsx` (2 tests), updated `LoginForm.test.jsx` (7 tests).
+
+### 4. Open Issues & Decisions Needed
+- None for Wave 6.
+- Open P0 count: **0 remaining**.
+- Ready to proceed to **WAVE 7 — Documents, Settings & Configuration** (spec 4.2, 4.17) upon user command `GO WAVE 7`.
+
+

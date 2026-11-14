@@ -7,6 +7,7 @@ import { LoginPage } from '@/routes/LoginPage'
 import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage'
 import { GoogleCallbackPage } from '@/routes/GoogleCallbackPage'
+import { ForcePasswordChangePage } from '@/routes/ForcePasswordChangePage'
 import { DashboardPage } from '@/routes/DashboardPage'
 import { AcademicYearsPage } from '@/routes/AcademicYearsPage'
 import { ClassesPage } from '@/routes/ClassesPage'
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
   {
     path: '/auth/google/callback',
     element: <GoogleCallbackPage />,
+  },
+  {
+    path: '/force-password-change',
+    element: <ForcePasswordChangePage />,
   },
 
   // Public Layout routes

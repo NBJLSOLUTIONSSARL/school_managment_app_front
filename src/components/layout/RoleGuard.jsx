@@ -18,6 +18,10 @@ export function RoleGuard({
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  if (user?.firstLogin && location.pathname !== '/force-password-change') {
+    return <Navigate to="/force-password-change" replace />
+  }
+
   if (allowedRoles.length > 0 && !hasRole(allowedRoles)) {
     return (
       <Navigate to="/403" state={{ requiredRoles: allowedRoles, userRoles: user?.roles }} replace />

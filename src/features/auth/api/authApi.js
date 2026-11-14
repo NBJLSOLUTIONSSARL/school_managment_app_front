@@ -124,3 +124,94 @@ export async function updateUserLanguage({ language, token } = {}) {
     body: JSON.stringify({ language }),
   })
 }
+
+export async function verifyTwoFactorChallenge({ tempToken, code }) {
+  return apiRequest('/api/v1/auth/2fa/challenge/verify', {
+    method: 'POST',
+    body: JSON.stringify({ tempToken, code }),
+  })
+}
+
+export async function setupTwoFactor({ token } = {}) {
+  return apiRequest('/api/v1/auth/2fa/setup', {
+    method: 'POST',
+    token,
+  })
+}
+
+export async function enableTwoFactor({ secret, code, token } = {}) {
+  return apiRequest(`/api/v1/auth/2fa/enable?secret=${encodeURIComponent(secret)}&code=${encodeURIComponent(code)}`, {
+    method: 'POST',
+    token,
+  })
+}
+
+export async function disableTwoFactor({ password, code, token } = {}) {
+  return apiRequest('/api/v1/auth/2fa/disable', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ password, code }),
+  })
+}
+
+export async function completeFirstLogin({ newPassword, confirmPassword, token } = {}) {
+  return apiRequest('/api/v1/auth/first-login/change-password', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ newPassword, confirmPassword }),
+  })
+}
+
+export async function getActiveSessions({ token } = {}) {
+  return apiRequest('/api/v1/auth/sessions', {
+    method: 'GET',
+    token,
+  })
+}
+
+export async function revokeSession({ id, token } = {}) {
+  return apiRequest(`/api/v1/auth/sessions/${id}`, {
+    method: 'DELETE',
+    token,
+  })
+}
+
+export async function revokeOtherSessions({ token } = {}) {
+  return apiRequest('/api/v1/auth/sessions', {
+    method: 'DELETE',
+    token,
+  })
+}
+
+export async function uploadProfilePhoto({ file, token } = {}) {
+  const rawBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL !== undefined)
+    ? import.meta.env.VITE_API_BASE_URL
+    : API_BASE_URL
+  const base = (rawBase === '/api' ? '' : rawBase || '').replace(/\/$/, '')
+  const formData = new FormData()
+  formData.append('photo', file)
+
+  const headers = new Headers()
+  headers.set('Accept', 'application/json')
+  headers.set('X-Requested-With', 'XMLHttpRequest')
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const res = await fetch(`${base}/api/v1/users/me/photo`, {
+    method: 'POST',
+    headers,
+    body: formData,
+    credentials: 'include',
+  })
+  const body = await res.json().catch(() => null)
+  if (!res.ok) {
+    throw new ApiError(res.status, body?.detail || body?.message || 'Erreur lors du téléversement')
+  }
+  return body
+}
+
+export async function deleteProfilePhoto({ token } = {}) {
+  return apiRequest('/api/v1/users/me/photo', {
+    method: 'DELETE',
+    token,
+  })
+}

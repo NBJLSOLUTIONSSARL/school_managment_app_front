@@ -56,6 +56,7 @@ export function normalizeUser(user) {
     photoUrl: user.photoUrl || null,
     language: user.language || 'fr',
     active: user.active !== false,
+    firstLogin: Boolean(user.firstLogin),
     twoFactorEnabled: Boolean(user.twoFactorEnabled),
     googleLinked: Boolean(user.googleLinked),
     roles: normalizedRoles,

@@ -159,6 +159,14 @@ export function AuthProvider({ children }) {
       })
 
       if (operation.current !== id) return false
+
+      if (response?.data?.twoFactorRequired) {
+        return {
+          twoFactorRequired: true,
+          tempToken: response.data.tempToken,
+        }
+      }
+
       setSessionIndicator(true)
 
       let next
@@ -194,6 +202,71 @@ export function AuthProvider({ children }) {
       }
     }
   }, [setLanguage])
+
+  const verifyTwoFactorLogin = useCallback(async ({ tempToken, code }) => {
+    if (busy.current) {
+      throw new ApiError(409, 'Une tentative de connexion est déjà en cours de traitement.')
+    }
+    const id = ++operation.current
+    busy.current = true
+    current.current = null
+    setSession(null)
+    clearTokens()
+    setNotice('')
+    setLoading(true)
+    const requestedAt = Date.now()
+    try {
+      const response = await apiRequest('/api/v1/auth/2fa/challenge/verify', {
+        method: 'POST',
+        body: JSON.stringify({ tempToken, code: (code || '').trim() }),
+      })
+
+      if (operation.current !== id) return false
+      setSessionIndicator(true)
+
+      let next
+      if (response?.data?.user) {
+        next = readSession(response, requestedAt)
+      } else {
+        const meRes = await apiRequest('/api/v1/auth/me')
+        const user = normalizeUser(meRes?.data?.user || meRes?.data)
+        next = {
+          accessToken: response?.data?.accessToken || '',
+          expiresAt: requestedAt + (response?.data?.expiresIn || 86400) * 1000,
+          user,
+        }
+      }
+
+      current.current = next
+      setSession(next)
+      if (next.accessToken) {
+        setTokens({ accessToken: next.accessToken, refreshToken: next.accessToken })
+      }
+      setCurrentUser(next.user)
+      resetRedirectFlag()
+
+      if (next.user?.language && ['fr', 'en', 'ar'].includes(next.user.language)) {
+        setLanguage(next.user.language)
+      }
+
+      return true
+    } finally {
+      if (operation.current === id) {
+        busy.current = false
+        setLoading(false)
+      }
+    }
+  }, [setLanguage])
+
+  const updateSessionUser = useCallback((patch) => {
+    setSession((prev) => {
+      if (!prev?.user) return prev
+      const updatedUser = { ...prev.user, ...patch }
+      current.current = { ...prev, user: updatedUser }
+      setCurrentUser(updatedUser)
+      return { ...prev, user: updatedUser }
+    })
+  }, [])
 
   const loginWithGoogle = useCallback(async ({ code, codeVerifier, state, nonce, redirectUri }) => {
     if (busy.current) return false
@@ -367,6 +440,8 @@ export function AuthProvider({ children }) {
       isLoading,
       notice,
       login,
+      verifyTwoFactorLogin,
+      updateSessionUser,
       loginWithGoogle,
       initiateGoogleLink,
       linkGoogleAccount,
@@ -378,7 +453,7 @@ export function AuthProvider({ children }) {
       hasAnyRole,
       hasPermission,
     }),
-    [session, roles, permissions, isLoading, notice, login, loginWithGoogle, initiateGoogleLink, linkGoogleAccount, unlinkGoogleAccount, logout, request, refreshProfile, hasRole, hasAnyRole, hasPermission]
+    [session, roles, permissions, isLoading, notice, login, verifyTwoFactorLogin, updateSessionUser, loginWithGoogle, initiateGoogleLink, linkGoogleAccount, unlinkGoogleAccount, logout, request, refreshProfile, hasRole, hasAnyRole, hasPermission]
   )
 
   return (
