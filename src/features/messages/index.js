@@ -1,4 +1,7 @@
 export * from './api/messageService'
+export * from './api/meetingsAndTemplatesService'
 export * from './components/MessageInbox'
 export * from './components/MessageComposeModal'
 export * from './components/MessageDetailsModal'
+export * from './components/ParentTeacherMeetingsView'
+export * from './components/NotificationTemplatesManager'

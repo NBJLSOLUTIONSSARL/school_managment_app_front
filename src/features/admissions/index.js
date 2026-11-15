@@ -1,2 +1,5 @@
 export { AdmissionsPage } from './components/AdmissionsPage'
+export * from './components/AdmissionInterviewModal'
+export * from './components/ReEnrollmentModal'
 export { admissionsService } from './api/admissionsService'
+export * from './api/admissionWave7Service'

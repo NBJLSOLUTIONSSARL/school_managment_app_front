@@ -22,17 +22,17 @@ The platform has a complete academic architecture, robust timetables, comprehens
 | Module / Area | Status | % Done | Top Gap / Finding | Evidence / Reference |
 | :--- | :--- | :---: | :--- | :--- |
 | **4.1 Auth & Account** | DONE | 100% | Dual login email/phone, forced first-login password change, 2FA TOTP RFC 6238 with recovery codes, active sessions tracking & revocation, profile photo upload with magic bytes sniffing & streaming cache. | `AuthController.java`, `TotpService.java`, `UserSessionServiceImpl.java`, `UserController.java`, `LoginForm.jsx`, `TwoFactorSection.jsx`, `ActiveSessionsSection.jsx` |
-| **4.2 Legal Documents** | DONE | 85% | Authenticated downloads enforced; magic bytes content sniffing active; audit logged; document types CRUD pending Wave 7. | `SecurityConfig.java:110`, `DocumentServiceImpl.java:155` |
-| **4.3 Admissions** | PARTIAL | 70% | Public application & student conversion complete; admission tests/interviews and re-enrollment missing. | `ApplicationController.java:23`, `Application.java` |
+| **4.2 Legal Documents** | DONE | 100% | Authenticated downloads; magic bytes sniffing; audit logged; document types CRUD; compliance checklist; expiry scheduler & archival workflow. | `DocumentTypeController.java:23`, `DocumentController.java:65`, `DocumentComplianceChecklist.jsx:15` |
+| **4.3 Admissions** | DONE | 95% | Public application, student conversion, admission test & interview scheduling/scoring, and annual re-enrollment lifecycle. | `AdmissionInterviewController.java:25`, `ReEnrollmentController.java:24`, `AdmissionInterviewModal.jsx:7` |
 | **4.4 Students** | DONE | 85% | Full dossier: emergency contacts, siblings, medical notes (restricted access & audit), discipline records, CSV import/export, ID card & transfer certificates. | `StudentAcademicController.java`, `StudentDetailsModal.jsx` |
 | **4.5 Staff & Teachers** | DONE | 90% | Teacher weekly workload calculation, class-subject-teacher assignments, department links, staff clock-in/out presence tracking. | `SchoolClassController.java`, `StaffAttendance.java`, `StaffClockWidget.jsx` |
 | **4.6 Academic Structure** | DONE | 95% | V14 migration applied: years, terms, grade levels, sections, classes, subjects, rooms, enrollments; Frappe Desk UI pages complete. | `V14__academic_backbone.sql`, `AcademicYearsPage.jsx`, `ClassesPage.jsx` |
 | **4.7 Timetables** | DONE | 90% | Weekly schedule grid with day columns & time slots; transactional room, teacher & class double-booking conflict detection (409 Conflict); teacher availability manager; substitutions/cancellations; calendar events; PDF timetable export via OpenPDF. Auto-generator pending Wave 10. | `TimetableController.java`, `TimetableConflictServiceImpl.java`, `WeeklyTimetableGrid.jsx`, `TimetablePage.jsx` |
 | **4.8 Attendance & Absences** | DONE | 95% | Daily and course-by-course roll call with bulk upsert; parent justification workflow with optional document attachment; admin/staff review automatically transitioning records to EXCUSED; assiduity rates & metrics; repeated absence threshold alerts (> 3 unexcused); staff clock-in/out tracking. | `AttendanceController.java`, `AttendanceServiceImpl.java`, `ClassRollCallGrid.jsx`, `AttendancePage.jsx` |
 | **4.9 Exams, Grades & Bulletins** | PARTIAL | 85% | Exam scheduling, grade entry, locking, rank/mention, and PDF report cards secured with IDOR protection. | `ExamController.java`, `ReportCardServiceImpl.java:54` |
-| **4.10 Courses & Homework** | PARTIAL | 45% | Homework submission and grading exist; courses, course outlines, syllabus, and resource library missing. | `HomeworkSubmission.java`, `HomeworkController.java` |
+| **4.10 Courses & Homework** | DONE | 95% | Dedicated homework assignments & student submissions; courses, course outlines, chapter syllabus, and shared pedagogical resource library. | `CourseController.java:24`, `HomeworkController.java:30`, `CourseSpaceView.jsx:18` |
 | **4.11 Finance & Payments** | PARTIAL | 80% | Fee types, invoice generation, partial payments, receipts PDF work; IDOR protection verified for parents & students. | `InvoiceController.java`, `PaymentController.java` |
-| **4.12 Communication** | PARTIAL | 65% | In-app announcements, messages, and events complete; parent-teacher meeting scheduling and email/SMS dispatch missing. | `AnnouncementController.java`, `MessageController.java` |
+| **4.12 Communication** | DONE | 95% | Internal messaging, announcements targeted by role/class/level, parent-teacher appointment scheduling, and notification templates manager. | `MeetingController.java:25`, `NotificationTemplateController.java:23`, `ParentTeacherMeetingsView.jsx:16` |
 | **4.13 Parent Portal** | DONE | 75% | Multi-child selector, `/api/v1/guardians/me/students` scoping; attendance view and meeting booking pending Wave 4/5. | `ParentDashboard.jsx`, `statsService.js:355` |
 | **4.14 Student Portal** | PARTIAL | 60% | Dashboard, grades, homework, and strategy exist; timetable, attendance, and course resource library missing. | `StudentDashboard.jsx:1` |
 | **4.15 Add-on Modules** | MISSING | 0% | Library, Transport, Canteen, Inventory, Health, and Extracurricular Clubs have 0 entities, 0 APIs, 0 UI. | Spec 4.15 (0% implemented) |
@@ -216,23 +216,24 @@ The platform has a complete academic architecture, robust timetables, comprehens
 
 ### 4.2 Gestion des documents légaux
 - [x] Espace personnel de documents (`GET /api/v1/documents/my-documents`)
-- [x] Types de documents configurés en base (`document_types` dans `V4`)
-- [~] Téléversement PDF/JPG/PNG et téléchargement (`DocumentController.java:23, 52` — attention faille `permitAll()`)
-- [ ] API de configuration des types de documents par l'administrateur
-- [~] Dates d'expiration (champ `expiryDate` en DB, rappels automatiques absents)
+- [x] Types de documents configurés en base (`document_types` dans `V4` et `V18`)
+- [x] Téléversement PDF/JPG/PNG et téléchargement authentifié et journalisé (`DocumentController.java:52`, `DocumentServiceImpl.java:155`)
+- [x] API de configuration des types de documents par l'administrateur (`DocumentTypeController.java:23`, `DocumentTypesManager.jsx:15`)
+- [x] Dates d'expiration et rappels automatiques (`DocumentExpiryScheduler.java:22`, notification in-app/email)
 - [x] Circuit de vérification En attente → Approuvé / Rejeté avec motif (`DocumentController.java:31`)
-- [~] Stockage privé des fichiers (`LocalStorageService.java` présent, mais journalisation d'accès manquante et route publique)
-- [ ] Liste de contrôle des pièces manquantes par dossier
+- [x] Stockage privé des fichiers, vérification de types MIME par magic bytes (`DocumentServiceImpl.java:82`)
+- [x] Liste de contrôle de conformité des pièces manquantes par dossier (`DocumentController.java:65`, `DocumentComplianceChecklist.jsx:15`)
+- [x] Workflow d'archivage et de remplacement de pièces expirées (`DocumentController.java:80`, `documentTypeService.js:45`)
 
 ### 4.3 Admissions et inscriptions
 - [x] Formulaire public de candidature (`POST /api/v1/public/applications`, `landing-page/app/admissions`)
 - [x] Suivi des candidatures et statuts Déposée → En cours → Acceptée / Liste d'attente / Refusée (`ApplicationController.java`)
-- [~] Téléversement de documents lors de la candidature (champs métadonnées présents, upload direct absent)
-- [ ] Planification des entretiens et tests d'admission
+- [x] Téléversement de documents lors de la candidature (`ApplicationDocumentController.java`, `Document.java`)
+- [x] Planification des entretiens et tests d'admission (`AdmissionInterviewController.java:25`, `AdmissionInterviewModal.jsx:7`)
 - [x] Conversion automatique de candidature en élève et tuteur (`ApplicationController.java:56`, `ApplicationConversionServiceImpl.java:35`)
-- [ ] Réinscription annuelle des élèves existants
+- [x] Réinscription annuelle des élèves existants (`ReEnrollmentController.java:24`, `ReEnrollmentModal.jsx:12`)
 - [x] Génération automatique des numéros d'élève (`StudentNumberGenerator.java:15`)
-- [~] Notification d'inscription aux parents (notification in-app créée, e-mail absent)
+- [x] Notification d'inscription aux parents (`NotificationTemplateController.java:23`)
 
 ### 4.4 Gestion des élèves
 - [x] Profil de l'élève complet (identité, adresse, école précédente, urgence, fratrie) (`Student.java`, `EmergencyContact.java`, `StudentSibling.java`)
@@ -288,11 +289,11 @@ The platform has a complete academic architecture, robust timetables, comprehens
 - [~] Courbes de progression (Graphiques récents sur tableau de bord ; historique multi-annuel absent)
 
 ### 4.10 Cours, devoirs et ressources pédagogiques
-- [ ] Espace de cours et plans de cours
-- [~] Devoirs et échéances (`HomeworkSubmission.java`, `HomeworkController.java:26`)
-- [x] Dépôt des devoirs en ligne par les élèves (`HomeworkController.java:31`)
-- [x] Correction, notation et commentaires des devoirs (`HomeworkController.java:36`)
-- [ ] Bibliothèque partagée de ressources pédagogiques
+- [x] Espace de cours et plans de cours (`CourseController.java:24`, `CourseSpaceView.jsx:18`)
+- [x] Devoirs et échéances (`HomeworkAssignment.java`, `HomeworkAssignmentModal.jsx:10`, `HomeworkController.java:30`)
+- [x] Dépôt des devoirs en ligne par les élèves (`HomeworkSubmission.java`, `HomeworkController.java:45`)
+- [x] Correction, notation et commentaires des devoirs (`HomeworkController.java:60`)
+- [x] Bibliothèque partagée de ressources pédagogiques (`CourseResource.java`, `CourseController.java:70`)
 
 ### 4.11 Frais, paiements et finances
 - [x] Grille tarifaire et types de frais (`FeeTypeController.java:24`)
@@ -306,17 +307,18 @@ The platform has a complete academic architecture, robust timetables, comprehens
 - [x] Consultation des factures par les familles (`GET /api/v1/finances/invoices/students/{id}`)
 
 ### 4.12 Communication
-- [~] Annonces ciblées par rôle (`AnnouncementController.java:20` ; ciblage par classe/niveau absent)
+- [x] Annonces ciblées par rôle, classe et niveau (`AnnouncementController.java:20`, `Announcement.java:35`)
 - [x] Messagerie interne directe (`MessageController.java:20`, `MessageListPage.jsx`)
-- [~] Notifications in-app et temps réel (`NotificationController.java:20`, `notificationSocket.js` ; email/SMS absents)
-- [ ] Prise de rendez-vous parents–enseignants
+- [x] Notifications in-app et temps réel (`NotificationController.java:20`, `notificationSocket.js`)
+- [x] Prise de rendez-vous parents–enseignants (`MeetingController.java:25`, `ParentTeacherMeetingsView.jsx:16`)
 - [x] Événements scolaires et calendrier (`EventController.java:20`, `EventListPage.jsx`)
-- [ ] Modèles de messages prédéfinis
+- [x] Modèles de messages prédéfinis (`NotificationTemplateController.java:23`, `NotificationTemplatesManager.jsx:22`)
 
 ### 4.13 Portail parent
-- [~] Compte unique pour plusieurs enfants (`ParentDashboard.jsx:29`, `student_guardians`)
-- [~] Vue enfant : notes, bulletins, devoirs (présents ; emploi du temps et absences absents)
-- [ ] Justification des absences en ligne
+- [x] Compte unique pour plusieurs enfants (`ParentDashboard.jsx:29`, `student_guardians`)
+- [x] Vue enfant : notes, bulletins, devoirs, emploi du temps et assiduité
+- [x] Justification des absences en ligne avec pièces jointes (`AbsenceJustificationModal.jsx`, `AttendanceController.java:120`)
+- [x] Prise de rendez-vous pédagogiques avec les professeurs (`ParentTeacherMeetingsView.jsx`)
 - [x] Consultation des factures et reçus de paiement
 - [x] Messagerie avec l'établissement
 - [x] Consultation des annonces et événements

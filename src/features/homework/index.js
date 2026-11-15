@@ -1,2 +1,5 @@
 export * from './components/HomeworkView'
+export * from './components/CourseSpaceView'
+export * from './components/HomeworkAssignmentModal'
 export * from './api/homeworkService'
+export * from './api/homeworkWave7Service'

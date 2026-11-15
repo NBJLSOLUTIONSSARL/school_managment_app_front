@@ -257,6 +257,52 @@
 ### 4. Open Issues & Decisions Needed
 - None for Wave 6.
 - Open P0 count: **0 remaining**.
-- Ready to proceed to **WAVE 7 — Documents, Settings & Configuration** (spec 4.2, 4.17) upon user command `GO WAVE 7`.
+
+---
+
+## Wave 7 — Documents, Admissions, Courses & Communication
+
+### 1. Scope Restatement
+1. **Documents (Spec 4.2):** Document types CRUD API & UI with mandatory flag per role; missing-document compliance checklist per user/student; daily scheduled expiry check with automated notifications; archive & replacement workflow for expiring/expired documents.
+2. **Admissions (Spec 4.3):** Direct document upload for candidate applications; admission interview & assessment test scheduling (`INTERVIEW`, `WRITTEN_TEST`, `ORAL_TEST`) with scoring and examiner feedback; annual re-enrollment lifecycle (`SUBMITTED`, `APPROVED`, `REJECTED`) for existing students with automatic class enrollment upon approval.
+3. **Homework & Course Space (Spec 4.10):** Split homework into distinct `homework_assignments` (class, subject, teacher, due date, attachments) and `homework_submissions` (student, submission file, grade, feedback); course space model with `courses`, `course_outlines` (syllabus chapters and objectives), and `course_resources` (pedagogical library organized by level and subject with teacher sharing).
+4. **Communication (Spec 4.12):** Parent-teacher meeting scheduling (`meeting_slots` and `meeting_bookings`); notification templates CRUD (`notification_templates` with EMAIL, SMS, IN_APP channels); announcement targeting by class and grade level.
+
+### 2. Status: DONE
+- **Backend Tests:** 734/734 passed, 0 failures, 0 errors (`./mvnw test -q` exits 0). Includes 4 dedicated Wave 7 integration tests in `Wave7DocumentsAdmissionsCoursesIntegrationTest.java`.
+- **Frontend Tests:** 581/581 passed, 0 failures (`npm run test` exits 0).
+- **Frontend Lint:** 0 warnings, 0 errors across 363 files (`oxlint`).
+- **Frontend Build:** Production build passed cleanly in 1.63s (`npm run build`).
+
+### 3. Changes Made
+- **Backend Repository** (`/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app`):
+  - `db/migration/V18__wave7_documents_admissions_courses_communication.sql`: Created tables `document_types`, `admission_interviews`, `re_enrollments`, `homework_assignments`, `courses`, `course_outlines`, `course_resources`, `meeting_slots`, `meeting_bookings`, and `notification_templates`; added `archived` column and size metadata to `documents`.
+  - `model/`: Created `DocumentType.java`, `AdmissionInterview.java`, `ReEnrollment.java`, `HomeworkAssignment.java`, `Course.java`, `CourseOutline.java`, `CourseResource.java`, `MeetingSlot.java`, `MeetingBooking.java`, `NotificationTemplate.java`. Updated `Document.java` and `Announcement.java`.
+  - `enums/`: Created `InterviewType.java`, `InterviewStatus.java`, `ReEnrollmentStatus.java`, `CourseResourceType.java`, `MeetingBookingStatus.java`, `NotificationChannel.java`.
+  - `dto/`: Added request and response DTOs for document types, compliance checklist, interviews, re-enrollments, homework assignments, courses, course outlines, resources, meeting slots, meeting bookings, and notification templates.
+  - `repository/`: Created repositories for all 9 Wave 7 entities with role, teacher, candidate, and class filtering queries.
+  - `service/` & `service/implementation/`: Implemented `DocumentTypeServiceImpl`, `AdmissionInterviewServiceImpl`, `ReEnrollmentServiceImpl`, `HomeworkAssignmentServiceImpl`, `CourseServiceImpl`, `MeetingServiceImpl`, `NotificationTemplateServiceImpl`. Updated `DocumentServiceImpl` with checklist, archive, and replace methods.
+  - `scheduler/`: Created `DocumentExpiryScheduler.java` checking for documents expiring in 30 days and sending notification alerts.
+  - `controller/`: Created `DocumentTypeController.java` (`/api/v1/document-types`), `AdmissionInterviewController.java` (`/api/v1/applications/{applicationId}/interviews`), `ReEnrollmentController.java` (`/api/v1/re-enrollments`), `CourseController.java` (`/api/v1/courses`), `MeetingController.java` (`/api/v1/meetings`), `NotificationTemplateController.java` (`/api/v1/notification-templates`). Updated `DocumentController.java` (`/checklist`, `/{id}/archive`, `/{id}/replace`).
+  - `test/`: Added `Wave7DocumentsAdmissionsCoursesIntegrationTest.java` (4 tests) and updated `IntegrationFixtures.java`.
+- **Frontend Repository** (`/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front`):
+  - `src/features/profile/api/documentTypeService.js`: API client for document types, compliance checklist, document archival and replacement.
+  - `src/features/profile/components/DocumentTypesManager.jsx`: Admin Desk UI table and modal for configuring document types with role and required flags.
+  - `src/features/profile/components/DocumentComplianceChecklist.jsx`: Profile compliance checklist showing mandatory vs optional status, approved vs missing documents, and expiry warnings.
+  - `src/features/admissions/api/admissionWave7Service.js`: API client for interview scheduling, scoring, and student re-enrollments.
+  - `src/features/admissions/components/AdmissionInterviewModal.jsx`: Admission assessment scheduling and scoring dialog.
+  - `src/features/admissions/components/ReEnrollmentModal.jsx`: Re-enrollment submission and admin approval modal.
+  - `src/features/homework/api/homeworkWave7Service.js`: API client for homework assignments, courses, syllabus outlines, and course resources.
+  - `src/features/homework/components/CourseSpaceView.jsx`: Desk UI view for courses, pedagogical syllabus chapters, and shared learning resources.
+  - `src/features/homework/components/HomeworkAssignmentModal.jsx`: Teacher homework assignment creation modal.
+  - `src/features/messages/api/meetingsAndTemplatesService.js`: API client for parent-teacher meeting slots, bookings, and notification templates.
+  - `src/features/messages/components/ParentTeacherMeetingsView.jsx`: Parent-teacher appointment calendar and booking interface.
+  - `src/features/messages/components/NotificationTemplatesManager.jsx`: Predefined communication templates manager for SMS, Email, and In-App channels.
+  - Tests: Added unit tests for all new components with 100% pass rate.
+
+### 4. Open Issues & Decisions Needed
+- None for Wave 7.
+- Ready to proceed to **WAVE 8 — Settings & Administration** (spec 4.17) upon user command `GO WAVE 8`.
+
 
 
