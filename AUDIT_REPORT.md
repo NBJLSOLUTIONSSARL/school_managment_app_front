@@ -35,14 +35,14 @@ Verified by 739 backend tests and 596 frontend tests (100% passing) and 0 oxlint
 | **4.12 Communication** | DONE | 95% | Internal messaging, announcements targeted by role/class/level, parent-teacher appointment scheduling, and notification templates manager. | `MeetingController.java:25`, `NotificationTemplateController.java:23`, `ParentTeacherMeetingsView.jsx:16` |
 | **4.13 Parent Portal** | DONE | 75% | Multi-child selector, `/api/v1/guardians/me/students` scoping; attendance view and meeting booking pending Wave 4/5. | `ParentDashboard.jsx`, `statsService.js:355` |
 | **4.14 Student Portal** | PARTIAL | 60% | Dashboard, grades, homework, and strategy exist; timetable, attendance, and course resource library missing. | `StudentDashboard.jsx:1` |
-| **4.15 Add-on Modules** | MISSING | 0% | Library, Transport, Canteen, Inventory, Health, and Extracurricular Clubs have 0 entities, 0 APIs, 0 UI. | Spec 4.15 (0% implemented) |
+| **4.15 Add-on Modules** | DONE | 100% | Library (catalog, loans, returns, late penalties + payment), Transport (routes, vehicles, drivers, student allocations), Canteen (menus, allergens, student subscriptions), Inventory (equipment, valuation, condition, stock adjustments), Health (infirmary visits, vaccination records, strictly restricted access + audit logging), and Extracurricular Clubs (clubs, schedule, capacity bar, student waitlists). All modules protected by feature flags (`app.features.*.enabled`) and granular role scopes (`ROLE_NURSE`, `ROLE_LIBRARIAN`). | `LibraryController.java:31`, `TransportController.java:25`, `CanteenController.java:23`, `InventoryController.java:24`, `HealthController.java:26`, `ClubController.java:24`, `AddonFeatureController.java:18`, `AddonsPage.jsx` |
 | **4.16 Reports & Analytics** | DONE | 95% | Multi-criteria reports engine for enrollment, attendance, academic results, finances, and staff with filters and CSV/PDF export; role-based dashboards. | `ReportController.java:24`, `ReportServiceImpl.java:35`, `ReportsAnalyticsView.jsx:15` |
 | **4.17 Administration** | DONE | 95% | Dynamic SchoolProfile (name, logo, address, contact, stamp, grading thresholds) across OpenPDF documents; Spec 3 roles management API & Desk UI; automated daily database backup scheduler (@Scheduled); MessageSource FR/EN/AR. | `SchoolProfileController.java:20`, `RoleManagementController.java:22`, `DatabaseBackupScheduler.java:21`, `SettingsPage.jsx` |
 | **4.18 AI Pedagogical Analysis** | DONE | 85% | `requireTerm()` wired to DB (503 removed); teacher/staff access via class assignments; grades+averages in prompt; multilingual (FR/EN/AR); `FakeAIProvider` for tests; `@Scheduled` end-of-term; period comparison endpoint+UI. Async HTTP pending Wave 8 enum migration. | `UserOrganizationDirectory.java:40-47`, `OpenAIProvider.java:55-77`, `AIAnalysisService.java:111-177`, `PeriodComparisonView.jsx` |
 | **Section 5: Frontend** | PARTIAL | 80% | Frappe Desk UI implemented for academic structure (years, terms, classes, class detail with capacity meter & enrollments, subjects), student dossier tabs, CSV import dry-run. | `router.jsx`, `ClassesPage.jsx`, `StudentDetailsModal.jsx` |
 | **Section 6 & 7: Security** | DONE | 95% | Method security on 100% of endpoints (scanned by test); public files secured; IDOR protection active; rate limiting; secure headers; CORS. | `SecurityConfig.java`, `EndpointAuthorizationSecurityTest.java` |
 | **Section 10: Deliverables** | PARTIAL | 75% | Permissions matrix published; Flyway V1-V14 verified; unified docker-compose; GitHub Actions CI pipeline added. | `docs/permissions-matrix.md`, `docker-compose.yml` |
-| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (564/564 passed across 60 test files); Backend Maven 100% green (724/724 passed, 0 failures, 0 errors across all integration & unit suites). | Surefire Reports (`target/surefire-reports/`), Vitest |
+| **Tests & Verification** | DONE | 100% | Frontend Vitest 100% green (614/614 passed across 82 test files); Backend Maven 100% green (746/746 passed, 0 failures, 0 errors across all integration & unit suites); Frontend Oxlint 0 warnings/errors (406 files). | Surefire Reports (`target/surefire-reports/`), Vitest, Oxlint |
 
 ---
 
@@ -331,12 +331,13 @@ Verified by 739 backend tests and 596 frontend tests (100% passing) and 0 oxlint
 - [x] Profil et modification des identifiants
 
 ### 4.15 Modules complémentaires
-- [ ] Bibliothèque (Catalogue, prêts, retours)
-- [ ] Transport scolaire (Itinéraires, véhicules, chauffeurs)
-- [ ] Cantine (Menus, abonnements)
-- [ ] Inventaire et gestion des stocks
-- [ ] Santé et visites à l'infirmerie
-- [ ] Activités extrascolaires et clubs
+- [x] Bibliothèque (Catalogue, prêts, retours, pénalités financières et règlement) (`LibraryController.java:31`, `LibraryServiceImpl.java:55`, `LibraryManagerView.jsx`)
+- [x] Transport scolaire (Itinéraires, véhicules, chauffeurs, affectations élèves) (`TransportController.java:25`, `TransportServiceImpl.java:40`, `TransportManagerView.jsx`)
+- [x] Cantine (Menus diététiques, gestion des allergènes, abonnements et forfaits) (`CanteenController.java:23`, `CanteenServiceImpl.java:35`, `CanteenManagerView.jsx`)
+- [x] Inventaire et gestion des stocks (Valorisation totale, seuils d'alerte, ajustements de stock +/-) (`InventoryController.java:24`, `InventoryServiceImpl.java:42`, `InventoryManagerView.jsx`)
+- [x] Santé et visites à l'infirmerie (Visites médicales, carnet vaccinal, dossier médical individuel strictement restreint à ROLE_NURSE / ROLE_ADMIN avec traçabilité d'audit) (`HealthController.java:26`, `HealthServiceImpl.java:45`, `HealthCenterView.jsx`)
+- [x] Activités extrascolaires et clubs (Clubs, encadrement, jauges de capacité en temps réel, liste d'attente) (`ClubController.java:24`, `ClubServiceImpl.java:38`, `ClubsActivitiesView.jsx`)
+- [x] Feature flags par module (`app.features.*.enabled`) et gestion fine des habilitations (`ROLE_NURSE`, `ROLE_LIBRARIAN`) (`AddonFeatureProperties.java:15`, `AddonFeatureController.java:18`, `AddonsPage.jsx`)
 
 ### 4.16 Rapports et analyses
 - [x] Tableaux de bord synthétiques par rôle (`statsService.js`, `ReportsPage.jsx`)

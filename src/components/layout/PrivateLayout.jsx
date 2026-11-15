@@ -26,6 +26,7 @@ import {
   ShieldAlert,
   BarChart3,
   Sliders,
+  Sparkles,
   Search,
   Menu,
   X,
@@ -107,6 +108,7 @@ export function PrivateLayout() {
     if (pathname.startsWith('/messages')) return t('nav.messages', 'Messages')
     if (pathname.startsWith('/leave-requests')) return t('nav.leaveRequests', 'Leave Requests')
     if (pathname.startsWith('/audit-logs')) return t('nav.auditLogs', 'Audit Logs')
+    if (pathname.startsWith('/addons')) return 'Modules Complémentaires'
     if (pathname.startsWith('/profile')) return t('nav.profile', 'Profile & Settings')
     return t('nav.dashboard', 'Dashboard')
   }
@@ -233,6 +235,24 @@ export function PrivateLayout() {
     },
     { label: t('nav.homework'), to: '/homework', icon: BookOpen, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
     { label: t('nav.reportCards'), to: '/report-cards', icon: FileText, section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase() },
+    {
+      label: 'Modules Complémentaires',
+      to: '/addons',
+      icon: Sparkles,
+      roles: [
+        'ROLE_ADMIN',
+        'admin',
+        'ROLE_STAFF',
+        'staff',
+        'ROLE_TEACHER',
+        'teacher',
+        'ROLE_NURSE',
+        'nurse',
+        'ROLE_LIBRARIAN',
+        'librarian',
+      ],
+      section: t('nav.schoolManagement', 'GESTION SCOLAIRE').toUpperCase(),
+    },
     {
       label: t('nav.observations', 'Observations'),
       to: '/observations',

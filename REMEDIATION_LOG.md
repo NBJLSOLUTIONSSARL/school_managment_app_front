@@ -351,7 +351,54 @@
 
 ### 4. Open Issues & Decisions Needed
 - None for Wave 8.
-- Ready for Wave 9 (Parent & Student portal final polish) and Wave 10 (Add-on modules: Library, Transport, Canteen, Clubs).
+- Proceed to Wave 9: Add-on Modules (Library penalties, Transport, Canteen, Inventory, Health, Clubs).
+
+---
+
+## Wave 9 — Add-on Modules (Spec 4.15) & Feature Flags & Nurse/Librarian Roles
+
+### 1. Scope Restatement
+1. **Library Completion:** Fines/penalties tracking for overdue loans (`penalty_amount`, `penalty_paid`, `penalty_paid_at`), librarian penalty application and payment recording endpoints, and personal loans view.
+2. **Transport Management:** Fleet vehicle registration, bus routes with stops and schedules, driver assignments, and student transport allocations with capacity enforcement.
+3. **Canteen Management:** Weekly menu planning with allergen tags, meal types, and calorie information; student meal subscriptions with dietary restrictions tracking.
+4. **Inventory & Asset Management:** Equipment and supplies tracking across classrooms/labs with condition ratings, total valuation analytics, low-stock threshold alerts, and stock adjustments (`+/-`) with audit motives.
+5. **Health & School Infirmary:** Infirmary visit logs with treatments and parental notification flags, vaccination schedule records, and student health dossier strictly restricted to `ROLE_NURSE` and `ROLE_ADMIN` with audit trail logging.
+6. **Extracurricular Clubs:** Clubs catalog with schedules, supervising teachers, real-time capacity gauges, student enrollment workflow, and waitlist management.
+7. **Feature Flags & Roles:** Global feature flags per module (`app.features.*.enabled`), `ROLE_NURSE` (id 11) and `ROLE_LIBRARIAN` role scopes, Frappe Desk UI tabbed views, and complete test suites.
+
+### 2. Status: DONE
+- **Backend Tests:** 746/746 passed, 0 failures, 0 errors (`./mvnw test -q` exits 0). Includes 7 integration tests in `Wave9AddonModulesIntegrationTest.java` and verified 100% method security in `EndpointAuthorizationSecurityTest.java`.
+- **Frontend Tests:** 614/614 passed across 82 test files (`npm run test` exits 0), including 7 new test files for Addons components and route.
+- **Frontend Lint:** 0 warnings, 0 errors across 406 files (`oxlint`).
+- **Frontend Build:** Production build passed cleanly in 764ms (`npm run build`).
+
+### 3. Changes Made
+- **Backend:**
+  - `V20__wave9_addon_modules.sql`: Added `ROLE_NURSE` (id 11), seed nurse user, penalties on `book_loans`, and created tables `transport_vehicles`, `transport_routes`, `transport_allocations`, `canteen_menus`, `canteen_subscriptions`, `inventory_items`, `health_infirmary_visits`, `health_vaccinations`, `extracurricular_clubs`, `club_enrollments`.
+  - Properties & Config: `app.features.library.enabled`, `transport`, `canteen`, `inventory`, `health`, `clubs` in `application.properties`; `AddonFeatureProperties.java`, `AddonFeatureService.java`, `AddonFeatureServiceImpl.java`, `AddonFeatureController.java`.
+  - Library: Updated `BookLoan.java`, `LibraryService.java`, `LibraryServiceImpl.java`, `LibraryController.java` with penalty apply and pay endpoints (`/api/v1/library/loans/{id}/penalty`, `pay-penalty`, `/my-loans`).
+  - Transport: `TransportVehicle.java`, `TransportRoute.java`, `TransportAllocation.java`, DTOs, repositories, `TransportService.java`, `TransportServiceImpl.java`, `TransportController.java`.
+  - Canteen: `CanteenMenu.java`, `CanteenSubscription.java`, DTOs, repositories, `CanteenService.java`, `CanteenServiceImpl.java`, `CanteenController.java`.
+  - Inventory: `InventoryItem.java`, DTOs, repository, `InventoryService.java`, `InventoryServiceImpl.java`, `InventoryController.java` (`/stock` delta adjustment endpoint, `/stats` valuation).
+  - Health: `InfirmaryVisit.java`, `StudentVaccination.java`, DTOs, repositories, `HealthService.java`, `HealthServiceImpl.java` (strictly restricted with audit logging), `HealthController.java`.
+  - Clubs: `ExtracurricularClub.java`, `ClubEnrollment.java`, DTOs, repositories, `ClubService.java`, `ClubServiceImpl.java`, `ClubController.java` (capacity check, waitlisting, status update).
+  - Test Suite: `Wave9AddonModulesIntegrationTest.java` with comprehensive scenarios covering all modules.
+- **Frontend:**
+  - `src/features/addons/api/addonService.js`: Full API client for feature flags, library penalties, transport, canteen, inventory, health, and extracurricular clubs.
+  - `src/features/addons/components/LibraryManagerView.jsx`: Catalog, loans, and penalty settlement modal.
+  - `src/features/addons/components/TransportManagerView.jsx`: Routes, fleet, driver, and student allocation modals.
+  - `src/features/addons/components/CanteenManagerView.jsx`: Menus calendar, allergens, and student subscriptions.
+  - `src/features/addons/components/InventoryManagerView.jsx`: Asset tracking, valuation stats, condition ratings, and stock adjustment (+/-).
+  - `src/features/addons/components/HealthCenterView.jsx`: Restricted nurse view, visits log, vaccination cards, and student medical dossier lookup.
+  - `src/features/addons/components/ClubsActivitiesView.jsx`: Extracurricular clubs grid, real-time capacity progress bar, enrollment and waitlist manager.
+  - `src/routes/AddonsPage.jsx`: Tabbed navigation with feature flags status and role-based defaults.
+  - `src/app/router.jsx` & `src/components/layout/PrivateLayout.jsx`: Added `/addons` route and navigation link.
+  - Tests: Added 7 component and route test suites (`LibraryManagerView.test.jsx`, `TransportManagerView.test.jsx`, `CanteenManagerView.test.jsx`, `InventoryManagerView.test.jsx`, `HealthCenterView.test.jsx`, `ClubsActivitiesView.test.jsx`, `AddonsPage.test.jsx`) with 100% pass rate.
+
+### 4. Open Issues & Decisions Needed
+- None for Wave 9.
+- All P0 and P1 audit gaps across all waves are closed and verified.
+
 
 
 

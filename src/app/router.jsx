@@ -41,6 +41,7 @@ import { AdmissionsPage } from '@/routes/AdmissionsPage'
 import { InvoicesPage } from '@/routes/InvoicesPage'
 import { TimetablePage } from '@/routes/TimetablePage'
 import { AttendancePage } from '@/routes/AttendancePage'
+import { AddonsPage } from '@/routes/AddonsPage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
 import ReportsPage from '@/routes/ReportsPage'
 import SettingsPage from '@/routes/SettingsPage'
@@ -346,6 +347,29 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={['admin', 'ROLE_ADMIN']}>
             <AuditLogListPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/addons',
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              'admin',
+              'ROLE_ADMIN',
+              'director',
+              'ROLE_DIRECTOR',
+              'staff',
+              'ROLE_STAFF',
+              'teacher',
+              'ROLE_TEACHER',
+              'nurse',
+              'ROLE_NURSE',
+              'librarian',
+              'ROLE_LIBRARIAN',
+            ]}
+          >
+            <AddonsPage />
           </RoleGuard>
         ),
       },
