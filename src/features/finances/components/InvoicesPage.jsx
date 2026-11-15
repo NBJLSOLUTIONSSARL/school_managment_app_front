@@ -20,6 +20,9 @@ import { invoiceService } from '../api/invoiceService'
 import { InvoiceDetailModal } from './InvoiceDetailModal'
 import { CreateInvoiceModal } from './CreateInvoiceModal'
 import { RecordPaymentModal } from './RecordPaymentModal'
+import { AccountingSummaryCard } from './AccountingSummaryCard'
+import { DiscountRulesManager } from './DiscountRulesManager'
+import { InstallmentsPlanModal } from './InstallmentsPlanModal'
 
 export function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
@@ -38,6 +41,9 @@ export function InvoicesPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [discountRulesOpen, setDiscountRulesOpen] = useState(false)
+  const [installmentsModalOpen, setInstallmentsModalOpen] = useState(false)
+  const [installmentsInvoice, setInstallmentsInvoice] = useState(null)
 
   const fetchInvoices = useCallback(async ({ signal } = {}) => {
     setLoading(true)
@@ -204,6 +210,16 @@ export function InvoicesPage() {
             <Button
               size="xs"
               variant="ghost"
+              onClick={() => {
+                setInstallmentsInvoice(inv);
+                setInstallmentsModalOpen(true);
+              }}
+            >
+              Échéances
+            </Button>
+            <Button
+              size="xs"
+              variant="ghost"
               onClick={() => handleOpenDetail(inv)}
               leftIcon={<Eye className="w-3.5 h-3.5" />}
             >
@@ -235,9 +251,17 @@ export function InvoicesPage() {
           label: 'New invoice',
           onClick: () => setCreateModalOpen(true),
         }}
+        secondaryActions={[
+          {
+            label: 'Règles & Bourses',
+            onClick: () => setDiscountRulesOpen(true),
+          },
+        ]}
       />
 
       {error && <Alert variant="error" message={error} />}
+
+      <AccountingSummaryCard onRefreshTrigger={invoices} />
 
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -347,6 +371,24 @@ export function InvoicesPage() {
             setPaymentModalOpen(false)
             setSelectedInvoice(null)
             fetchInvoices()
+          }}
+        />
+      )}
+
+      {discountRulesOpen && (
+        <DiscountRulesManager
+          isOpen={discountRulesOpen}
+          onClose={() => setDiscountRulesOpen(false)}
+        />
+      )}
+
+      {installmentsModalOpen && (
+        <InstallmentsPlanModal
+          isOpen={installmentsModalOpen}
+          invoice={installmentsInvoice}
+          onClose={() => {
+            setInstallmentsModalOpen(false)
+            setInstallmentsInvoice(null)
           }}
         />
       )}

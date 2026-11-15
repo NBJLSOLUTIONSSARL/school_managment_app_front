@@ -24,6 +24,8 @@ import { staffService } from '../api/staffService'
 import { departmentService } from '@/features/departments/api/departmentService'
 import { StaffFormModal } from './StaffFormModal'
 import { StaffDetailsModal } from './StaffDetailsModal'
+import { StaffEvaluationsModal } from './StaffEvaluationsModal'
+import { PayrollManagerModal } from './PayrollManagerModal'
 
 export function StaffList() {
   const { success, error: toastError } = useToast()
@@ -47,6 +49,8 @@ export function StaffList() {
   const [detailStaff, setDetailStaff] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [evaluatingStaff, setEvaluatingStaff] = useState(null)
+  const [payrollStaff, setPayrollStaff] = useState(null)
 
   // Fetch departments
   useEffect(() => {
@@ -237,6 +241,26 @@ export function StaffList() {
             size="xs"
             onClick={(e) => {
               e.stopPropagation()
+              setEvaluatingStaff(row)
+            }}
+          >
+            Évaluation
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={(e) => {
+              e.stopPropagation()
+              setPayrollStaff(row)
+            }}
+          >
+            Paie
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={(e) => {
+              e.stopPropagation()
               setDetailStaff(row)
             }}
           >
@@ -422,6 +446,22 @@ export function StaffList() {
             setDetailStaff(null)
             setIsFormOpen(true)
           }}
+        />
+      )}
+
+      {evaluatingStaff && (
+        <StaffEvaluationsModal
+          isOpen={Boolean(evaluatingStaff)}
+          staff={evaluatingStaff}
+          onClose={() => setEvaluatingStaff(null)}
+        />
+      )}
+
+      {payrollStaff && (
+        <PayrollManagerModal
+          isOpen={Boolean(payrollStaff)}
+          staff={payrollStaff}
+          onClose={() => setPayrollStaff(null)}
         />
       )}
 

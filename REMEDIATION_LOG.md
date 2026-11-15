@@ -304,5 +304,55 @@
 - None for Wave 7.
 - Ready to proceed to **WAVE 8 — Settings & Administration** (spec 4.17) upon user command `GO WAVE 8`.
 
+---
+
+## Wave 8 — Finance Completion, School Profile Settings, Spec 3 Roles, Reports Engine & Backup Scheduler
+
+### 1. Scope Restatement
+1. **Finance Completion (Spec 4.11):** Sibling discounts, scholarship and exemption rules table applied during invoice generation with auditing; invoice installment plans; automated overdue reminders via `@Scheduled` (`OverdueInvoiceScheduler`); accounting summary API & Desk UI widget.
+2. **School Profile & Branding (Spec 4.17):** Dynamic `SchoolProfile` entity (name, logo, address, contact, stamp, signature, currency, grading scale thresholds) replacing hardcoded `app.school.name` across OpenPDF documents; configurable grading scales and report card templates.
+3. **Spec 3 Roles & Permissions (Spec 3):** Split roles per Spec 3 (`ROLE_SUPER_ADMIN`, `ROLE_DIRECTOR`, `ROLE_SECRETARY`, `ROLE_ACCOUNTANT`, etc.) via Flyway `V19` with safe mapping from existing users/roles; role & permissions management API and Frappe Desk UI; updated permissions matrix and test coverage.
+4. **Reports Engine (Spec 4.16):** Multi-criteria reports engine for enrollment, attendance, academic results, finances, and staff with filters and CSV/PDF export; role-based dashboards.
+5. **Staff Operations, Backup & i18n (Spec 4.5, 4.17):** Staff weekly workload view, performance evaluations, optional basic payroll behind feature flag with PDF payslips; automated daily database backup scheduler (`@Scheduled`) with restore documentation; backend `MessageSource` (FR/EN/AR).
+
+### 2. Status: DONE
+- **Backend Tests:** 739/739 passed, 0 failures, 0 errors (`./mvnw test -q` exits 0). Includes 5 dedicated Wave 8 integration tests in `Wave8FinanceSchoolProfileRolesReportsIntegrationTest.java` and `EndpointAuthorizationSecurityTest.java`.
+- **Frontend Tests:** 596/596 passed, 0 failures across 75 test files (`npm run test` exits 0).
+- **Frontend Lint:** 0 warnings, 0 errors across 391 files (`oxlint`).
+- **Frontend Build:** Production build passed cleanly in 1.50s (`npm run build`).
+
+### 3. Changes Made
+- **Backend Repository** (`/home/hamza/Desktop/JAVA SPRING BOOT/school_managment_app`):
+  - `db/migration/V19__wave8_finance_school_profile_roles_reports.sql`: Created tables `discount_rules`, `invoice_installments`, `school_profiles`, `staff_evaluations`, `payroll_records`, and `backup_records`; inserted spec 3 roles (SUPER_ADMIN, DIRECTOR, SECRETARY, ACCOUNTANT) and mapped existing roles/users.
+  - `model/` & `enums/`: Created `DiscountRule.java`, `InvoiceInstallment.java`, `SchoolProfile.java`, `StaffEvaluation.java`, `PayrollRecord.java`, `BackupRecord.java`, `DiscountRuleType.java`, `DiscountValueType.java`, `InstallmentStatus.java`, `EvaluationStatus.java`, `PayrollStatus.java`.
+  - `repository/`: Created `DiscountRuleRepository`, `InvoiceInstallmentRepository`, `SchoolProfileRepository`, `StaffEvaluationRepository`, `PayrollRecordRepository`, and `BackupRecordRepository`. Added accounting aggregations to `InvoiceRepository`, `PaymentRepository`, and `ExpenseRepository`.
+  - `service/` & `service/implementation/`: Implemented `DiscountRuleServiceImpl`, `SchoolProfileServiceImpl`, `RoleManagementServiceImpl`, `StaffEvaluationServiceImpl`, `PayrollServiceImpl` (with OpenPDF payslip generation), `ReportServiceImpl` (with CSV and OpenPDF report generation), `DatabaseBackupServiceImpl`, and `LocalizationServiceImpl` (MessageSource with FR/EN/AR).
+  - Dynamic branding: Updated `ReceiptServiceImpl.java`, `StudentPdfServiceImpl.java`, and `OfficialBulletinPdfRenderer.java` to inject and resolve dynamically from `SchoolProfileService`.
+  - `scheduler/`: Created `OverdueInvoiceScheduler.java` (daily 8am overdue reminders) and `DatabaseBackupScheduler.java` (daily 2am database backups).
+  - `controller/`: Created `DiscountRuleController.java`, `SchoolProfileController.java`, `RoleManagementController.java`, `StaffEvaluationController.java`, `PayrollController.java`, `ReportController.java`, `DatabaseBackupController.java`. Updated `InvoiceController.java` (`/installments`, `/accounting-summary`, `/trigger-overdue-reminders`) and `StaffController.java` (`/{id}/workload`).
+  - `docs/database-backup-and-restore.md`: Database backup and restore operations guide.
+  - `test/`: Added `Wave8FinanceSchoolProfileRolesReportsIntegrationTest.java` (5 integration tests covering discount rules, installments, school profile, roles, reports, staff evaluations, payroll, backup, and FR/EN/AR i18n).
+- **Frontend Repository** (`/home/hamza/Desktop/WEBINHAND/PROJECT/school_managment_app_front`):
+  - `src/features/finances/api/discountRuleService.js` & `invoiceInstallmentService.js`: API clients for sibling/scholarship discounts, installment schedules, accounting summary, and overdue triggers.
+  - `src/features/finances/components/DiscountRulesManager.jsx`: Frappe Desk UI manager for discount rules.
+  - `src/features/finances/components/InstallmentsPlanModal.jsx`: Invoice installment plan generator and payment modal.
+  - `src/features/finances/components/AccountingSummaryCard.jsx`: Financial KPI card with overdue reminder trigger.
+  - `src/features/settings/api/schoolProfileService.js`, `roleManagementService.js`, `databaseBackupService.js`: API clients for school profile, roles & permissions, and backups.
+  - `src/features/settings/components/SchoolProfileSettingsView.jsx`: Desk UI view for school branding (name, logo, address, stamp, signature, currency, grading scale).
+  - `src/features/settings/components/RolesPermissionsManager.jsx`: Spec 3 roles and permissions matrix manager.
+  - `src/features/settings/components/DatabaseBackupsManager.jsx`: Automated and manual database backup manager with download and restore status.
+  - `src/features/staff/api/staffEvaluationService.js` & `payrollService.js`: API clients for staff evaluations and payroll payslip downloads.
+  - `src/features/staff/components/StaffEvaluationsModal.jsx`: Staff performance review modal.
+  - `src/features/staff/components/PayrollManagerModal.jsx`: Staff payroll generation and payslip download modal.
+  - `src/features/reports/api/reportService.js`: API client for multi-criteria reports and CSV/PDF downloads.
+  - `src/features/reports/components/ReportsAnalyticsView.jsx`: Unified analytics and reports view for enrollment, attendance, academic, finance, and staff reports.
+  - `src/routes/ReportsPage.jsx` & `src/routes/SettingsPage.jsx`: Added `/reports` and `/settings` routes with RoleGuards and PrivateLayout navigation links.
+  - Tests: Added 7 component test suites (`AccountingSummaryCard.test.jsx`, `DiscountRulesManager.test.jsx`, `InstallmentsPlanModal.test.jsx`, `SchoolProfileSettingsView.test.jsx`, `RolesPermissionsManager.test.jsx`, `ReportsAnalyticsView.test.jsx`, `StaffEvaluationsModal.test.jsx`) with 100% pass rate.
+
+### 4. Open Issues & Decisions Needed
+- None for Wave 8.
+- Ready for Wave 9 (Parent & Student portal final polish) and Wave 10 (Add-on modules: Library, Transport, Canteen, Clubs).
+
+
 
 

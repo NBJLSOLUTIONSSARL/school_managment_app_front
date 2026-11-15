@@ -42,6 +42,8 @@ import { InvoicesPage } from '@/routes/InvoicesPage'
 import { TimetablePage } from '@/routes/TimetablePage'
 import { AttendancePage } from '@/routes/AttendancePage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
+import ReportsPage from '@/routes/ReportsPage'
+import SettingsPage from '@/routes/SettingsPage'
 
 export const router = createBrowserRouter([
   // Root Redirect
@@ -344,6 +346,44 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={['admin', 'ROLE_ADMIN']}>
             <AuditLogListPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/reports',
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              'admin',
+              'ROLE_ADMIN',
+              'director',
+              'ROLE_DIRECTOR',
+              'secretary',
+              'ROLE_SECRETARY',
+              'accountant',
+              'ROLE_ACCOUNTANT',
+              'staff',
+              'ROLE_STAFF',
+            ]}
+          >
+            <ReportsPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: '/settings',
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              'admin',
+              'ROLE_ADMIN',
+              'director',
+              'ROLE_DIRECTOR',
+              'super_admin',
+              'ROLE_SUPER_ADMIN',
+            ]}
+          >
+            <SettingsPage />
           </RoleGuard>
         ),
       },
