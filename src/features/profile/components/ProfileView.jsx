@@ -27,7 +27,7 @@ export function ProfileView() {
   if (!isAuthenticated || !user) return null
 
   return (
-    <div className="profile-page" id="mon-profil">
+    <div data-contract="profile-tabs" className="profile-page" id="mon-profil">
       <div className="profile-page-heading">
         <h1>{t('profile.title', 'Mon profil')}</h1>
         <p>{t('profile.subtitle', 'Consultez vos informations personnelles et vos documents légaux.')}</p>

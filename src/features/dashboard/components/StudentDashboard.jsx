@@ -6,11 +6,9 @@ import {
   GraduationCap,
   FileText,
   TrendingUp,
-  BookOpen,
-  Calendar,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
@@ -133,36 +131,59 @@ export function StudentDashboard() {
         </div>
       )}
 
-      {/* Top 4 Pastel Metric Cards with Blue Palette */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          variant="blue"
-          title="General Average"
-          value={loading ? '...' : (stats?.generalAverage ? `${stats.generalAverage} / 20` : '16.5 / 20')}
-          icon={Award}
-          onClick={() => navigate('/report-cards')}
-        />
-        <StatCard
-          variant="skyBlue"
-          title="Class Rank"
-          value={loading ? '...' : (stats?.rank ? `#${stats.rank} / 32` : '#2 / 32')}
-          icon={GraduationCap}
-          onClick={() => navigate('/report-cards')}
-        />
-        <StatCard
-          variant="mediumBlue"
-          title="Pending Tasks"
-          value={loading ? '...' : (stats?.pendingHomework ? `${stats.pendingHomework} Tasks` : '3 Tasks')}
-          icon={FileText}
-          onClick={() => navigate('/homework')}
-        />
-        <StatCard
-          variant="darkBlue"
-          title="Attendance"
-          value={loading ? '...' : (stats?.attendanceRate ? `${stats.attendanceRate}%` : '98.0%')}
-          icon={TrendingUp}
-          onClick={() => navigate('/attendance')}
-        />
+      {/* shadcn dashboard-01 Top 4 Metric Cards */}
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/report-cards')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Moyenne Générale</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.generalAverage ? `${stats.generalAverage} / 20` : '16.5 / 20')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Félicitations du conseil</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/report-cards')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rang dans la classe</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.rank ? `#${stats.rank} / 32` : '#2 / 32')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Top 5% de la division</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/homework')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Devoirs & Tâches</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.pendingHomework ? `${stats.pendingHomework} Devoirs` : '3 Devoirs')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">À rendre cette semaine</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/attendance')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taux d'Assiduité</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.attendanceRate ? `${stats.attendanceRate}%` : '98.0%'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">0 absence injustifiée</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Today's Timetable Widget */}

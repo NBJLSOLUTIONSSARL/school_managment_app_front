@@ -2,23 +2,30 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   School,
-  GraduationCap,
   Users,
   UserCheck,
-  CircleDollarSign,
+  DollarSign,
+  Activity,
+  ArrowUpRight,
   AlertCircle,
 } from 'lucide-react'
-import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/Button'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
-import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
-import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
-import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
 
 export function AdminDashboard() {
-  const { user } = useAuth()
   const navigate = useNavigate()
 
   const [stats, setStats] = useState(null)
@@ -70,139 +77,353 @@ export function AdminDashboard() {
     return val.toLocaleString('en-US')
   }
 
-  // Format revenue in $K format (e.g. $19.3K)
-  const formatEarnings = (num, fallback = '$19.3K') => {
+  // Format revenue in €K format (e.g. €19.3K)
+  const formatEarnings = (num, fallback = '€45,231.89') => {
     if (num === null || num === undefined) return fallback
     const val = Number(num)
     if (Number.isNaN(val)) return fallback
     if (val >= 1000) {
-      return `$${(val / 1000).toFixed(1)}K`
+      return `€${val.toLocaleString('en-US')}`
     }
-    return `$${val.toLocaleString('en-US')}`
+    return `€${val.toLocaleString('en-US')}`
   }
 
-  const greetingName = user?.lastName
-    ? `Directeur ${user.lastName}`
-    : user?.firstName || 'Directeur'
+  const transactions = [
+    {
+      id: 'TX-1049',
+      student: 'Liam Johnson',
+      email: 'liam.johnson@edutrack.school',
+      type: 'Écolage Annuel',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-15',
+      amount: '€750.00',
+    },
+    {
+      id: 'TX-1048',
+      student: 'Olivia Martin',
+      email: 'olivia.m@edutrack.school',
+      type: 'Frais Inscription',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-14',
+      amount: '€250.00',
+    },
+    {
+      id: 'TX-1047',
+      student: 'Noah Williams',
+      email: 'noah.w@edutrack.school',
+      type: 'Cantine Scolaire',
+      status: 'En attente',
+      variant: 'warning',
+      date: '2026-11-14',
+      amount: '€180.00',
+    },
+    {
+      id: 'TX-1046',
+      student: 'Emma Brown',
+      email: 'emma.b@edutrack.school',
+      type: 'Transport T1',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-12',
+      amount: '€120.00',
+    },
+    {
+      id: 'TX-1045',
+      student: 'Lucas Davis',
+      email: 'lucas.d@edutrack.school',
+      type: 'Écolage Trimestre 2',
+      status: 'Validé',
+      variant: 'blue',
+      date: '2026-11-10',
+      amount: '€450.00',
+    },
+  ]
 
-  const pendingAppsCount = stats?.totalApplications ?? 16
+  const recentActivities = [
+    {
+      name: 'Olivia Martin',
+      email: 'olivia.martin@email.com',
+      initials: 'OM',
+      roleOrClass: 'Terminale S1 · Inscription validée',
+      amount: '+€1,999.00',
+    },
+    {
+      name: 'Jackson Lee',
+      email: 'jackson.lee@email.com',
+      initials: 'JL',
+      roleOrClass: 'Première L2 · Frais réglés',
+      amount: '+€39.00',
+    },
+    {
+      name: 'Isabella Nguyen',
+      email: 'isabella.nguyen@email.com',
+      initials: 'IN',
+      roleOrClass: 'Seconde A · Dossier médical à jour',
+      amount: '+€299.00',
+    },
+    {
+      name: 'William Kim',
+      email: 'will@email.com',
+      initials: 'WK',
+      roleOrClass: 'Troisième B · Club Robotique',
+      amount: '+€99.00',
+    },
+    {
+      name: 'Sofia Davis',
+      email: 'sofia.davis@email.com',
+      initials: 'SD',
+      roleOrClass: 'Quatrième C · Transport validé',
+      amount: '+€39.00',
+    },
+  ]
+
+  const totalStudents = stats?.totalStudents ?? 350
+  const totalTeachers = stats?.totalTeachers ?? 28
+  const totalClasses = stats?.totalClasses ?? 12
+  const attendanceRate = stats?.attendanceRate ?? 94
+  const totalPaid = stats?.totalPaid ?? 45231.89
 
   return (
-    <div className="space-y-6 select-none">
-      {/* Figma Signature Blue Banner */}
-      <HeroBanner
-        title={`Bonjour, ${greetingName} !`}
-        description={`Bienvenue sur le tableau de bord de direction. Vous avez ${pendingAppsCount} nouvelles inscriptions à valider et le suivi consolidé de l'établissement.`}
-        buttonText="Gérer les élèves"
-        onButtonClick={() => navigate('/students')}
-        icon={School}
-      />
-
-      {/* Header text with test compatibility */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+    <div className="flex flex-1 flex-col gap-4 md:gap-6 select-none">
+      {/* Header with live metrics */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Admin Dashboard
+          <h1 className="text-display-md font-display font-bold tracking-tight text-[var(--ink)]">
+            Tableau de bord — Établissement
           </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Vue d'ensemble de l'établissement — Suivi consolidé des métriques scolaires, financières et pédagogiques
+          <p className="text-body text-[var(--ink-muted)] mt-1">
+            {totalStudents} élèves · {totalTeachers} enseignants · {totalClasses} classes · {attendanceRate}% assiduité
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => navigate('/students')}
+            className="cursor-pointer gap-1.5"
+          >
+            <School className="w-4 h-4" />
+            <span>Gérer les élèves</span>
+          </Button>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-card border border-[var(--rose)]/20 bg-[var(--rose-wash)] text-[var(--rose)] text-body flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={fetchDashboardData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+            className="cursor-pointer text-caption"
           >
             Réessayer
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* Top 4 Metric Cards with Coordinated Blue Shades */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          variant="blue"
-          title="Students"
-          value={loading ? '...' : (stats?.totalStudents ? formatK(stats.totalStudents) : '15.00K')}
-          icon={GraduationCap}
-          onClick={() => navigate('/students')}
-        />
-        <StatCard
-          variant="skyBlue"
-          title="Teachers"
-          value={loading ? '...' : (stats?.totalTeachers ? formatK(stats.totalTeachers) : '2.00K')}
-          icon={UserCheck}
-          onClick={() => navigate('/teachers')}
-        />
-        <StatCard
-          variant="mediumBlue"
-          title="Parents"
-          value={loading ? '...' : '5.6K'}
-          icon={Users}
-          onClick={() => navigate('/guardians')}
-        />
-        <StatCard
-          variant="darkBlue"
-          title="Earnings"
-          value={loading ? '...' : (stats?.totalPaid ? formatEarnings(stats.totalPaid) : '$19.3K')}
-          icon={CircleDollarSign}
+      {/* Metric Cards — 4 key indicators */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card
+          interactive
           onClick={() => navigate('/finances/invoices')}
-        />
+          className="animate-entrance animate-entrance-stagger-1"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Recettes du mois</CardTitle>
+            <DollarSign className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatEarnings(totalPaid)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +20.1% vs mois dernier
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          interactive
+          onClick={() => navigate('/students')}
+          className="animate-entrance animate-entrance-stagger-2"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Élèves inscrits</CardTitle>
+            <Users className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatK(totalStudents)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +180 nouvelles inscriptions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          interactive
+          onClick={() => navigate('/teachers')}
+          className="animate-entrance animate-entrance-stagger-3"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Corps enseignant</CardTitle>
+            <UserCheck className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatK(totalTeachers)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +19% actifs cette semaine
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          interactive
+          onClick={() => navigate('/attendance')}
+          className="animate-entrance animate-entrance-stagger-4"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Taux de présence</CardTitle>
+            <Activity className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : `${attendanceRate}%`}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +201 connectés cette heure
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Middle Row: Trend Wave Chart (Span 2) + Radial Distribution Donut (Span 1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
+      {/* Split Grid: Transactions (col-span-2) + Recent Activity (col-span-1) */}
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        {/* Left Column: Transactions & Invoices Table */}
+        <Card className="xl:col-span-2 animate-entrance animate-entrance-stagger-5">
+          <CardHeader className="flex flex-row items-center">
+            <div className="grid gap-1">
+              <CardTitle>Derniers règlements</CardTitle>
+              <CardDescription>
+                Ecolage, cantine, transport — derniers paiements enregistrés.
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/finances/invoices')}
+              className="ml-auto gap-1 cursor-pointer"
+            >
+              <span>Voir tout</span>
+              <ArrowUpRight className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Élève / Tuteur</TableHead>
+                  <TableHead className="hidden xl:table-cell">Type</TableHead>
+                  <TableHead className="hidden xl:table-cell">Statut</TableHead>
+                  <TableHead className="hidden md:table-cell">Date</TableHead>
+                  <TableHead className="text-right">Montant</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id} selectable onClick={() => navigate('/finances/invoices')}>
+                    <TableCell>
+                      <div className="font-medium text-[var(--ink)]">{tx.student}</div>
+                      <div className="hidden text-caption text-[var(--ink-muted)] md:inline">
+                        {tx.email}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell text-[var(--ink-muted)]">
+                      {tx.type}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <Badge variant={tx.variant} className="text-caption">
+                        {tx.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-[var(--ink-muted)]">
+                      {tx.date}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-[var(--ink)] font-mono">
+                      {tx.amount}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Right Column: Recent Activities */}
+        <Card className="animate-entrance animate-entrance-stagger-6">
+          <CardHeader>
+            <CardTitle>Inscriptions récentes</CardTitle>
+            <CardDescription>
+              Nouveaux élèves et mouvements récents.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {recentActivities.map((act) => (
+              <div key={act.name} className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-[var(--blue-wash)] text-[var(--blue-core)] text-caption font-bold">
+                    {act.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid gap-0.5 min-w-0">
+                  <p className="text-body font-semibold leading-none truncate text-[var(--ink)]">
+                    {act.name}
+                  </p>
+                  <p className="text-caption text-[var(--ink-muted)] truncate">
+                    {act.roleOrClass}
+                  </p>
+                </div>
+                <div className="ml-auto font-medium text-caption text-[var(--ink)] shrink-0 font-mono">
+                  {act.amount}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics & Academic Insights Grid */}
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 animate-entrance animate-entrance-stagger-7">
           <ExamResultsWaveChart
-            title="All Exam Results"
+            title="Résultats d'examens"
             series={[
-              { name: 'Teacher', color: '#2563EB' },
-              { name: 'Students', color: '#38BDF8' },
+              { name: 'Enseignants', color: '#1E40AF' },
+              { name: 'Élèves', color: '#38BDF8' },
             ]}
           />
         </div>
-        <div className="lg:col-span-1">
+        <div className="animate-entrance animate-entrance-stagger-8">
           <RadialDistributionCard
-            title="Students"
+            title="Répartition élèves"
             totalLabel="Total"
-            totalValue={stats?.totalStudents ? stats.totalStudents.toString() : '15000'}
-            outerColor="#2563EB"
+            totalValue={totalStudents.toString()}
+            outerColor="#1E40AF"
             outerPercent={75}
-            outerLabel="Male"
+            outerLabel="Garçons"
             innerColor="#38BDF8"
             innerPercent={55}
-            innerLabel="Female"
+            innerLabel="Filles"
             onOptionsClick={() => navigate('/students')}
-          />
-        </div>
-      </div>
-
-      {/* Bottom Row: Star Students Table (Span 2) + Recent Updates List (Span 1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
-          <StarStudentsCard
-            title="Star Students"
-            onOptionsClick={() => navigate('/students')}
-            onRowClick={() => navigate('/students')}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <RecentActivityFeedCard
-            title="All Exam Results"
-            onOptionsClick={() => navigate('/events')}
-            onItemClick={(item) => {
-              if (item.title?.includes('Teacher')) navigate('/teachers')
-              else if (item.title?.includes('Fees')) navigate('/finances/invoices')
-              else navigate('/events')
-            }}
           />
         </div>
       </div>

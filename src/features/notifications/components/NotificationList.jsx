@@ -246,7 +246,7 @@ export function NotificationList() {
   const displayCount = isFiltered ? filteredNotifications.length : totalItems
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div data-contract="notification-center" className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Centre de Notifications"
         count={displayCount}

@@ -80,7 +80,7 @@ export function ForcePasswordChangeForm() {
   }
 
   return (
-    <div className="w-full max-w-[440px] bg-white rounded-2xl shadow-xl border border-zinc-200/80 p-6 sm:p-8 space-y-6">
+    <div data-contract="force-pwd-form" className="w-full max-w-[440px] bg-white rounded-2xl shadow-xl border border-zinc-200/80 p-6 sm:p-8 space-y-6">
       <div className="text-center space-y-2">
         <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
           <ShieldAlert className="w-6 h-6" />

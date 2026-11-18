@@ -85,7 +85,7 @@ export default function LegalDocumentsSection() {
   }
 
   return (
-    <section id="mes-documents" aria-labelledby="documents-title" className="profile-documents">
+    <section id="mes-documents" aria-labelledby="documents-title" data-contract="document-table" className="profile-documents">
       <div className="profile-documents-heading">
         <div className="profile-documents-title"><ProfileIcon name="file" /><div><h2 id="documents-title">Documents légaux</h2><p>Consultez vos documents personnels. Cliquez sur Voir pour les visualiser.</p></div></div>
         <button type="button" className="profile-action profile-refresh" disabled={state.loading} onClick={refresh}><ProfileIcon name="refresh" />Actualiser</button>

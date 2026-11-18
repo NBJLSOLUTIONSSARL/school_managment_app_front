@@ -9,8 +9,8 @@ import {
   UserPlus,
   FileText,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
@@ -126,36 +126,59 @@ export function StaffDashboard() {
         </div>
       )}
 
-      {/* Top 4 Pastel Metric Cards with Blue Palette */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          variant="blue"
-          title="Applications"
-          value={loading ? '...' : (stats?.totalApplications ? `${stats.totalApplications}` : '24')}
-          icon={FileCheck}
-          onClick={() => navigate('/admissions')}
-        />
-        <StatCard
-          variant="skyBlue"
-          title="Total Students"
-          value={loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '1 248')}
-          icon={Users}
-          onClick={() => navigate('/students')}
-        />
-        <StatCard
-          variant="mediumBlue"
-          title="Pending Invoices"
-          value={loading ? '...' : (stats?.unpaidInvoicesCount ? `${stats.unpaidInvoicesCount}` : '14')}
-          icon={AlertCircle}
-          onClick={() => navigate('/finances/invoices')}
-        />
-        <StatCard
-          variant="darkBlue"
-          title="Revenue Collected"
-          value={loading ? '...' : (stats?.totalPaidAmount ? `$${Math.round(stats.totalPaidAmount / 1000)}K` : '$186K')}
-          icon={Coins}
-          onClick={() => navigate('/finances/invoices')}
-        />
+      {/* shadcn dashboard-01 Top 4 Metric Cards */}
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/admissions')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Dossiers d'Admission</CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalApplications ? `${stats.totalApplications}` : '24')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Dont 8 candidatures en attente</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/students')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Effectif Inscrit</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '1 248')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Élèves enregistrés au registre</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Factures en Attente</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.unpaidInvoicesCount ? `${stats.unpaidInvoicesCount}` : '14')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">À relancer ce mois-ci</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Recouvrement Total</CardTitle>
+            <Coins className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalPaidAmount ? `$${Math.round(stats.totalPaidAmount / 1000)}K` : '$186K')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+92% taux d'encaissement</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Middle Row: Trend Wave Chart + Radial Distribution */}

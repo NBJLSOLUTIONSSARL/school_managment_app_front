@@ -112,7 +112,7 @@ export function TwoFactorSection() {
   }
 
   return (
-    <section aria-label="Authentification à deux facteurs" className="profile-card mt-6">
+    <section aria-label="Authentification à deux facteurs" data-contract="two-factor-card" className="profile-card mt-6">
       <div className="profile-card-heading">
         <div className="profile-card-identity">
           <div className="flex items-center gap-2">

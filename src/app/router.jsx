@@ -1,50 +1,66 @@
 import { createBrowserRouter } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { PrivateLayout } from '@/components/layout/PrivateLayout'
 import { RoleGuard } from '@/components/layout/RoleGuard'
+import { Spinner } from '@/components/ui/Loader'
 
+// Public auth routes (eager loaded - small)
 import { LoginPage } from '@/routes/LoginPage'
 import { ForgotPasswordPage } from '@/routes/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/routes/ResetPasswordPage'
 import { GoogleCallbackPage } from '@/routes/GoogleCallbackPage'
 import { ForcePasswordChangePage } from '@/routes/ForcePasswordChangePage'
-import { DashboardPage } from '@/routes/DashboardPage'
-import { AcademicYearsPage } from '@/routes/AcademicYearsPage'
-import { ClassesPage } from '@/routes/ClassesPage'
-import { ClassDetailPage } from '@/routes/ClassDetailPage'
-import { SubjectsPage } from '@/routes/SubjectsPage'
-import { StudentListPage } from '@/routes/StudentListPage'
-import { TeacherListPage } from '@/routes/TeacherListPage'
-import { StaffListPage } from '@/routes/StaffListPage'
-import { GuardianListPage } from '@/routes/GuardianListPage'
-import { DepartmentListPage } from '@/routes/DepartmentListPage'
-import { ExamListPage } from '@/routes/ExamListPage'
-import { ExamFormPage } from '@/routes/ExamFormPage'
-import { GradeEntryPage } from '@/routes/GradeEntryPage'
-import { HomeworkPage } from '@/routes/HomeworkPage'
-import { ReportCardListPage } from '@/routes/ReportCardListPage'
-import { ComponentShowcasePage } from '@/routes/ComponentShowcasePage'
 import { NotFoundPage } from '@/routes/NotFoundPage'
 import { ForbiddenPage } from '@/routes/ForbiddenPage'
-import { ProfilePage } from '@/routes/ProfilePage'
-import { ObservationsPage } from '@/routes/ObservationsPage'
-import { ConsentsPage } from '@/routes/ConsentsPage'
-import { AnalysesPage } from '@/routes/AnalysesPage'
-import { StrategiesPage } from '@/routes/StrategiesPage'
-import { AnnouncementListPage } from '@/routes/AnnouncementListPage'
-import { EventListPage } from '@/routes/EventListPage'
-import { MessageListPage } from '@/routes/MessageListPage'
-import { NotificationListPage } from '@/routes/NotificationListPage'
-import { LeaveRequestListPage } from '@/routes/LeaveRequestListPage'
-import { AuditLogListPage } from '@/routes/AuditLogListPage'
-import { AdmissionsPage } from '@/routes/AdmissionsPage'
-import { InvoicesPage } from '@/routes/InvoicesPage'
-import { TimetablePage } from '@/routes/TimetablePage'
-import { AttendancePage } from '@/routes/AttendancePage'
-import { AddonsPage } from '@/routes/AddonsPage'
 import { RootIndexRedirect } from '@/routes/RootIndexRedirect'
-import ReportsPage from '@/routes/ReportsPage'
-import SettingsPage from '@/routes/SettingsPage'
+
+// Shared contract routes (eager loaded - small)
+import { TwoFactorPage } from '@/routes/TwoFactorPage'
+import { MyDocumentsPage } from '@/routes/MyDocumentsPage'
+import { CalendarPage } from '@/routes/CalendarPage'
+import { AccountPage } from '@/routes/AccountPage'
+
+// Heavy routes - lazy loaded with code splitting
+const DashboardPage = lazy(() => import('@/routes/DashboardPage'))
+const AcademicYearsPage = lazy(() => import('@/routes/AcademicYearsPage'))
+const ClassesPage = lazy(() => import('@/routes/ClassesPage'))
+const ClassDetailPage = lazy(() => import('@/routes/ClassDetailPage'))
+const SubjectsPage = lazy(() => import('@/routes/SubjectsPage'))
+const StudentListPage = lazy(() => import('@/routes/StudentListPage'))
+const TeacherListPage = lazy(() => import('@/routes/TeacherListPage'))
+const StaffListPage = lazy(() => import('@/routes/StaffListPage'))
+const GuardianListPage = lazy(() => import('@/routes/GuardianListPage'))
+const DepartmentListPage = lazy(() => import('@/routes/DepartmentListPage'))
+const ExamListPage = lazy(() => import('@/routes/ExamListPage'))
+const ExamFormPage = lazy(() => import('@/routes/ExamFormPage'))
+const GradeEntryPage = lazy(() => import('@/routes/GradeEntryPage'))
+const HomeworkPage = lazy(() => import('@/routes/HomeworkPage'))
+const ReportCardListPage = lazy(() => import('@/routes/ReportCardListPage'))
+const ProfilePage = lazy(() => import('@/routes/ProfilePage'))
+const ObservationsPage = lazy(() => import('@/routes/ObservationsPage'))
+const ConsentsPage = lazy(() => import('@/routes/ConsentsPage'))
+const AnalysesPage = lazy(() => import('@/routes/AnalysesPage'))
+const StrategiesPage = lazy(() => import('@/routes/StrategiesPage'))
+const AnnouncementListPage = lazy(() => import('@/routes/AnnouncementListPage'))
+const EventListPage = lazy(() => import('@/routes/EventListPage'))
+const MessageListPage = lazy(() => import('@/routes/MessageListPage'))
+const NotificationListPage = lazy(() => import('@/routes/NotificationListPage'))
+const LeaveRequestListPage = lazy(() => import('@/routes/LeaveRequestListPage'))
+const AuditLogListPage = lazy(() => import('@/routes/AuditLogListPage'))
+const AdmissionsPage = lazy(() => import('@/routes/AdmissionsPage'))
+const InvoicesPage = lazy(() => import('@/routes/InvoicesPage'))
+const TimetablePage = lazy(() => import('@/routes/TimetablePage'))
+const AttendancePage = lazy(() => import('@/routes/AttendancePage'))
+const AddonsPage = lazy(() => import('@/routes/AddonsPage'))
+const ReportsPage = lazy(() => import('@/routes/ReportsPage'))
+const SettingsPage = lazy(() => import('@/routes/SettingsPage'))
+
+const LoadingFallback = () => (
+  <div className="flex h-full items-center justify-center">
+    <Spinner size="lg" />
+  </div>
+)
 
 export const router = createBrowserRouter([
   // Root Redirect
@@ -75,6 +91,33 @@ export const router = createBrowserRouter([
     element: <ForcePasswordChangePage />,
   },
 
+  // Shared Contract Routes (Public + Authenticated)
+  // /first-login alias → force-password-change
+  {
+    path: '/first-login',
+    element: <ForcePasswordChangePage />,
+  },
+  // /two-factor standalone page
+  {
+    path: '/two-factor',
+    element: <TwoFactorPage />,
+  },
+  // /my-documents standalone page
+  {
+    path: '/my-documents',
+    element: <MyDocumentsPage />,
+  },
+  // /calendar standalone page
+  {
+    path: '/calendar',
+    element: <CalendarPage />,
+  },
+  // /account tabbed page
+  {
+    path: '/account',
+    element: <AccountPage />,
+  },
+
   // Public Layout routes
   {
     element: <PublicLayout />,
@@ -100,123 +143,159 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/dashboard',
-        element: <DashboardPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <DashboardPage />
+          </Suspense>
+        ),
       },
       {
         path: '/academic-years',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <AcademicYearsPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <AcademicYearsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/classes',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <ClassesPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <ClassesPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/classes/:id',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <ClassDetailPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <ClassDetailPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/timetables',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student', 'ROLE_PARENT', 'parent']}>
-            <TimetablePage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student', 'ROLE_PARENT', 'parent']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <TimetablePage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/attendance',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student', 'ROLE_PARENT', 'parent']}>
-            <AttendancePage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student', 'ROLE_PARENT', 'parent']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <AttendancePage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/subjects',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <SubjectsPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <SubjectsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/students',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <StudentListPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <StudentListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/teachers',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <TeacherListPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <TeacherListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/staff',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <StaffListPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <StaffListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/guardians',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <GuardianListPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <GuardianListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/departments',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
-            <DepartmentListPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff', 'ROLE_TEACHER', 'teacher']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <DepartmentListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/admissions',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <AdmissionsPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_SECRETARY', 'secretary', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <AdmissionsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/finances',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <InvoicesPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_ACCOUNTANT', 'accountant', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <InvoicesPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/finances/invoices',
         element: (
-          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}>
-            <InvoicesPage />
+          <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_DIRECTOR', 'director', 'ROLE_ACCOUNTANT', 'accountant', 'ROLE_STAFF', 'staff']}>
+            <Suspense fallback={<LoadingFallback />}>
+              <InvoicesPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/profile',
-        element: <ProfilePage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ProfilePage />
+          </Suspense>
+        ),
       },
       {
         path: '/observations',
@@ -225,7 +304,9 @@ export const router = createBrowserRouter([
             allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
             requiredPermission="PERM_READ_OBSERVATION"
           >
-            <ObservationsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <ObservationsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -236,7 +317,9 @@ export const router = createBrowserRouter([
             allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_STAFF', 'staff']}
             requiredPermission="PERM_READ_CONSENT"
           >
-            <ConsentsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <ConsentsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -247,7 +330,9 @@ export const router = createBrowserRouter([
             allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_STUDENT', 'student', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher']}
             requiredPermission="PERM_READ_ANALYSIS"
           >
-            <AnalysesPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AnalysesPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -258,19 +343,27 @@ export const router = createBrowserRouter([
             allowedRoles={['ROLE_PARENT', 'parent', 'ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STUDENT', 'student']}
             requiredPermission="PERM_READ_ANALYSIS"
           >
-            <StrategiesPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <StrategiesPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/exams',
-        element: <ExamListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ExamListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/exams/new',
         element: (
           <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
-            <ExamFormPage key="exam-new" />
+            <Suspense fallback={<LoadingFallback />}>
+              <ExamFormPage key="exam-new" />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -278,7 +371,9 @@ export const router = createBrowserRouter([
         path: '/exams/:id',
         element: (
           <RoleGuard allowedRoles={['ROLE_ADMIN', 'admin', 'ROLE_TEACHER', 'teacher', 'ROLE_STAFF', 'staff']}>
-            <ExamFormPage key="exam-edit" />
+            <Suspense fallback={<LoadingFallback />}>
+              <ExamFormPage key="exam-edit" />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -295,33 +390,59 @@ export const router = createBrowserRouter([
               'ROLE_STAFF',
             ]}
           >
-            <GradeEntryPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <GradeEntryPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
       {
         path: '/homework',
-        element: <HomeworkPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <HomeworkPage />
+          </Suspense>
+        ),
       },
       {
         path: '/report-cards',
-        element: <ReportCardListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ReportCardListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/announcements',
-        element: <AnnouncementListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AnnouncementListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/events',
-        element: <EventListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <EventListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/messages',
-        element: <MessageListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <MessageListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/notifications',
-        element: <NotificationListPage />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <NotificationListPage />
+          </Suspense>
+        ),
       },
       {
         path: '/leave-requests',
@@ -338,7 +459,9 @@ export const router = createBrowserRouter([
               'student',
             ]}
           >
-            <LeaveRequestListPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <LeaveRequestListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -346,7 +469,9 @@ export const router = createBrowserRouter([
         path: '/audit-logs',
         element: (
           <RoleGuard allowedRoles={['admin', 'ROLE_ADMIN']}>
-            <AuditLogListPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AuditLogListPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -369,7 +494,9 @@ export const router = createBrowserRouter([
               'ROLE_LIBRARIAN',
             ]}
           >
-            <AddonsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AddonsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -390,7 +517,9 @@ export const router = createBrowserRouter([
               'ROLE_STAFF',
             ]}
           >
-            <ReportsPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <ReportsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },
@@ -407,22 +536,9 @@ export const router = createBrowserRouter([
               'ROLE_SUPER_ADMIN',
             ]}
           >
-            <SettingsPage />
-          </RoleGuard>
-        ),
-      },
-      {
-        path: '/showcase',
-        element: <ComponentShowcasePage />,
-      },
-      // Admin-only route to test 403 Forbidden redirection
-      {
-        path: '/admin-only',
-        element: (
-          <RoleGuard allowedRoles={['super_admin_role_that_normal_admin_does_not_have']}>
-            <div className="p-8">
-              <h2 className="text-sm font-semibold">Zone Super Administrateur</h2>
-            </div>
+            <Suspense fallback={<LoadingFallback />}>
+              <SettingsPage />
+            </Suspense>
           </RoleGuard>
         ),
       },

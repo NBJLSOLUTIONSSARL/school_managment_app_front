@@ -1,5 +1,6 @@
 export * from './api/eventService'
 export * from './components/EventList'
 export * from './components/EventCalendarView'
+export * from './components/CalendarView'
 export * from './components/EventFormModal'
 export * from './components/EventDetailsModal'

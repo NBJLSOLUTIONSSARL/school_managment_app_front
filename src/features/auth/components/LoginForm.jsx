@@ -222,7 +222,7 @@ export function LoginForm() {
   }
 
   return (
-    <div dir={dir} lang={language} className="min-h-screen flex flex-col lg:flex-row bg-white select-none">
+    <div dir={dir} lang={language} data-contract="auth-card" className="min-h-screen flex flex-col lg:flex-row bg-white select-none">
       <div className="w-full lg:w-[47%] relative bg-zinc-950 flex flex-col justify-between p-8 sm:p-12 lg:p-14 min-h-[480px] lg:min-h-screen overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img

@@ -10,8 +10,8 @@ import {
   Building2,
   Users,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
@@ -168,36 +168,57 @@ export function ParentDashboard() {
             </div>
           )}
 
-          {/* Top 4 Pastel Metric Cards with Blue Palette */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              variant="blue"
-              title="Student Average"
-              value={loading ? '...' : (currentChild?.average ? `${currentChild.average} / 20` : '15.8 / 20')}
-              icon={Award}
-              onClick={() => navigate('/report-cards')}
-            />
-            <StatCard
-              variant="skyBlue"
-              title="Attendance"
-              value={loading ? '...' : (currentChild?.attendance ? `${currentChild.attendance}%` : '97.0%')}
-              icon={CheckCircle2}
-              onClick={() => navigate('/attendance')}
-            />
-            <StatCard
-              variant="mediumBlue"
-              title="Homework"
-              value={loading ? '...' : '2 Tasks'}
-              icon={FileText}
-              onClick={() => navigate('/homework')}
-            />
-            <StatCard
-              variant="darkBlue"
-              title="School Fees"
-              value={loading ? '...' : (stats?.unpaidAmount ? `${stats.unpaidAmount} €` : '0 € Dû')}
-              icon={Coins}
-              onClick={() => navigate('/finances/invoices')}
-            />
+          {/* shadcn dashboard-01 Top 4 Metric Cards */}
+          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/report-cards')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Moyenne Générale</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (currentChild?.average ? `${currentChild.average} / 20` : '15.8 / 20')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Excellent niveau académique</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/attendance')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taux de Présence</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (currentChild?.attendance ? `${currentChild.attendance}%` : '97.0%')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Assiduité exemplaire</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/homework')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Devoirs à Faire</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">2 Devoirs</div>
+                <p className="text-xs text-muted-foreground mt-1">À vérifier pour cette semaine</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Frais Scolaires</CardTitle>
+                <Coins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (stats?.unpaidAmount ? `${stats.unpaidAmount} €` : '0 € Dû')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Scolarité à jour</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Today's Timetable Widget */}

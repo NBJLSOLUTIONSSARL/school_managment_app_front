@@ -220,7 +220,7 @@ export function MessageInbox() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div data-contract="message-inbox" className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Messagerie Interne"
         count={totalItems}

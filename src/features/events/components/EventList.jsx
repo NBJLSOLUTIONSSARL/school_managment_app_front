@@ -202,7 +202,7 @@ export function EventList() {
   ]
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
+    <div data-contract="calendar-view" className="p-6 sm:p-8 space-y-6 select-none">
       <DocTypePageHead
         title="Calendrier & Événements Scolaires"
         count={totalItems}

@@ -4,6 +4,11 @@ import { getCurrentUser } from '@/utils/tokenStorage'
 export const knownRoles = new Set([
   'ROLE_ADMIN',
   'ROLE_SUPER_ADMIN',
+  'ROLE_DIRECTOR',
+  'ROLE_SECRETARY',
+  'ROLE_ACCOUNTANT',
+  'ROLE_LIBRARIAN',
+  'ROLE_NURSE',
   'ROLE_TEACHER',
   'ROLE_STUDENT',
   'ROLE_PARENT',

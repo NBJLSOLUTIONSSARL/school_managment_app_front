@@ -5,23 +5,23 @@ import { useToast } from '@/hooks/useToast'
 
 const toastTypeStyles = {
   success: {
-    container: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-    iconColor: 'text-emerald-600',
+    container: 'bg-[var(--emerald-wash)] border-[var(--emerald)]/30 text-[var(--ink)]',
+    iconColor: 'text-[var(--emerald)]',
     Icon: Check,
   },
   error: {
-    container: 'bg-rose-50 border-rose-200 text-rose-900',
-    iconColor: 'text-rose-600',
+    container: 'bg-[var(--rose-wash)] border-[var(--rose)]/30 text-[var(--ink)]',
+    iconColor: 'text-[var(--rose)]',
     Icon: X,
   },
   warning: {
-    container: 'bg-amber-50 border-amber-200 text-amber-900',
-    iconColor: 'text-amber-600',
+    container: 'bg-[var(--amber-wash)] border-[var(--amber)]/30 text-[var(--ink)]',
+    iconColor: 'text-[var(--amber)]',
     Icon: AlertTriangle,
   },
   info: {
-    container: 'bg-[#F1F5F9] border-[#E2E8F0] text-[#0F172A]',
-    iconColor: 'text-[#0F172A]',
+    container: 'bg-[var(--blue-wash)] border-[var(--blue-muted)]/30 text-[var(--ink)]',
+    iconColor: 'text-[var(--blue-core)]',
     Icon: Info,
   },
 }
@@ -37,14 +37,14 @@ export function ToastItem({ toast, onClose }) {
       role={type === 'error' ? 'alert' : 'status'}
       aria-live={type === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'flex w-80 select-none items-start gap-3 rounded-2xl border px-4 py-3 text-xs shadow-xl transition-all sm:w-96 backdrop-blur-sm',
+        'flex w-80 select-none items-start gap-3 rounded-card border px-4 py-3 text-body shadow-elevated transition-all sm:w-96',
         style.container
       )}
     >
       <div
         aria-hidden="true"
         className={cn(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-tight text-xs font-bold',
           style.iconColor
         )}
       >
@@ -52,14 +52,14 @@ export function ToastItem({ toast, onClose }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        {title && <p className="mb-0.5 text-xs font-semibold leading-tight">{title}</p>}
-        {message && <p className="break-words text-2xs leading-normal opacity-90">{message}</p>}
+        {title && <p className="mb-0.5 text-body font-semibold leading-tight">{title}</p>}
+        {message && <p className="break-words text-label leading-normal opacity-90">{message}</p>}
       </div>
 
       <button
         type="button"
         onClick={() => onClose(toast.id)}
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:text-slate-700 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 cursor-pointer"
+        className="shrink-0 rounded-tight p-1 text-[var(--ink-muted)]/50 transition-colors hover:text-[var(--ink)] hover:bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--blue-core)]/20 cursor-pointer"
         aria-label={t('common.close')}
       >
         <X className="w-3.5 h-3.5" />

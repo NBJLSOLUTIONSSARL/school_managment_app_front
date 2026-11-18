@@ -9,16 +9,16 @@ export function Alert({ variant = 'info', message, children, className = '' }) {
       : message
 
   const variantStyles = {
-    error: 'bg-rose-50 text-rose-800 border-rose-200',
-    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    info: 'bg-[#F1F5F9] text-[#0F172A] border-[#E2E8F0]',
+    error: 'bg-[var(--rose-wash)] text-[var(--rose)] border-[var(--rose)]/30',
+    success: 'bg-[var(--emerald-wash)] text-[var(--emerald)] border-[var(--emerald)]/30',
+    warning: 'bg-[var(--amber-wash)] text-[var(--amber)] border-[var(--amber)]/30',
+    info: 'bg-[var(--blue-wash)] text-[var(--ink)] border-[var(--blue-muted)]/30',
   }
 
   return (
     <div
       role="alert"
-      className={`p-4 rounded-xl border text-xs font-medium leading-relaxed ${variantStyles[variant] || variantStyles.info} ${className}`}
+      className={`p-4 rounded-card border text-body font-medium leading-relaxed ${variantStyles[variant] || variantStyles.info} ${className}`}
     >
       {resolvedMessage || children}
     </div>

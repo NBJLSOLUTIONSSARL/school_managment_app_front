@@ -197,7 +197,7 @@ export function NotificationDropdown() {
           setIsOpen((prev) => !prev)
           if (!isOpen) fetchNotifications(true)
         }}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/30 cursor-pointer"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
         aria-label="Centre de notifications"
         aria-expanded={isOpen}
       >

@@ -28,7 +28,7 @@ export const Select = forwardRef(function Select(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-xl' : 'h-10 text-sm ps-3.5 pe-8 rounded-xl'
+  const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-tight' : 'h-10 text-body ps-3.5 pe-8 rounded-card'
 
   const normalizedValue =
     typeof value === 'object' && value !== null
@@ -54,10 +54,10 @@ export const Select = forwardRef(function Select(
   return (
     <div className="w-full text-start">
       {label && (
-        <label htmlFor={selectId} className="mb-1.5 block text-xs font-semibold text-[#1E293B]">
+        <label htmlFor={selectId} className="mb-1.5 block text-label font-semibold text-[var(--ink)]">
           {label}
           {required && (
-            <span className="ms-0.5 text-rose-500" aria-hidden="true">
+            <span className="ms-0.5 text-rose" aria-hidden="true">
               *
             </span>
           )}
@@ -76,13 +76,13 @@ export const Select = forwardRef(function Select(
           value={normalizedValue}
           onChange={handleSelectChange}
           className={cn(
-            'w-full appearance-none border bg-white text-[#1E293B] transition-all cursor-pointer',
-            'focus:outline-hidden focus:ring-2 focus:ring-offset-0',
+            'w-full appearance-none border bg-[var(--surface)] text-[var(--ink)] transition-all cursor-pointer',
+            'focus:outline-none focus:ring-2 focus:ring-offset-0',
             sizeClass,
             error
-              ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-[#E2E8F0] hover:border-[#93C5FD] focus:border-[#2563EB] focus:ring-[#2563EB]/20',
-            disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
+              ? 'border-[var(--rose)]/50 focus:border-[var(--rose)] focus:ring-[var(--rose)]/20'
+              : 'border-[var(--border-subtle)] hover:border-[var(--blue-muted)] focus:border-[var(--blue-core)] focus:ring-[var(--blue-core)]/20',
+            disabled && 'cursor-not-allowed border-[var(--border-subtle)] bg-[var(--muted)] text-[var(--ink-muted)]',
             className
           )}
           {...props}
@@ -101,7 +101,7 @@ export const Select = forwardRef(function Select(
             : children}
         </select>
 
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-slate-500">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-[var(--ink-muted)]/50">
           <svg
             className="h-3.5 w-3.5 rtl:rotate-180"
             viewBox="0 0 20 20"
@@ -118,11 +118,11 @@ export const Select = forwardRef(function Select(
       </div>
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
+        <p id={errorId} role="alert" className="mt-1 text-caption font-medium text-[var(--rose)]">
           {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
-        <p id={helperId} className="mt-1 text-2xs text-slate-500">
+        <p id={helperId} className="mt-1 text-caption text-[var(--ink-muted)]">
           {helperText}
         </p>
       ) : null}

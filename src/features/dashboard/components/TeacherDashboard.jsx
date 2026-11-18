@@ -9,8 +9,8 @@ import {
   Calendar,
   BookOpen,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
@@ -135,36 +135,59 @@ export function TeacherDashboard() {
         </div>
       )}
 
-      {/* Top 4 Pastel Metric Cards with Blue Palette */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          variant="blue"
-          title="Classes"
-          value={loading ? '...' : (stats?.totalClasses ? `${stats.totalClasses} Classes` : '4 Classes')}
-          icon={GraduationCap}
-          onClick={() => navigate('/departments')}
-        />
-        <StatCard
-          variant="skyBlue"
-          title="Students"
-          value={loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '142')}
-          icon={Users}
-          onClick={() => navigate('/students')}
-        />
-        <StatCard
-          variant="mediumBlue"
-          title="Exams"
-          value={loading ? '...' : (stats?.totalExams ? `${stats.totalExams}` : '18')}
-          icon={Award}
-          onClick={() => navigate('/exams')}
-        />
-        <StatCard
-          variant="darkBlue"
-          title="Pass Rate"
-          value={loading ? '...' : (stats?.attendanceRate ? `${stats.attendanceRate}%` : '96.2%')}
-          icon={TrendingUp}
-          onClick={() => navigate('/grades')}
-        />
+      {/* shadcn dashboard-01 Top 4 Metric Cards */}
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/departments')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Classes Assignées</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalClasses ? `${stats.totalClasses} Classes` : '4 Classes')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Niveau Secondaire & Lycée</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/students')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Élèves Suivis</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '142')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Répartis sur 4 divisions</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/exams')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Évaluations & Contrôles</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalExams ? `${stats.totalExams}` : '18')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">2 contrôles prévus cette semaine</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/grades')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taux de Réussite</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.attendanceRate ? `${stats.attendanceRate}%` : '96.2%'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+1.5% par rapport au T1</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Today's Timetable & Presence Widgets */}
