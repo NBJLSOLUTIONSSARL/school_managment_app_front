@@ -51,12 +51,12 @@ describe('LoginForm & Session Redirection', () => {
     const quickToggle = screen.getByRole('button', { name: /remplissage rapide|comptes de test/i })
     fireEvent.click(quickToggle)
 
-    // Verify all 5 roles exist in quick accounts
-    expect(screen.getByText(/Marc Dupont/i)).toBeInTheDocument() // Admin
-    expect(screen.getByText(/Claire Martin/i)).toBeInTheDocument() // Teacher
-    expect(screen.getByText(/Léo Leroy/i)).toBeInTheDocument() // Student
-    expect(screen.getByText(/Alain Leroy/i)).toBeInTheDocument() // Parent
-    expect(screen.getByText(/Marie Robert/i)).toBeInTheDocument() // Staff
+    // Verify all 5 roles exist in quick accounts matching migration seed users
+    expect(screen.getByText(/admin@school\.com/i)).toBeInTheDocument() // Admin
+    expect(screen.getByText(/teacher@school\.com/i)).toBeInTheDocument() // Teacher
+    expect(screen.getByText(/student@school\.com/i)).toBeInTheDocument() // Student
+    expect(screen.getByText(/parent@school\.com/i)).toBeInTheDocument() // Parent
+    expect(screen.getByText(/staff@school\.com/i)).toBeInTheDocument() // Staff
   })
 
   it('redirects to /dashboard immediately if already authenticated', async () => {

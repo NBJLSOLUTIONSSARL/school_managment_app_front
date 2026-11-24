@@ -198,7 +198,7 @@ describe('Dashboard and Figma Components', () => {
   })
 
   describe('DashboardView', () => {
-    it('renders admin dashboard and allows role preview switching', async () => {
+    it('renders admin dashboard cleanly without role preview bar', async () => {
       await act(async () => {
         root.render(
           <MemoryRouter>
@@ -208,18 +208,7 @@ describe('Dashboard and Figma Components', () => {
       })
 
       expect(container.textContent).toContain("Vue d'ensemble de l'établissement")
-      expect(container.textContent).toContain("Aperçu Rôle")
-
-      // Find teacher role preview button
-      const buttons = Array.from(container.querySelectorAll('button'))
-      const teacherBtn = buttons.find((b) => b.textContent.includes('Enseignant'))
-      expect(teacherBtn).toBeDefined()
-
-      await act(async () => {
-        teacherBtn.click()
-      })
-
-      expect(container.textContent).toContain('Évaluations et Examens')
+      expect(container.textContent).not.toContain("Aperçu Rôle")
     })
   })
 })

@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { Calendar, HelpCircle } from 'lucide-react'
 
 export function AnalyticsFunnelCard({
-  title = 'Inventories Matrix Funnel',
-  subtitle = 'Check overview of all your property details.',
+  title = 'Matrice analytique des effectifs',
+  subtitle = 'Vue d’ensemble des indicateurs de la structure',
   dateRangeText = 'Année 2026 - 2027',
   series = [
-    { name: 'Inscriptions', color: '#0F172A' },
-    { name: 'Évaluations', color: '#64748B' },
-    { name: 'Présence', color: '#94A3B8' },
+    { name: 'Inscriptions', color: '#5B5FC7' },
+    { name: 'Évaluations', color: '#38BDF8' },
+    { name: 'Présence', color: '#CBD5E1' },
   ],
   className = '',
 }) {
@@ -57,33 +57,33 @@ export function AnalyticsFunnelCard({
   const yTicks = [0, 200, 400, 600]
 
   return (
-    <div className={`bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-2xs ${className}`}>
+    <div className={`figma-card bg-white rounded-2xl border border-[#EDF0F8] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
         <div>
-          <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
             <span>{title}</span>
-            <HelpCircle className="w-3 h-3 text-[#94A3B8]" />
+            <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
           </h3>
-          {subtitle && <p className="text-[11px] text-[#64748B] mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-2xs text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
 
         <button
           type="button"
           onClick={() => {}}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-semibold text-[#0F172A] hover:bg-slate-100 transition cursor-pointer self-start sm:self-auto shadow-2xs"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-2xs font-medium text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
         >
-          <Calendar className="w-3 h-3 text-[#64748B]" />
+          <Calendar className="w-3 h-3 text-slate-500" />
           <span>{selectedRange}</span>
         </button>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-3.5 text-2xs font-semibold text-[#64748B] mb-2.5">
+      <div className="flex items-center gap-3.5 text-2xs font-medium text-slate-600 mb-2.5">
         {series.map((s, idx) => (
           <div key={idx} className="flex items-center gap-1.5">
             <span
-              className="w-2.5 h-2.5 rounded-full inline-block"
+              className="w-2 h-2 rounded-full inline-block"
               style={{ backgroundColor: s.color }}
             />
             <span>{s.name}</span>
@@ -108,7 +108,7 @@ export function AnalyticsFunnelCard({
                   y1={yPos}
                   x2={width - paddingX}
                   y2={yPos}
-                  stroke="#E2E8F0"
+                  stroke="#e2e8f0"
                   strokeWidth="1"
                   strokeDasharray={tick === 0 ? 'none' : '3 3'}
                 />
@@ -116,7 +116,7 @@ export function AnalyticsFunnelCard({
                   x={paddingX - 10}
                   y={yPos + 4}
                   textAnchor="end"
-                  className="text-[10px] fill-[#94A3B8] font-mono"
+                  className="text-[10px] fill-slate-400 font-mono"
                 >
                   {tick}
                 </text>
@@ -128,7 +128,7 @@ export function AnalyticsFunnelCard({
           {seriesData.map((dataArr, sIdx) => {
             const pts = getPoints(dataArr)
             const path = getSplinePath(pts)
-            const strokeColor = series[sIdx]?.color || '#0F172A'
+            const strokeColor = series[sIdx]?.color || '#0f172a'
 
             return (
               <g key={sIdx}>
@@ -136,7 +136,7 @@ export function AnalyticsFunnelCard({
                   d={path}
                   fill="none"
                   stroke={strokeColor}
-                  strokeWidth={sIdx === 0 ? 2.5 : 1.8}
+                  strokeWidth={sIdx === 0 ? 2 : 1.5}
                   strokeLinecap="round"
                 />
               </g>
@@ -159,7 +159,7 @@ export function AnalyticsFunnelCard({
                   y={height - 10}
                   textAnchor="middle"
                   className={`text-[10px] font-medium transition-colors ${
-                    isHovered ? 'fill-[#0F172A] font-bold' : 'fill-[#94A3B8]'
+                    isHovered ? 'fill-slate-900 font-bold' : 'fill-slate-400'
                   }`}
                 >
                   {m}
@@ -170,7 +170,7 @@ export function AnalyticsFunnelCard({
                     y1={paddingY}
                     x2={x}
                     y2={height - paddingY}
-                    stroke="#0F172A"
+                    stroke="#0f172a"
                     strokeWidth="1"
                     strokeDasharray="2 2"
                   />

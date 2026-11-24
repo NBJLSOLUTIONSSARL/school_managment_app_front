@@ -4,8 +4,8 @@ import { ChevronDown } from 'lucide-react'
 export function ExamResultsWaveChart({
   title = 'All Exam Results',
   series = [
-    { name: 'Teacher', color: '#2563EB' },
-    { name: 'Students', color: '#38BDF8' },
+    { name: 'Teacher', color: '#5B5FC7' },
+    { name: 'Students', color: '#CBD5E1' },
   ],
   data = null,
   periods = ['Monthly', 'Weekly', 'Yearly'],
@@ -68,28 +68,28 @@ export function ExamResultsWaveChart({
   const teacherPath = createSplinePath(teacherCoords)
   const studentPath = createSplinePath(studentCoords)
 
-  const color1 = series[0]?.color || '#2563EB'
-  const color2 = series[1]?.color || '#38BDF8'
+  const color1 = series[0]?.color || '#5B5FC7'
+  const color2 = series[1]?.color || '#CBD5E1'
 
   return (
-    <div className={`bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-2xs select-none ${className}`}>
+    <div className={`figma-card bg-white rounded-2xl p-5 sm:p-6 border border-[#EDF0F8] shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] select-none ${className}`}>
       {/* Header with Title, Legend and Period Dropdown */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
 
         <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
           {/* Legend */}
           <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
             <div className="flex items-center gap-1.5">
               <span
-                className="w-2.5 h-2.5 rounded-full inline-block"
+                className="w-2 h-2 rounded-full inline-block"
                 style={{ backgroundColor: color1 }}
               />
               <span>{series[0]?.name || 'Teacher'}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span
-                className="w-2.5 h-2.5 rounded-full inline-block"
+                className="w-2 h-2 rounded-full inline-block"
                 style={{ backgroundColor: color2 }}
               />
               <span>{series[1]?.name || 'Students'}</span>
@@ -101,14 +101,14 @@ export function ExamResultsWaveChart({
             <button
               type="button"
               onClick={() => setDropdownOpen((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600 hover:border-[#2563EB] hover:text-[#2563EB] transition cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
             >
               <span>{selectedPeriod}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" strokeWidth={1.5} />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+              <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-md shadow-md py-1 z-20">
                 {periods.map((p) => (
                   <button
                     key={p}
@@ -118,7 +118,7 @@ export function ExamResultsWaveChart({
                       setDropdownOpen(false)
                     }}
                     className={`w-full text-left px-3 py-1.5 text-xs transition cursor-pointer ${
-                      selectedPeriod === p ? 'bg-[#EFF6FF] text-[#2563EB] font-bold' : 'text-slate-600 hover:bg-slate-50'
+                      selectedPeriod === p ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     {p}
@@ -154,7 +154,7 @@ export function ExamResultsWaveChart({
                   x={paddingLeft - 8}
                   y={y + 4}
                   textAnchor="end"
-                  className="text-[11px] fill-[#64748B] font-normal"
+                  className="text-[11px] fill-[#64748B] font-mono tabular-nums"
                 >
                   {label}
                 </text>
@@ -178,7 +178,7 @@ export function ExamResultsWaveChart({
             )
           })}
 
-          {/* Wave 1: Teacher Curve (Primary Blue) */}
+          {/* Wave 1: Primary Academic Curve */}
           <path
             d={teacherPath}
             fill="none"
@@ -187,12 +187,12 @@ export function ExamResultsWaveChart({
             strokeLinecap="round"
           />
 
-          {/* Wave 2: Students Curve (Sky Blue) */}
+          {/* Wave 2: Secondary Neutral Curve */}
           <path
             d={studentPath}
             fill="none"
             stroke={color2}
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
           />
 
@@ -204,7 +204,7 @@ export function ExamResultsWaveChart({
                 y1={paddingTop}
                 x2={teacherCoords[hoveredIndex]?.x}
                 y2={height - paddingBottom}
-                stroke="#93C5FD"
+                stroke="#94A3B8"
                 strokeWidth="1"
                 strokeDasharray="3 3"
               />
@@ -250,7 +250,7 @@ export function ExamResultsWaveChart({
         {/* Hover Tooltip Overlay */}
         {hoveredIndex !== null && (
           <div
-            className="absolute top-2 bg-slate-900/90 backdrop-blur-xs text-white text-[11px] rounded-lg px-2.5 py-1.5 shadow-md pointer-events-none transform -translate-x-1/2 transition-all"
+            className="absolute top-2 bg-slate-900 text-white text-[11px] rounded-md px-2.5 py-1.5 shadow-md pointer-events-none transform -translate-x-1/2 transition-colors"
             style={{
               left: `${(teacherCoords[hoveredIndex].x / width) * 100}%`,
             }}

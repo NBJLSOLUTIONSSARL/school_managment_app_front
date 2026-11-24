@@ -12,40 +12,40 @@ const QUICK_ACCOUNTS = [
   {
     roleKey: 'roles.admin',
     defaultRole: 'Admin',
-    name: 'Marc Dupont (Admin)',
+    name: 'Marc Admin (Admin)',
     email: 'admin@school.com',
     role: 'admin',
-    badge: 'bg-zinc-100 text-zinc-900 border border-zinc-200',
+    badge: 'bg-slate-100 text-slate-800 border border-slate-200',
   },
   {
     roleKey: 'roles.teacher',
     defaultRole: 'Enseignant',
-    name: 'Claire Martin (Prof)',
-    email: 'claire.martin@school.com',
+    name: 'Claire Enseignant (Prof)',
+    email: 'teacher@school.com',
     role: 'teacher',
     badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   },
   {
     roleKey: 'roles.student',
     defaultRole: 'Élève',
-    name: 'Léo Leroy (Élève)',
-    email: 'leo.leroy@student.com',
+    name: 'Léo Élève (Élève)',
+    email: 'student@school.com',
     role: 'student',
-    badge: 'bg-blue-50 text-blue-700 border border-blue-200',
+    badge: 'bg-sky-50 text-sky-700 border border-sky-200',
   },
   {
     roleKey: 'roles.parent',
     defaultRole: 'Parent',
-    name: 'Alain Leroy (Parent)',
-    email: 'alain.leroy@parent.com',
+    name: 'Alain Parent (Parent)',
+    email: 'parent@school.com',
     role: 'parent',
     badge: 'bg-purple-50 text-purple-700 border border-purple-200',
   },
   {
     roleKey: 'roles.staff',
     defaultRole: 'Personnel',
-    name: 'Marie Robert (Staff)',
-    email: 'marie.robert@school.com',
+    name: 'Lucas Personnel (Staff)',
+    email: 'staff@school.com',
     role: 'staff',
     badge: 'bg-amber-50 text-amber-700 border border-amber-200',
   },
@@ -152,9 +152,15 @@ export function LoginForm() {
       if (ok === false) return
       success(t('login.success', 'Connexion réussie.'))
       navigate(from, { replace: true })
-    } catch {
-      toastError(t('login.invalidCredentials', 'Identifiants incorrects.'))
-      setFormError(t('login.invalidCredentialsShort', 'Identifiants incorrects.'))
+    } catch (err) {
+      const isApiError = err?.name === 'ApiError'
+      if (isApiError && err.status !== 401 && err.message) {
+        toastError(err.message)
+        setFormError(err.message)
+      } else {
+        toastError(t('login.invalidCredentials', 'Identifiants incorrects.'))
+        setFormError(t('login.invalidCredentialsShort', 'Identifiants incorrects.'))
+      }
     }
   }
 
@@ -175,98 +181,108 @@ export function LoginForm() {
       if (ok === false) return
       success(t('login.connectedAs', { name: acc.name }, `Connecté en tant que ${acc.name}`))
       navigate(from, { replace: true })
-    } catch {
-      toastError(t('login.quickError', 'Erreur de connexion rapide.'))
+    } catch (err) {
+      const isApiError = err?.name === 'ApiError'
+      const msg = isApiError && err.message
+        ? err.message
+        : t('login.quickError', 'Erreur de connexion rapide.')
+      toastError(msg)
+      setFormError(msg)
     }
   }
 
   return (
     <div dir={dir} lang={language} className="min-h-screen flex flex-col lg:flex-row bg-white select-none">
-      <div className="w-full lg:w-[47%] relative bg-zinc-950 flex flex-col justify-between p-8 sm:p-12 lg:p-14 min-h-[480px] lg:min-h-screen overflow-hidden">
+      {/* Left Scholastic Visual Anchor */}
+      <div className="w-full lg:w-[47%] relative bg-slate-950 flex flex-col justify-between p-8 sm:p-12 lg:p-14 min-h-[440px] lg:min-h-screen overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src="/assets/auth-graduate.jpg"
-            alt="EduTrack Graduate"
-            className="w-full h-full object-cover object-top sm:object-center brightness-95 contrast-105"
+            alt="EduTrack Academic"
+            className="w-full h-full object-cover object-top sm:object-center brightness-90 contrast-105"
             onError={(e) => {
               e.currentTarget.src = '/assets/auth-classroom.jpg'
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/50 to-slate-950/35" />
+          <div className="absolute inset-0 bg-slate-950/70" />
         </div>
 
         <div className="relative z-10 flex items-center justify-between">
           <div className="inline-flex items-center gap-2.5 select-none">
-            <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-md bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center">
               <svg
                 viewBox="0 0 24 24"
                 className="w-4 h-4 text-white fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
               >
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z" fill="currentColor" fillOpacity="0.25" />
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" fill="currentColor" fillOpacity="0.2" />
                 <path d="M6 12v5c3 3 9 3 12 0v-5" />
               </svg>
             </div>
-            <span className="text-sm font-semibold tracking-wide text-white">EduTrack</span>
+            <span className="text-sm font-semibold tracking-tight text-white">EduTrack</span>
           </div>
         </div>
 
         <div className="relative z-10 max-w-md my-auto py-8">
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-medium text-white/90 border border-white/15 mb-4">
-            {t('login.portalBadge', 'Portail Académique · Connexion')}
+          <div className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-xs text-[11px] font-medium text-white/90 border border-white/15 mb-3">
+            {t('login.portalBadge', 'Portail académique · Connexion')}
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight leading-tight">
             {t('login.welcomeTitle', 'Bienvenue')}
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-300/90 mt-3.5 leading-relaxed font-normal">
+          <p className="text-xs sm:text-sm text-slate-300 mt-2.5 leading-relaxed font-normal">
             {t('login.welcomeSubtitle', 'Accédez en toute sécurité à vos services académiques, vos emplois du temps et vos résultats scolaires.')}
           </p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-3 pt-6 border-t border-white/10">
-          <div className="bg-white rounded-2xl p-3.5 sm:p-4 text-zinc-900 shadow-xl flex flex-col justify-between min-h-[96px]">
-            <div className="w-6 h-6 rounded-full bg-[#1d4ed8] text-white text-xs font-bold flex items-center justify-center">
+        <div className="relative z-10 grid grid-cols-3 gap-3 pt-5 border-t border-white/10">
+          <div className="bg-white rounded-lg p-3 text-slate-900 shadow-2xs flex flex-col justify-between min-h-[84px]">
+            <div className="w-5 h-5 rounded bg-slate-900 text-white text-2xs font-semibold flex items-center justify-center">
               1
             </div>
-            <p className="text-xs font-semibold text-zinc-900 mt-3 leading-snug">
-              {t('login.step1', 'Authentification sécurisée')}
+            <p className="text-xs font-medium text-slate-900 mt-2 leading-snug">
+              {t('login.step1', 'Authentification')}
             </p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 text-white border border-white/10 flex flex-col justify-between min-h-[96px]">
-            <div className="w-6 h-6 rounded-full bg-white/15 text-white/80 text-xs font-semibold flex items-center justify-center">
+          <div className="bg-white/5 backdrop-blur-xs rounded-lg p-3 text-white border border-white/10 flex flex-col justify-between min-h-[84px]">
+            <div className="w-5 h-5 rounded bg-white/15 text-white/80 text-2xs font-medium flex items-center justify-center">
               2
             </div>
-            <p className="text-xs font-medium text-zinc-300 mt-3 leading-snug">
+            <p className="text-xs font-normal text-slate-300 mt-2 leading-snug">
               {t('login.step2', 'Validation des rôles')}
             </p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 text-white border border-white/10 flex flex-col justify-between min-h-[96px]">
-            <div className="w-6 h-6 rounded-full bg-white/15 text-white/80 text-xs font-semibold flex items-center justify-center">
+          <div className="bg-white/5 backdrop-blur-xs rounded-lg p-3 text-white border border-white/10 flex flex-col justify-between min-h-[84px]">
+            <div className="w-5 h-5 rounded bg-white/15 text-white/80 text-2xs font-medium flex items-center justify-center">
               3
             </div>
-            <p className="text-xs font-medium text-zinc-300 mt-3 leading-snug">
-              {t('login.step3', 'Accès au bureau Desk')}
+            <p className="text-xs font-normal text-slate-300 mt-2 leading-snug">
+              {t('login.step3', 'Bureau Desk')}
             </p>
           </div>
         </div>
       </div>
 
+      {/* Right Form Container */}
       <div className="w-full lg:w-[53%] relative flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white overflow-y-auto">
         <div className="absolute top-4 end-4 z-20">
           <LanguageSwitcher size="xs" />
         </div>
 
-        <div className="w-full max-w-[400px] space-y-6">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">
+        <div className="w-full max-w-[380px] space-y-5">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
               {t('login.title', 'Connexion')}
             </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Entrez vos identifiants pour accéder à votre espace
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} aria-label={t('login.title', 'Formulaire de connexion')} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit} aria-label={t('login.title', 'Formulaire de connexion')} className="space-y-3.5" noValidate>
             <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold text-zinc-700 mb-1.5">
+              <label htmlFor="login-email" className="block text-xs font-medium text-slate-700 mb-1">
                 {t('login.emailLabel', 'Identifiant ou Email')}
               </label>
               <input
@@ -277,18 +293,18 @@ export function LoginForm() {
                 placeholder={t('login.emailPlaceholder', 'nom@school.edu')}
                 required
                 autoComplete="username"
-                className="w-full h-11 px-3.5 bg-[#fcfcfd] border border-zinc-200 hover:border-zinc-300 focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#1d4ed8]/10 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 transition-all focus:outline-none"
+                className="w-full h-9 px-3 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-md text-xs text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="login-password" className="block text-xs font-semibold text-zinc-700">
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="login-password" className="block text-xs font-medium text-slate-700">
                   {t('login.passwordLabel', 'Mot de passe')}
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-medium text-[#1d4ed8] hover:underline cursor-pointer"
+                  className="text-xs font-medium text-slate-600 hover:text-slate-900 hover:underline cursor-pointer"
                 >
                   {t('login.forgotPassword', 'Mot de passe oublié ?')}
                 </Link>
@@ -302,12 +318,12 @@ export function LoginForm() {
                   placeholder={t('login.passwordPlaceholder', '••••••••••••••••')}
                   required
                   autoComplete="current-password"
-                  className="w-full h-11 ps-3.5 pe-10 bg-[#fcfcfd] border border-zinc-200 hover:border-zinc-300 focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#1d4ed8]/10 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 transition-all focus:outline-none"
+                  className="w-full h-9 ps-3 pe-9 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 rounded-md text-xs text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-3 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
+                  className="absolute end-2.5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                   aria-label={showPassword ? t('auth.hidePassword', 'Masquer le mot de passe') : t('auth.showPassword', 'Afficher le mot de passe')}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -318,9 +334,9 @@ export function LoginForm() {
             {infoNotice && (
               <div
                 role="status"
-                className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium flex items-center gap-2 animate-in fade-in"
+                className="p-3 rounded-md bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium flex items-center gap-2"
               >
-                <Info className="w-4 h-4 shrink-0 text-blue-600" />
+                <Info className="w-4 h-4 shrink-0 text-slate-600" />
                 <span>{infoNotice}</span>
               </div>
             )}
@@ -328,7 +344,7 @@ export function LoginForm() {
             {formError && (
               <div
                 role="alert"
-                className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in"
+                className="p-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2"
               >
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{formError}</span>
@@ -338,17 +354,17 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 bg-[#1d4ed8] hover:bg-[#1e40af] active:bg-[#1e3a8a] text-white font-medium text-sm rounded-lg shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 mt-5 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-9 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-medium text-xs rounded-md shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-2 mt-4 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
             >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>{t('login.submit', 'Se connecter')}</span>
             </button>
           </form>
 
-          <div className="relative flex items-center justify-center my-4">
-            <div className="border-t border-zinc-200 w-full" />
-            <span className="bg-white px-3 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider absolute">
-              {t('common.or', 'OU')}
+          <div className="relative flex items-center justify-center my-3">
+            <div className="border-t border-slate-200 w-full" />
+            <span className="bg-white px-2.5 text-2xs font-medium text-slate-400 absolute">
+              {t('common.or', 'ou')}
             </span>
           </div>
 
@@ -356,12 +372,12 @@ export function LoginForm() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading || isLoading}
-            className="w-full h-11 bg-white border border-zinc-200 hover:bg-zinc-50 active:bg-zinc-100 text-zinc-700 font-medium text-xs sm:text-sm rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2.5 shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-9 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
           >
             {isGoogleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-zinc-600" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
             ) : (
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -383,35 +399,35 @@ export function LoginForm() {
             <span>{t('login.googleSignIn', 'Continuer avec Google')}</span>
           </button>
 
-          <p className="text-[11px] text-center text-zinc-400 leading-relaxed pt-2">
-            {t('login.termsDisclaimer', 'En vous connectant, vous acceptez la charte d\'utilisation et la politique de confidentialité de l\'établissement EduTrack.')}
+          <p className="text-2xs text-center text-slate-400 leading-relaxed pt-1">
+            {t('login.termsDisclaimer', 'En vous connectant, vous acceptez la charte d\'utilisation et la politique de confidentialité de l\'établissement.')}
           </p>
 
-          <div className="pt-2 border-t border-zinc-100">
+          <div className="pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setShowQuickLogins(!showQuickLogins)}
-              className="w-full text-center text-[11px] text-zinc-400 hover:text-zinc-600 font-medium cursor-pointer"
+              className="w-full text-center text-2xs text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               {showQuickLogins
-                ? t('login.quickAccountsHide', '▲ Masquer les comptes de test')
-                : t('login.quickAccountsShow', '▼ Remplissage rapide (comptes de test)')}
+                ? t('login.quickAccountsHide', 'Masquer les comptes de test')
+                : t('login.quickAccountsShow', 'Remplissage rapide (comptes de test)')}
             </button>
 
             {showQuickLogins && (
-              <div className="mt-3 p-3 bg-zinc-50 rounded-xl border border-zinc-200 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in">
+              <div className="mt-2.5 p-2 bg-slate-50 rounded-md border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-1.5 animate-in fade-in">
                 {QUICK_ACCOUNTS.map((acc) => (
                   <button
                     key={acc.email}
                     type="button"
                     onClick={() => handleQuickLogin(acc)}
-                    className="text-start p-2.5 rounded-lg bg-white border border-zinc-200 hover:border-[#1d4ed8] hover:shadow-2xs transition-all cursor-pointer"
+                    className="text-start p-2 rounded-md bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.badge} inline-block`}>
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${acc.badge} inline-block`}>
                       {t(acc.roleKey, acc.defaultRole)}
                     </span>
-                    <p className="text-xs font-semibold text-zinc-900 mt-1 truncate">{acc.name}</p>
-                    <p className="text-[10px] text-zinc-500 truncate">{acc.email}</p>
+                    <p className="text-xs font-medium text-slate-900 mt-1 truncate">{acc.name}</p>
+                    <p className="text-2xs text-slate-400 truncate">{acc.email}</p>
                   </button>
                 ))}
               </div>

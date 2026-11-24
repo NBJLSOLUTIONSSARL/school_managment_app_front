@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
-import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Eye,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Loader } from '@/components/ui/Loader'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { AnnouncementFormModal } from './AnnouncementFormModal'
 import { AnnouncementDetailsModal } from './AnnouncementDetailsModal'
@@ -43,9 +43,11 @@ export function AnnouncementList() {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
-  // Filters
+  // Filters & search
   const [targetRole, setTargetRole] = useState('ALL_FILTER')
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -57,6 +59,7 @@ export function AnnouncementList() {
   const loadAnnouncements = useCallback(
     async ({ signal } = {}) => {
       setIsLoading(true)
+      setLoadError(null)
       try {
         const res = await announcementService.getAnnouncements({
           targetRole,
@@ -75,9 +78,17 @@ export function AnnouncementList() {
           setAnnouncements([])
           setTotalItems(0)
           setTotalPages(0)
+          const msg = res.error?.message || 'Impossible de charger les annonces.'
+          setLoadError(msg)
           if (!signal?.aborted) {
-            toastError(res.error?.message || 'Impossible de charger les annonces.')
+            toastError(msg)
           }
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          const msg = err.message || 'Impossible de charger les annonces.'
+          setLoadError(msg)
+          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -114,18 +125,28 @@ export function AnnouncementList() {
     }
   }
 
+  const filteredAnnouncements = useMemo(() => {
+    if (!searchTerm.trim()) return announcements
+    const q = searchTerm.toLowerCase()
+    return announcements.filter((a) =>
+      a.title?.toLowerCase().includes(q) ||
+      a.content?.toLowerCase().includes(q)
+    )
+  }, [announcements, searchTerm])
+
   const columns = [
     {
       key: 'title',
       label: 'Titre de l’annonce',
       render: (val, row) => (
-        <button
-          type="button"
-          onClick={() => setDetailItem(row)}
-          className="text-start font-medium text-slate-900 hover:text-slate-600 hover:underline"
-        >
-          {val}
-        </button>
+        <div className="min-w-0">
+          <span className="font-semibold text-[#0F172A] text-xs block truncate">{val}</span>
+          {row.content && (
+            <span className="text-[11px] text-[#64748B] block truncate max-w-md">
+              {row.content}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -147,54 +168,112 @@ export function AnnouncementList() {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : '-',
+          : '—',
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '140px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="xs" onClick={() => setDetailItem(row)}>
-            Voir
-          </Button>
-          {canManage && (
-            <>
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => {
-                  setEditingItem(row)
-                  setIsFormOpen(true)
-                }}
-              >
-                Modifier
-              </Button>
-              <Button
-                variant="ghost"
-                size="xs"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={() => setDeleteTarget(row)}
-              >
-                Supprimer
-              </Button>
-            </>
-          )}
-        </div>
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Détails',
+              icon: Eye,
+              onClick: () => setDetailItem(row),
+            },
+            {
+              label: 'Modifier',
+              icon: Pencil,
+              hidden: !canManage,
+              onClick: () => {
+                setEditingItem(row)
+                setIsFormOpen(true)
+              },
+            },
+            {
+              label: 'Supprimer',
+              icon: Trash2,
+              variant: 'danger',
+              hidden: !canManage,
+              onClick: () => setDeleteTarget(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
+  const hasActiveFilters = targetRole !== 'ALL_FILTER'
+
+  const filtersContent = (
+    <div>
+      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+        Audience ciblée
+      </label>
+      <select
+        value={targetRole}
+        onChange={(e) => {
+          setTargetRole(e.target.value)
+          setPage(1)
+        }}
+        className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+      >
+        {ROLE_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+
   return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
-      <DocTypePageHead
-        title="Annonces & Communications"
-        count={totalItems}
-        primaryAction={
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        onAddNew={
+          canManage
+            ? () => {
+                setEditingItem(null)
+                setIsFormOpen(true)
+              }
+            : undefined
+        }
+        addNewLabel="Nouvelle annonce"
+        canAddNew={canManage}
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Rechercher une annonce..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={hasActiveFilters ? 1 : 0}
+        onClearFilters={() => {
+          setTargetRole('ALL_FILTER')
+          setPage(1)
+        }}
+      />
+
+      <EntityDataTable
+        columns={columns}
+        data={filteredAnnouncements}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={loadAnnouncements}
+        emptyTitle="Aucune annonce trouvée"
+        emptyDescription={
+          searchTerm || hasActiveFilters
+            ? 'Aucune annonce ne correspond aux filtres.'
+            : 'Aucune annonce publiée pour le moment.'
+        }
+        emptyAction={
           canManage
             ? {
-                label: 'Nouvelle Annonce',
+                label: 'Nouvelle annonce',
                 onClick: () => {
                   setEditingItem(null)
                   setIsFormOpen(true)
@@ -202,67 +281,18 @@ export function AnnouncementList() {
               }
             : undefined
         }
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize)
+          setPage(1)
+        }}
+        onRowClick={(row) => setDetailItem(row)}
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
-        <div className="w-56">
-          <Select
-            value={targetRole}
-            onChange={(val) => {
-              setTargetRole(val)
-              setPage(1)
-            }}
-            options={ROLE_OPTIONS}
-          />
-        </div>
-        <div className="ml-auto text-2xs text-slate-400">
-          {canManage
-            ? 'Gestion active : Vous pouvez créer, modifier ou supprimer des annonces.'
-            : 'Consultation : Annonces ciblées selon votre profil.'}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
-          <Loader size="md" />
-        </div>
-      ) : announcements.length === 0 ? (
-        <EmptyState
-          title="Aucune annonce trouvée"
-          description="Aucune annonce n'a été publiée pour ce public cible."
-          action={
-            canManage ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setEditingItem(null)
-                  setIsFormOpen(true)
-                }}
-              >
-                Créer une première annonce
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <PaginatedTable
-          columns={columns}
-          data={announcements}
-          page={page}
-          pageSize={pageSize}
-          totalItems={totalItems}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={(newSize) => {
-            setPageSize(newSize)
-            setPage(1)
-          }}
-          isLoading={isLoading}
-        />
-      )}
-
-      {/* Form Modal */}
       {isFormOpen && (
         <AnnouncementFormModal
           key={editingItem?.id || 'new'}
@@ -276,7 +306,6 @@ export function AnnouncementList() {
         />
       )}
 
-      {/* Details Modal */}
       {detailItem && (
         <AnnouncementDetailsModal
           isOpen={Boolean(detailItem)}
@@ -294,7 +323,6 @@ export function AnnouncementList() {
         />
       )}
 
-      {/* Delete Dialog */}
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}

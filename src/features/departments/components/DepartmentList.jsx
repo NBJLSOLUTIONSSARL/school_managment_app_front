@@ -1,20 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Building2,
-  Users,
-  Clock,
-  Award,
-  ChevronRight,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
-import { TableToolbar } from '@/components/ui/TableToolbar'
-import { StatCard } from '@/components/ui/StatCard'
-import { Button } from '@/components/ui/Button'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { Loader } from '@/components/ui/Loader'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/hooks/useAuth'
 import { departmentService } from '../api/departmentService'
@@ -30,8 +21,13 @@ export function DepartmentList() {
 
   const [departments, setDepartments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [activeView, setActiveView] = useState('table')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   // Modal & Dialog state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -42,13 +38,22 @@ export function DepartmentList() {
   const loadDepartments = useCallback(
     async ({ signal } = {}) => {
       setIsLoading(true)
+      setLoadError(null)
       try {
         const res = await departmentService.getDepartments()
         if (signal?.aborted) return
         if (res.success && Array.isArray(res.data)) {
           setDepartments(res.data)
         } else {
-          toastError(res.error?.message || 'Erreur lors du chargement des départements.')
+          const msg = res.error?.message || 'Erreur lors du chargement des départements.'
+          setLoadError(msg)
+          toastError(msg)
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          const msg = err.message || 'Impossible de charger les départements.'
+          setLoadError(msg)
+          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -69,10 +74,18 @@ export function DepartmentList() {
   }, [loadDepartments])
 
   const filteredDepartments = useMemo(() => {
-    if (!searchTerm.trim()) return departments
-    const term = searchTerm.toLowerCase()
-    return departments.filter((d) => d.name?.toLowerCase().includes(term))
+    let list = departments
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      list = list.filter((d) => d.name?.toLowerCase().includes(term))
+    }
+    return list
   }, [departments, searchTerm])
+
+  const paginatedDepartments = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredDepartments.slice(start, start + pageSize)
+  }, [filteredDepartments, page, pageSize])
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget || isDeleting) return
@@ -98,15 +111,14 @@ export function DepartmentList() {
     {
       key: 'name',
       label: 'Département / Unité',
-      sortable: true,
       render: (val, row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111827] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center font-bold text-xs text-[#2563EB] shrink-0">
             {val ? val.slice(0, 2).toUpperCase() : 'DP'}
           </div>
           <div className="min-w-0">
-            <span className="font-semibold text-[#111827] text-xs truncate block">{val}</span>
-            <span className="text-[11px] text-[#6B7280]">Département #{row.id}</span>
+            <span className="font-semibold text-[#0F172A] text-xs truncate block">{val}</span>
+            <span className="text-[11px] text-[#64748B]">Département #{row.id}</span>
           </div>
         </div>
       ),
@@ -114,22 +126,19 @@ export function DepartmentList() {
     {
       key: 'teachersCount',
       label: 'Corps Professoral',
-      width: '160px',
+      width: '180px',
       render: (val) => (
-        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
-          <span className="text-xs text-[#4B5563]">
-            {val || 0} {(val || 0) > 1 ? 'professeurs' : 'professeur'}
-          </span>
-          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
-        </div>
+        <span className="text-xs text-[#475569]">
+          {val || 0} {(val || 0) > 1 ? 'professeurs' : 'professeur'}
+        </span>
       ),
     },
     {
       key: 'staffCount',
       label: 'Personnel Admin',
-      width: '160px',
+      width: '180px',
       render: (val) => (
-        <span className="text-xs text-[#4B5563]">
+        <span className="text-xs text-[#475569]">
           {val || 0} {(val || 0) > 1 ? 'membres' : 'membre'}
         </span>
       ),
@@ -138,105 +147,64 @@ export function DepartmentList() {
       key: 'status',
       label: 'Statut',
       width: '120px',
-      render: () => <StatusBadge status="Complete" label="Actif" showPlus />,
+      render: () => <StatusBadge status="Complete" label="Actif" />,
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '150px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={(e) => {
-                e.stopPropagation()
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Modifier',
+              icon: Pencil,
+              hidden: !canEdit,
+              onClick: () => {
                 setEditingDepartment(row)
                 setIsModalOpen(true)
-              }}
-            >
-              Modifier
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={(e) => {
-                e.stopPropagation()
-                setDeleteTarget(row)
-              }}
-            >
-              Supprimer
-            </Button>
-          )}
-        </div>
+              },
+            },
+            {
+              label: 'Supprimer',
+              icon: Trash2,
+              variant: 'danger',
+              hidden: !canDelete,
+              onClick: () => setDeleteTarget(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
+  const hasActiveFilters = statusFilter !== 'ALL'
+
+  const filtersContent = (
+    <div>
+      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+        Statut du département
+      </label>
+      <select
+        value={statusFilter}
+        onChange={(e) => {
+          setStatusFilter(e.target.value)
+          setPage(1)
+        }}
+        className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+      >
+        <option value="ALL">Tous les départements</option>
+        <option value="ACTIVE">Actifs uniquement</option>
+      </select>
+    </div>
+  )
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
-      <DocTypePageHead
-        icon={Building2}
-        title="Departments"
-        count={filteredDepartments.length}
-        countLabel="départements"
-        primaryAction={
-          canCreate
-            ? {
-                label: 'New department',
-                onClick: () => {
-                  setEditingDepartment(null)
-                  setIsModalOpen(true)
-                },
-              }
-            : undefined
-        }
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Building2}
-          title="Active Opportunities"
-          value={`${departments.length || 8} active`}
-          trendValue="↗ 3.5%"
-          trendType="positive"
-        />
-        <StatCard
-          icon={Users}
-          title="Deals Closed This Month"
-          value="6 completed"
-          trendValue="↘ 1.2%"
-          trendType="negative"
-        />
-        <StatCard
-          icon={Clock}
-          title="Average Response Time"
-          value="1.8 days"
-          trendValue="↗ 0.8%"
-          trendType="positive"
-        />
-        <StatCard
-          icon={Award}
-          title="Engagement Rate"
-          value="94%"
-          trendValue="↗ 8.34%"
-          trendType="positive"
-        />
-      </div>
-
-      <TableToolbar
-        activeView={activeView}
-        onViewChange={setActiveView}
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Filtrer par nom de département..."
-        primaryActionLabel="New department"
-        onPrimaryAction={
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        onAddNew={
           canCreate
             ? () => {
                 setEditingDepartment(null)
@@ -244,42 +212,56 @@ export function DepartmentList() {
               }
             : undefined
         }
+        addNewLabel="Nouveau département"
+        canAddNew={canCreate}
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Filtrer par nom de département..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={hasActiveFilters ? 1 : 0}
+        onClearFilters={() => {
+          setStatusFilter('ALL')
+          setPage(1)
+        }}
       />
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white">
-          <Loader size="md" />
-        </div>
-      ) : filteredDepartments.length === 0 ? (
-        <EmptyState
-          title="Aucun département trouvé"
-          description={
-            searchTerm
-              ? 'Aucun département ne correspond à ce critère.'
-              : 'Commencez par ajouter un nouveau département.'
-          }
-          action={
-            canCreate
-              ? {
-                  label: 'Nouveau Département',
-                  onClick: () => {
-                    setEditingDepartment(null)
-                    setIsModalOpen(true)
-                  },
-                }
-              : undefined
-          }
-        />
-      ) : (
-        <PaginatedTable
-          columns={columns}
-          data={filteredDepartments}
-          totalItems={filteredDepartments.length}
-          pageSize={20}
-          isLoading={false}
-          enableSelection
-        />
-      )}
+      <EntityDataTable
+        columns={columns}
+        data={paginatedDepartments}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={loadDepartments}
+        emptyTitle="Aucun département trouvé"
+        emptyDescription={
+          searchTerm
+            ? 'Aucun département ne correspond à votre recherche.'
+            : 'Commencez par créer une unité pédagogique.'
+        }
+        emptyAction={
+          canCreate
+            ? {
+                label: 'Nouveau département',
+                onClick: () => {
+                  setEditingDepartment(null)
+                  setIsModalOpen(true)
+                },
+              }
+            : undefined
+        }
+        page={page}
+        pageSize={pageSize}
+        totalItems={filteredDepartments.length}
+        totalPages={Math.max(1, Math.ceil(filteredDepartments.length / pageSize))}
+        onPageChange={setPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize)
+          setPage(1)
+        }}
+      />
 
       {isModalOpen && (
         <DepartmentFormModal
@@ -301,7 +283,7 @@ export function DepartmentList() {
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer le département"
-          message={`Êtes-vous sûr de vouloir supprimer le département "${deleteTarget.name}" ? Cette action est irréversible.`}
+          message={`Êtes-vous sûr de vouloir supprimer le département "${deleteTarget.name}" ?`}
           confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
           variant="danger"
           onConfirm={handleDeleteConfirm}

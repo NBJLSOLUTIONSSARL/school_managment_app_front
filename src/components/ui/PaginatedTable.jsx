@@ -137,11 +137,11 @@ export function PaginatedTable({
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-2xs select-none',
+        'w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xs select-none',
         className
       )}
     >
-      {toolbar && <div className="border-b border-[#E5E7EB] bg-white p-3.5">{toolbar}</div>}
+      {toolbar && <div className="border-b border-slate-200 bg-white p-3">{toolbar}</div>}
 
       <div className="relative min-h-[140px] overflow-x-auto">
         {isLoading && (
@@ -152,16 +152,16 @@ export function PaginatedTable({
 
         <table className="w-full border-collapse text-start text-xs">
           <thead>
-            <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB] text-xs font-medium text-[#4B5563]">
+            <tr className="border-b border-slate-200 bg-slate-50/70 text-2xs font-semibold text-slate-500 uppercase tracking-wider">
               {/* Checkbox Header Column */}
               {enableSelection && (
-                <th scope="col" className="w-10 px-3.5 py-3 text-center">
+                <th scope="col" className="w-10 px-3.5 py-2.5 text-center">
                   <input
                     type="checkbox"
                     checked={allSelected}
                     onChange={handleSelectAll}
                     aria-label="Sélectionner tous les éléments"
-                    className="w-4 h-4 rounded border-gray-300 text-[#111827] focus:ring-black/10 transition cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/10 transition-colors cursor-pointer"
                   />
                 </th>
               )}
@@ -191,7 +191,7 @@ export function PaginatedTable({
                     }
                     style={{ width: col.width || 'auto' }}
                     className={cn(
-                      'px-3.5 py-3 font-medium text-[#4B5563] text-xs',
+                      'px-3.5 py-2.5 font-semibold text-slate-500 text-2xs',
                       alignClass
                     )}
                   >
@@ -200,24 +200,24 @@ export function PaginatedTable({
                         type="button"
                         onClick={() => handleHeaderClick(col)}
                         className={cn(
-                          'inline-flex items-center gap-1.5 select-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 cursor-pointer group',
+                          'inline-flex items-center gap-1.5 select-none rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900 cursor-pointer group',
                           alignClass === 'text-end' && 'justify-end',
                           alignClass === 'text-center' && 'justify-center'
                         )}
                       >
                         {ColIcon && (
-                          <ColIcon className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#4B5563] shrink-0" />
+                          <ColIcon className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 shrink-0" />
                         )}
                         <span>{col.label}</span>
-                        <span className="text-[#9CA3AF] group-hover:text-[#4B5563] shrink-0" aria-hidden="true">
+                        <span className="text-slate-400 group-hover:text-slate-600 shrink-0" aria-hidden="true">
                           {isSorted ? (
                             activeSortDir === 'asc' ? (
-                              <ChevronUp className="w-3.5 h-3.5 text-[#111827]" />
+                              <ChevronUp className="w-3.5 h-3.5 text-slate-900" />
                             ) : (
-                              <ChevronDown className="w-3.5 h-3.5 text-[#111827]" />
+                              <ChevronDown className="w-3.5 h-3.5 text-slate-900" />
                             )
                           ) : (
-                            <ChevronsUpDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
+                            <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400" />
                           )}
                         </span>
                       </button>
@@ -229,7 +229,7 @@ export function PaginatedTable({
                           alignClass === 'text-center' && 'justify-center'
                         )}
                       >
-                        {ColIcon && <ColIcon className="w-3.5 h-3.5 text-[#9CA3AF] shrink-0" />}
+                        {ColIcon && <ColIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
                         <span>{col.label}</span>
                       </div>
                     )}
@@ -238,7 +238,7 @@ export function PaginatedTable({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F3F4F6]">
+          <tbody className="divide-y divide-slate-100">
             {displayRows.length > 0 ? (
               displayRows.map((row, index) => {
                 const key = row[rowKey] || index
@@ -260,8 +260,8 @@ export function PaginatedTable({
                     }
                     tabIndex={onRowClick ? 0 : undefined}
                     className={cn(
-                      'transition-colors hover:bg-[#F9FAFB]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-black/10',
-                      isSelected && 'bg-blue-50/40',
+                      'transition-colors hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-slate-900',
+                      isSelected && 'bg-slate-100/60',
                       onRowClick && 'cursor-pointer'
                     )}
                   >

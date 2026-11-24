@@ -15,56 +15,58 @@ export function BreakdownProgressCard({
   className = '',
 }) {
   return (
-    <div className={`bg-white rounded-xl border border-[#E2E8F0] p-4 sm:p-5 shadow-2xs flex flex-col justify-between ${className}`}>
+    <div className={`figma-card bg-white rounded-2xl border border-[#EDF0F8] p-5 sm:p-6 shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] flex flex-col justify-between ${className}`}>
       <div>
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
           <div>
-            <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
               <span>{title}</span>
-              <HelpCircle className="w-3 h-3 text-[#94A3B8]" />
+              <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
             </h3>
-            {subtitle && <p className="text-[11px] text-[#64748B] mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-2xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-semibold text-[#0F172A] self-start sm:self-auto shadow-2xs">
-            <Calendar className="w-3 h-3 text-[#64748B]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 text-2xs font-medium text-slate-700 self-start sm:self-auto shadow-2xs">
+            <Calendar className="w-3 h-3 text-slate-500" />
             <span>{dateRangeText}</span>
           </span>
         </div>
 
         {/* Top KPI Total Display */}
-        <div className="flex items-center justify-between p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] mb-3.5">
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-200 mb-3.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-[#0F172A] shadow-2xs">
+            <div className="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-800 shadow-2xs">
               <Layers className="w-3.5 h-3.5" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{totalLabel}</p>
-              <p className="text-base sm:text-lg font-bold font-mono text-[#0F172A] mt-0.5">{totalValue}</p>
+              <p className="text-2xs font-semibold uppercase tracking-wider text-slate-500">{totalLabel}</p>
+              <p className="text-base sm:text-lg font-bold font-mono text-slate-900 mt-0.5 tabular-nums">{totalValue}</p>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="text-2xs font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
             100% Actif
           </span>
         </div>
 
-        {/* Progress List matching Property Wallet UI */}
+        {/* Progress List */}
         <div className="space-y-2.5">
           {items.map((item, idx) => (
             <div key={idx} className="space-y-1">
               <div className="flex items-center justify-between text-2xs">
-                <span className="font-semibold text-[#0F172A] truncate">{item.label}</span>
-                <span className="font-mono font-bold text-[#0F172A] shrink-0">{item.percentage}%</span>
+                <span className="font-medium text-slate-800 truncate">{item.label}</span>
+                <span className="font-mono font-semibold text-slate-900 shrink-0 tabular-nums">{item.percentage}%</span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#F1F5F9] overflow-hidden border border-[#E2E8F0]/60">
+              <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60">
                 <div
-                  className="h-full rounded-full bg-[#0F172A] transition-all duration-500"
+                  className={`h-full rounded-full transition-transform duration-300 ${
+                    idx === 0 ? 'bg-[#5B5FC7]' : 'bg-[#38BDF8]'
+                  }`}
                   style={{ width: `${Math.min(100, Math.max(0, item.percentage))}%` }}
                 />
               </div>
               {item.count && (
-                <div className="text-[10px] text-[#94A3B8] font-medium text-right">
+                <div className="text-2xs text-slate-400 font-medium text-right tabular-nums">
                   {item.count}
                 </div>
               )}

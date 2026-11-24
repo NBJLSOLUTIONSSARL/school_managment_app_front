@@ -4,6 +4,11 @@ import { getCurrentUser } from '@/utils/tokenStorage'
 export const knownRoles = new Set([
   'ROLE_ADMIN',
   'ROLE_SUPER_ADMIN',
+  'ROLE_DIRECTOR',
+  'ROLE_SECRETARY',
+  'ROLE_ACCOUNTANT',
+  'ROLE_LIBRARIAN',
+  'ROLE_NURSE',
   'ROLE_TEACHER',
   'ROLE_STUDENT',
   'ROLE_PARENT',
@@ -15,6 +20,28 @@ export function normalizeRole(r) {
   if (typeof r !== 'string') return ''
   const upper = r.toUpperCase()
   return upper.startsWith('ROLE_') ? upper : `ROLE_${upper}`
+}
+
+/**
+ * Checks whether a list of user roles satisfies at least one required role,
+ * accounting for the backend role hierarchy (SUPER_ADMIN > DIRECTOR > ADMIN, etc.).
+ */
+export function hasMatchingRole(userRoles, requiredRoles) {
+  if (!requiredRoles || !Array.isArray(userRoles) || userRoles.length === 0) return false
+  const needed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+  return needed.some((r) => {
+    const norm = normalizeRole(r)
+    return (
+      userRoles.includes(norm) ||
+      (knownRoles.has(r) && userRoles.includes(r)) ||
+      (norm === 'ROLE_ADMIN' && (userRoles.includes('ROLE_SUPER_ADMIN') || userRoles.includes('ROLE_DIRECTOR'))) ||
+      (norm === 'ROLE_STAFF' && (
+        userRoles.includes('ROLE_DIRECTOR') ||
+        userRoles.includes('ROLE_SECRETARY') ||
+        userRoles.includes('ROLE_ACCOUNTANT')
+      ))
+    )
+  })
 }
 
 export function hasSessionIndicator() {
@@ -70,7 +97,7 @@ export function readSession(response, requestedAt) {
   if (response?.success !== true || data?.tokenType !== 'Bearer' || typeof data.accessToken !== 'string'
     || !Number.isFinite(data.expiresIn) || data.expiresIn <= 0 || !user || user.active !== true
     || !Number.isSafeInteger(user.id) || user.id <= 0 || typeof user.email !== 'string'
-    || !stringArray(user.roles) || !stringArray(user.permissions)) {
+    || !stringArray(user.roles) || (user.permissions != null && !stringArray(user.permissions))) {
     throw new ApiError(0, 'Réponse de connexion invalide. Réessayez.')
   }
   let claims

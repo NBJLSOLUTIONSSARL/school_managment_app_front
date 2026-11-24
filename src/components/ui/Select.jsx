@@ -26,12 +26,12 @@ export const Select = forwardRef(function Select(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-xl' : 'h-10 text-sm ps-3.5 pe-8 rounded-xl'
+  const sizeClass = size === 'sm' ? 'h-8 text-xs ps-2.5 pe-7 rounded-md' : 'h-9 text-sm ps-3 pe-8 rounded-md'
 
   return (
     <div className="w-full text-start">
       {label && (
-        <label htmlFor={selectId} className="mb-1.5 block text-xs font-semibold text-[#1E293B]">
+        <label htmlFor={selectId} className="mb-1 block text-xs font-medium text-slate-800">
           {label}
           {required && (
             <span className="ms-0.5 text-rose-500" aria-hidden="true">
@@ -51,12 +51,12 @@ export const Select = forwardRef(function Select(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'w-full appearance-none border bg-white text-[#1E293B] transition-all cursor-pointer',
-            'focus:outline-hidden focus:ring-2 focus:ring-offset-0',
+            'w-full appearance-none border bg-white text-slate-900 transition-colors cursor-pointer',
+            'focus:outline-hidden focus:ring-1 focus:ring-offset-0',
             sizeClass,
             error
-              ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-[#E2E8F0] hover:border-[#93C5FD] focus:border-[#2563EB] focus:ring-[#2563EB]/20',
+              ? 'border-rose-300 focus:border-rose-600 focus:ring-rose-600'
+              : 'border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-slate-900',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}
@@ -76,7 +76,7 @@ export const Select = forwardRef(function Select(
             : children}
         </select>
 
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-slate-500">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-slate-400">
           <svg
             className="h-3.5 w-3.5 rtl:rotate-180"
             viewBox="0 0 20 20"

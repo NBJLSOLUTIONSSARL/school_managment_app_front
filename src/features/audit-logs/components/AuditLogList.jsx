@@ -1,11 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
-import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Eye,
+} from 'lucide-react'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Loader } from '@/components/ui/Loader'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { AuditLogDetailsModal } from './AuditLogDetailsModal'
 import { auditLogService } from '../api/auditLogService'
 import { useAuth } from '@/hooks/useAuth'
@@ -47,6 +45,7 @@ export function AuditLogList() {
   const [userIdFilter, setUserIdFilter] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Data & pagination
   const [logs, setLogs] = useState([])
@@ -55,6 +54,7 @@ export function AuditLogList() {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
   // Details modal
   const [selectedLog, setSelectedLog] = useState(null)
@@ -63,14 +63,15 @@ export function AuditLogList() {
     async ({ signal } = {}) => {
       if (!isAdmin) return
       setIsLoading(true)
+      setLoadError(null)
       try {
         const fromIso = fromDate ? `${fromDate}T00:00:00` : undefined
         const toIso = toDate ? `${toDate}T23:59:59` : undefined
 
         const res = await auditLogService.getAuditLogs({
-          userId: userIdFilter.trim() ? Number(userIdFilter) : undefined,
           action: actionFilter,
-          entity: entityFilter,
+          entityName: entityFilter,
+          userId: userIdFilter ? Number(userIdFilter) : undefined,
           from: fromIso,
           to: toIso,
           page,
@@ -88,9 +89,17 @@ export function AuditLogList() {
           setLogs([])
           setTotalItems(0)
           setTotalPages(0)
+          const msg = res.error?.message || 'Impossible de charger le journal d’audit.'
+          setLoadError(msg)
           if (!signal?.aborted) {
-            toastError(res.error?.message || 'Erreur lors du chargement des logs d’audit.')
+            toastError(msg)
           }
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          const msg = err.message || 'Impossible de charger le journal d’audit.'
+          setLoadError(msg)
+          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -98,7 +107,7 @@ export function AuditLogList() {
         }
       }
     },
-    [isAdmin, userIdFilter, actionFilter, entityFilter, fromDate, toDate, page, pageSize, toastError]
+    [isAdmin, actionFilter, entityFilter, userIdFilter, fromDate, toDate, page, pageSize, toastError]
   )
 
   useEffect(() => {
@@ -110,51 +119,56 @@ export function AuditLogList() {
     }
   }, [loadAuditLogs])
 
-  if (!isAdmin) {
-    return (
-      <div className="p-6">
-        <EmptyState
-          title="Accès Restreint"
-          description="Cette section d'audit système est strictement réservée aux administrateurs."
-        />
-      </div>
+  const filteredLogs = useMemo(() => {
+    if (!searchTerm.trim()) return logs
+    const q = searchTerm.toLowerCase()
+    return logs.filter((l) =>
+      l.details?.toLowerCase().includes(q) ||
+      l.entityName?.toLowerCase().includes(q) ||
+      l.action?.toLowerCase().includes(q) ||
+      String(l.userId).includes(q)
     )
-  }
+  }, [logs, searchTerm])
 
   const columns = [
     {
-      key: 'id',
-      label: 'ID',
-      width: '70px',
-      render: (val) => <span className="font-mono text-slate-500">#{val}</span>,
-    },
-    {
       key: 'action',
       label: 'Action',
-      width: '110px',
-      render: (val) => <StatusBadge status={val} size="xs" />,
+      width: '130px',
+      render: (val) => {
+        let badgeVariant = 'Cancelled'
+        if (val === 'CREATE' || val === 'APPROVE') badgeVariant = 'Submitted'
+        else if (val === 'UPDATE' || val === 'SEND') badgeVariant = 'Pending'
+        else if (val === 'DELETE' || val === 'REJECT') badgeVariant = 'Cancelled'
+        return <StatusBadge status={badgeVariant} label={val} size="xs" />
+      },
     },
     {
-      key: 'entity',
-      label: 'Entité',
-      width: '140px',
-      render: (val) => <span className="font-semibold text-slate-800">{val}</span>,
+      key: 'entityName',
+      label: 'Entité Ciblée',
+      width: '160px',
+      render: (val, row) => (
+        <span className="font-mono text-xs text-[#0F172A]">
+          {val} {row.entityId ? `(#${row.entityId})` : ''}
+        </span>
+      ),
     },
     {
       key: 'userId',
       label: 'Utilisateur',
-      width: '120px',
-      render: (val) => (val ? `User #${val}` : 'Système'),
+      width: '130px',
+      render: (val) => <span className="text-xs text-[#475569]">{val ? `ID #${val}` : 'Système'}</span>,
     },
     {
       key: 'ipAddress',
       label: 'Adresse IP',
-      width: '140px',
-      render: (val) => <span className="font-mono text-slate-600">{val || '-'}</span>,
+      width: '130px',
+      render: (val) => <span className="font-mono text-xs text-[#64748B]">{val || '—'}</span>,
     },
     {
       key: 'createdAt',
       label: 'Horodatage',
+      width: '170px',
       render: (val) =>
         val
           ? new Date(val).toLocaleDateString('fr-FR', {
@@ -165,67 +179,105 @@ export function AuditLogList() {
               minute: '2-digit',
               second: '2-digit',
             })
-          : '-',
+          : '—',
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '90px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <Button variant="ghost" size="xs" onClick={() => setSelectedLog(row)}>
-          Détails
-        </Button>
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Détails',
+              icon: Eye,
+              onClick: () => setSelectedLog(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
-  return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
-      <DocTypePageHead
-        title="Journal d'Audit Système (Audit Logs)"
-        count={totalItems}
-      />
+  const hasActiveFilters =
+    actionFilter !== 'ALL' ||
+    entityFilter !== 'ALL' ||
+    Boolean(userIdFilter) ||
+    Boolean(fromDate) ||
+    Boolean(toDate)
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
-        <div className="w-36">
-          <Select
-            value={actionFilter}
-            onChange={(val) => {
-              setActionFilter(val)
-              setPage(1)
-            }}
-            options={ACTION_OPTIONS}
-          />
-        </div>
+  const activeFiltersCount =
+    (actionFilter !== 'ALL' ? 1 : 0) +
+    (entityFilter !== 'ALL' ? 1 : 0) +
+    (userIdFilter ? 1 : 0) +
+    (fromDate ? 1 : 0) +
+    (toDate ? 1 : 0)
 
-        <div className="w-40">
-          <Select
-            value={entityFilter}
-            onChange={(val) => {
-              setEntityFilter(val)
-              setPage(1)
-            }}
-            options={ENTITY_OPTIONS}
-          />
-        </div>
+  const filtersContent = (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Action
+        </label>
+        <select
+          value={actionFilter}
+          onChange={(e) => {
+            setActionFilter(e.target.value)
+            setPage(1)
+          }}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          {ACTION_OPTIONS.map((a) => (
+            <option key={a.value} value={a.value}>
+              {a.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        <div className="w-32">
-          <input
-            type="number"
-            value={userIdFilter}
-            onChange={(e) => {
-              setUserIdFilter(e.target.value)
-              setPage(1)
-            }}
-            placeholder="User ID..."
-            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 placeholder-slate-400 focus:border-slate-800 focus:outline-none"
-          />
-        </div>
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Entité
+        </label>
+        <select
+          value={entityFilter}
+          onChange={(e) => {
+            setEntityFilter(e.target.value)
+            setPage(1)
+          }}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          {ENTITY_OPTIONS.map((ent) => (
+            <option key={ent.value} value={ent.value}>
+              {ent.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="text-2xs text-slate-400">Du :</span>
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          ID Utilisateur
+        </label>
+        <input
+          type="number"
+          value={userIdFilter}
+          onChange={(e) => {
+            setUserIdFilter(e.target.value)
+            setPage(1)
+          }}
+          placeholder="Ex: 42"
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        />
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Période du / au
+        </label>
+        <div className="grid grid-cols-2 gap-2">
           <input
             type="date"
             value={fromDate}
@@ -233,12 +285,8 @@ export function AuditLogList() {
               setFromDate(e.target.value)
               setPage(1)
             }}
-            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-slate-800 focus:outline-none"
+            className="w-full h-8 px-2 text-2xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
           />
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <span className="text-2xs text-slate-400">Au :</span>
           <input
             type="date"
             value={toDate}
@@ -246,57 +294,59 @@ export function AuditLogList() {
               setToDate(e.target.value)
               setPage(1)
             }}
-            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-800 focus:border-slate-800 focus:outline-none"
+            className="w-full h-8 px-2 text-2xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
           />
         </div>
-
-        {(fromDate || toDate || userIdFilter) && (
-          <button
-            type="button"
-            onClick={() => {
-              setFromDate('')
-              setToDate('')
-              setUserIdFilter('')
-              setPage(1)
-            }}
-            className="text-2xs text-slate-400 hover:text-slate-600 underline"
-          >
-            Réinitialiser
-          </button>
-        )}
-
-        <div className="ml-auto text-2xs text-slate-400">
-          🔒 Section réservée aux administrateurs
-        </div>
       </div>
+    </div>
+  )
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
-          <Loader size="md" />
-        </div>
-      ) : logs.length === 0 ? (
-        <EmptyState
-          title="Aucun événement d'audit"
-          description="Aucune trace d'audit ne correspond aux filtres sélectionnés."
-        />
-      ) : (
-        <PaginatedTable
-          columns={columns}
-          data={logs}
-          page={page}
-          pageSize={pageSize}
-          totalItems={totalItems}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={(newSize) => {
-            setPageSize(newSize)
-            setPage(1)
-          }}
-          isLoading={isLoading}
-        />
-      )}
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Rechercher dans les journaux..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={() => {
+          setActionFilter('ALL')
+          setEntityFilter('ALL')
+          setUserIdFilter('')
+          setFromDate('')
+          setToDate('')
+          setPage(1)
+        }}
+      />
 
-      {/* Details Modal */}
+      <EntityDataTable
+        columns={columns}
+        data={filteredLogs}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={loadAuditLogs}
+        emptyTitle="Aucun journal d'audit"
+        emptyDescription={
+          searchTerm || hasActiveFilters
+            ? 'Aucune entrée ne correspond aux filtres.'
+            : 'Aucun enregistrement d’audit dans le système.'
+        }
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize)
+          setPage(1)
+        }}
+        onRowClick={(row) => setSelectedLog(row)}
+      />
+
       {selectedLog && (
         <AuditLogDetailsModal
           isOpen={Boolean(selectedLog)}

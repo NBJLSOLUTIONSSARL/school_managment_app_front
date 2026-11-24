@@ -4,7 +4,7 @@ export function RadialDistributionCard({
   title = 'Students',
   totalLabel = 'Total',
   totalValue = '15000',
-  outerColor = '#2563EB',
+  outerColor = '#5B5FC7',
   outerPercent = 75,
   outerLabel = 'Male',
   innerColor = '#38BDF8',
@@ -30,17 +30,17 @@ export function RadialDistributionCard({
   const innerOffset = innerCircumference - (Math.min(100, Math.max(0, innerPercent)) / 100) * innerCircumference
 
   return (
-    <div className={`bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-2xs flex flex-col justify-between select-none ${className}`}>
+    <div className={`figma-card bg-white rounded-2xl p-5 sm:p-6 border border-[#EDF0F8] shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] flex flex-col justify-between select-none ${className}`}>
       {/* Header with Title and More Action */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
         <button
           type="button"
           onClick={onOptionsClick}
-          className="text-[#64748B] hover:text-[#2563EB] p-1 rounded-lg hover:bg-[#EFF6FF] transition cursor-pointer"
+          className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
           aria-label="Options"
         >
-          <MoreVertical className="w-4 h-4" />
+          <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
         </button>
       </div>
 
@@ -58,10 +58,10 @@ export function RadialDistributionCard({
             cy={center}
             r={outerRadius}
             fill="none"
-            stroke="#EFF6FF"
+            stroke="#F1F5F9"
             strokeWidth={outerStroke}
           />
-          {/* Outer Progress Ring (Male / Primary Blue) */}
+          {/* Outer Progress Ring */}
           <circle
             cx={center}
             cy={center}
@@ -72,7 +72,7 @@ export function RadialDistributionCard({
             strokeDasharray={outerCircumference}
             strokeDashoffset={outerOffset}
             strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
+            className="transition-colors duration-500 ease-out"
           />
 
           {/* Inner Track */}
@@ -81,10 +81,10 @@ export function RadialDistributionCard({
             cy={center}
             r={innerRadius}
             fill="none"
-            stroke="#F0F9FF"
+            stroke="#F8FAFC"
             strokeWidth={innerStroke}
           />
-          {/* Inner Progress Ring (Female / Sky Blue) */}
+          {/* Inner Progress Ring */}
           <circle
             cx={center}
             cy={center}
@@ -95,31 +95,31 @@ export function RadialDistributionCard({
             strokeDasharray={innerCircumference}
             strokeDashoffset={innerOffset}
             strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
+            className="transition-colors duration-500 ease-out"
           />
         </svg>
 
         {/* Center Text inside Dual Rings */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-xs font-medium text-[#64748B]">{totalLabel}</span>
-          <span className="text-2xl font-bold tracking-tight text-[#0F172A] mt-0.5">
+          <span className="text-xs font-medium text-slate-500">{totalLabel}</span>
+          <span className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5 tabular-nums">
             {totalValue}
           </span>
         </div>
       </div>
 
       {/* Bottom Legend */}
-      <div className="flex items-center justify-center gap-6 pt-3 border-t border-slate-100 text-xs font-medium text-slate-700">
+      <div className="flex items-center justify-center gap-6 pt-3 border-t border-slate-100 text-xs font-medium text-slate-600">
         <div className="flex items-center gap-2">
           <span
-            className="w-2.5 h-2.5 rounded-full inline-block"
+            className="w-2 h-2 rounded-full inline-block"
             style={{ backgroundColor: outerColor }}
           />
           <span>{outerLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           <span
-            className="w-2.5 h-2.5 rounded-full inline-block"
+            className="w-2 h-2 rounded-full inline-block"
             style={{ backgroundColor: innerColor }}
           />
           <span>{innerLabel}</span>

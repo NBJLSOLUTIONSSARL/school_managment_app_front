@@ -466,7 +466,7 @@ export function GradeEntryGrid() {
       />
 
       <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none">
-        <div className="rounded-2xl border border-[#F1F5F9] bg-white p-5 shadow-2xs">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div className="sm:col-span-2">
               <Select
@@ -478,7 +478,7 @@ export function GradeEntryGrid() {
                 disabled={isLoadingExams || examOptions.length === 0}
               />
             </div>
-            <div className="text-xs font-medium text-[#64748B] sm:text-right">
+            <div className="text-xs font-medium text-slate-500 sm:text-right">
               {exam
                 ? `${formatDate(exam.date)} · ${exam.type} · barème ${exam.maxScore}`
                 : 'Choisissez un examen pour saisir les notes.'}
@@ -487,7 +487,7 @@ export function GradeEntryGrid() {
         </div>
 
         {!examIdParam ? (
-          <div className="rounded-2xl border border-[#F1F5F9] bg-white p-8 shadow-2xs">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-2xs">
             <EmptyState
               title="Aucun examen sélectionné"
               description="Sélectionnez un examen dans la liste pour afficher les élèves et saisir leurs notes."
@@ -502,11 +502,11 @@ export function GradeEntryGrid() {
             />
           </div>
         ) : isLoadingContext ? (
-          <div className="rounded-2xl border border-[#F1F5F9] bg-white p-8 shadow-2xs">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-2xs">
             <Loader text="Chargement de l’examen et des notes..." />
           </div>
         ) : loadError ? (
-          <div className="rounded-2xl border border-[#F1F5F9] bg-white p-8 shadow-2xs">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-2xs">
             <EmptyState
               title="Notes indisponibles"
               description={loadError.message}

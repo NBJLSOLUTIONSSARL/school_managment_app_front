@@ -53,33 +53,35 @@ export function MiniCalendar({ onSelectDate, className = '' }) {
     }
   }
 
+  const dayHeaders = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+
   return (
-    <div className={`edutrack-card bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-2xs ${className}`}>
-      <div className="flex items-center justify-between mb-4">
+    <div className={`bg-white p-4 rounded-lg border border-slate-200 shadow-2xs select-none ${className}`}>
+      <div className="flex items-center justify-between mb-3">
         <button
           type="button"
           onClick={handlePrevMonth}
-          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+          className="p-1 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer transition-colors"
           aria-label="Previous month"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-bold text-[#0F172A]">
+        <span className="text-xs font-semibold text-slate-900">
           {monthNames[month]} {year}
         </span>
         <button
           type="button"
           onClick={handleNextMonth}
-          className="p-1 rounded-lg hover:bg-slate-100 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+          className="p-1 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900 cursor-pointer transition-colors"
           aria-label="Next month"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center mb-2">
-        {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => (
-          <span key={d} className="text-[10px] font-bold text-[#94A3B8] tracking-wider py-1">
+      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+        {dayHeaders.map((d) => (
+          <span key={d} className="text-2xs font-semibold text-slate-400 py-0.5">
             {d}
           </span>
         ))}
@@ -96,14 +98,14 @@ export function MiniCalendar({ onSelectDate, className = '' }) {
               key={index}
               onClick={() => handleDayClick(d)}
               disabled={!d.isCurrentMonth}
-              className={`h-8 w-8 mx-auto flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`h-7 w-7 mx-auto flex items-center justify-center rounded-md text-xs font-medium transition-colors cursor-pointer tabular-nums ${
                 !d.isCurrentMonth
-                  ? 'text-[#CBD5E1] cursor-default'
+                  ? 'text-slate-300 cursor-default'
                   : isSelected
-                  ? 'bg-[#0F172A] text-white shadow-2xs'
+                  ? 'bg-slate-900 text-white shadow-2xs'
                   : isToday
-                  ? 'bg-[#F1F5F9] text-[#0F172A] font-bold border border-[#E2E8F0]'
-                  : 'text-[#0F172A] hover:bg-slate-100'
+                  ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200'
+                  : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               {d.day}

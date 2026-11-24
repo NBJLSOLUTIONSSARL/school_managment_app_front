@@ -5,23 +5,23 @@ import { useToast } from '@/hooks/useToast'
 
 const toastTypeStyles = {
   success: {
-    container: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+    container: 'bg-white border-emerald-200 text-slate-900 shadow-md',
     iconColor: 'text-emerald-600',
     Icon: Check,
   },
   error: {
-    container: 'bg-rose-50 border-rose-200 text-rose-900',
+    container: 'bg-white border-rose-200 text-slate-900 shadow-md',
     iconColor: 'text-rose-600',
     Icon: X,
   },
   warning: {
-    container: 'bg-amber-50 border-amber-200 text-amber-900',
+    container: 'bg-white border-amber-200 text-slate-900 shadow-md',
     iconColor: 'text-amber-600',
     Icon: AlertTriangle,
   },
   info: {
-    container: 'bg-[#F1F5F9] border-[#E2E8F0] text-[#0F172A]',
-    iconColor: 'text-[#0F172A]',
+    container: 'bg-slate-900 border-slate-800 text-white shadow-md',
+    iconColor: 'text-slate-300',
     Icon: Info,
   },
 }
@@ -37,14 +37,14 @@ export function ToastItem({ toast, onClose }) {
       role={type === 'error' ? 'alert' : 'status'}
       aria-live={type === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'flex w-80 select-none items-start gap-3 rounded-2xl border px-4 py-3 text-xs shadow-xl transition-all sm:w-96 backdrop-blur-sm',
+        'flex w-80 select-none items-start gap-3 rounded-lg border px-3.5 py-2.5 text-xs transition-opacity sm:w-96',
         style.container
       )}
     >
       <div
         aria-hidden="true"
         className={cn(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold mt-0.5',
           style.iconColor
         )}
       >
@@ -59,7 +59,7 @@ export function ToastItem({ toast, onClose }) {
       <button
         type="button"
         onClick={() => onClose(toast.id)}
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:text-slate-700 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 cursor-pointer"
+        className="shrink-0 rounded-md p-1 text-slate-400 transition-colors hover:text-slate-700 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900 cursor-pointer"
         aria-label={t('common.close')}
       >
         <X className="w-3.5 h-3.5" />

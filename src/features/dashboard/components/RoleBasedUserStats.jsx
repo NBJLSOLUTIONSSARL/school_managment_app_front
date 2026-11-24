@@ -11,7 +11,7 @@ import {
   AlertCircle,
   TrendingUp,
   Clock,
-  Sparkles,
+  ShieldCheck,
   HelpCircle,
 } from 'lucide-react'
 import {
@@ -171,7 +171,7 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
           value: loading ? null : (stats?.totalApplications ?? 0).toLocaleString('fr-FR'),
           description: 'Campagne de recrutement',
           badge: 'Dossiers',
-          badgeVariant: 'blue',
+          badgeVariant: 'secondary',
           icon: ClipboardCheck,
           progress: 100,
           subMetrics: [
@@ -206,7 +206,7 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
           value: loading ? null : (stats?.totalExams ?? 0).toLocaleString('fr-FR'),
           description: `${stats?.upcomingExams?.length ?? 0} session(s) ouverte(s)`,
           badge: 'Contrôles',
-          badgeVariant: 'blue',
+          badgeVariant: 'secondary',
           icon: Award,
           progress: 80,
           subMetrics: [
@@ -275,7 +275,7 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
           value: loading ? null : (stats?.submissionsCount ?? 0).toLocaleString('fr-FR'),
           description: 'Exercices et rendus en ligne',
           badge: 'Rendus',
-          badgeVariant: 'blue',
+          badgeVariant: 'secondary',
           icon: BookOpen,
           progress: 85,
           subMetrics: [
@@ -356,12 +356,12 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
         },
         {
           id: 'parent-ia',
-          title: 'Suivi IA & Observations',
+          title: 'Suivi & Observations',
           value: loading ? null : 'Actif',
           description: 'Consentements et remarques enseignants',
           badge: 'RGPD',
           badgeVariant: 'secondary',
-          icon: Sparkles,
+          icon: ShieldCheck,
           progress: 100,
           subMetrics: [
             { label: 'Consentement', value: 'Autorisé' },
@@ -375,7 +375,7 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
           value: loading ? null : (stats?.events?.length ?? 0).toLocaleString('fr-FR'),
           description: 'Rencontres parents-professeurs et agenda',
           badge: 'Agenda',
-          badgeVariant: 'blue',
+          badgeVariant: 'secondary',
           icon: Calendar,
           progress: 100,
           subMetrics: [
@@ -462,10 +462,10 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
       {/* Compact Header with Role Context */}
       <div className="flex items-center justify-between px-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+          <span className="text-2xs font-semibold uppercase tracking-wider text-slate-500">
             Indicateurs Clés — {roleBadgeLabel}
           </span>
-          <Badge variant="secondary" className="text-[10px] py-0 px-2">
+          <Badge variant="secondary" className="text-2xs py-0 px-2">
             Rôle Actif
           </Badge>
         </div>
@@ -474,7 +474,7 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
           <button
             type="button"
             onClick={fetchStats}
-            className="flex items-center gap-1.5 text-2xs text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-2xs text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
           >
             <AlertCircle className="w-3 h-3" />
             <span>Erreur de chargement (Réessayer)</span>
@@ -482,14 +482,14 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
         )}
       </div>
 
-      {/* Grid of Compact shadcn/ui Metric Cards */}
+      {/* Grid of Compact Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
               <Card key={i} className="p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <Skeleton className="h-7 w-7 rounded-lg" />
-                  <Skeleton className="h-4 w-14 rounded-full" />
+                  <Skeleton className="h-7 w-7 rounded-md" />
+                  <Skeleton className="h-4 w-14 rounded-md" />
                 </div>
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="h-7 w-32" />
@@ -505,27 +505,27 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
               return (
                 <Card
                   key={m.id}
-                  className="p-3.5 hover:border-[#0F172A]/40 transition-colors cursor-pointer group flex flex-col justify-between"
+                  className="p-3.5 hover:border-slate-400 transition-colors cursor-pointer group flex flex-col justify-between"
                   onClick={() => onNavigate?.(m.id)}
                 >
                   <CardHeader className="p-0 space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="w-7 h-7 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0] text-[#0F172A] flex items-center justify-center shrink-0 group-hover:bg-[#0F172A] group-hover:text-white transition">
+                      <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
                         <Icon className="w-3.5 h-3.5 stroke-[2]" />
                       </div>
-                      <Badge variant={m.badgeVariant} className="text-[10px] py-0 px-1.5 font-medium">
+                      <Badge variant={m.badgeVariant} className="text-2xs py-0 px-1.5 font-medium">
                         {m.badge}
                       </Badge>
                     </div>
 
                     <div className="flex items-center justify-between pt-1">
-                      <CardTitle className="text-2xs font-semibold text-[#64748B] uppercase tracking-wide">
+                      <CardTitle className="text-2xs font-semibold text-slate-500 uppercase tracking-wide">
                         {m.title}
                       </CardTitle>
                       {m.tooltip && (
                         <Tooltip delayDuration={50}>
                           <TooltipTrigger asChild>
-                            <span className="text-[#94A3B8] hover:text-[#0F172A] transition">
+                            <span className="text-slate-400 hover:text-slate-700 transition-colors">
                               <HelpCircle className="w-3 h-3" />
                             </span>
                           </TooltipTrigger>
@@ -536,12 +536,12 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
                   </CardHeader>
 
                   <CardContent className="p-0 pt-1.5 space-y-2">
-                    <div className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] leading-tight">
+                    <div className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight tabular-nums">
                       {m.value || '0'}
                     </div>
 
                     {m.description && (
-                      <CardDescription className="text-2xs text-[#64748B] truncate">
+                      <CardDescription className="text-2xs text-slate-500 truncate">
                         {m.description}
                       </CardDescription>
                     )}
@@ -549,21 +549,21 @@ export function RoleBasedUserStats({ className = '', onNavigate }) {
                     {m.progress !== undefined && (
                       <Progress
                         value={m.progress}
-                        className="h-1 bg-[#F1F5F9]"
+                        className="h-1 bg-slate-100"
                         indicatorClassName={cn(
-                          m.badgeVariant === 'success' ? 'bg-[#059669]' : 'bg-[#0F172A]'
+                          m.badgeVariant === 'success' ? 'bg-emerald-600' : 'bg-slate-900'
                         )}
                       />
                     )}
 
                     {m.subMetrics && m.subMetrics.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#F1F5F9] text-2xs">
+                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-2xs">
                         {m.subMetrics.map((sub, sIdx) => (
                           <div key={sIdx} className="min-w-0">
-                            <span className="text-[#94A3B8] block text-[10px] font-medium truncate">
+                            <span className="text-slate-400 block text-2xs font-medium truncate">
                               {sub.label}
                             </span>
-                            <span className="font-semibold text-[#0F172A] block truncate">
+                            <span className="font-semibold text-slate-900 block truncate tabular-nums">
                               {sub.value}
                             </span>
                           </div>

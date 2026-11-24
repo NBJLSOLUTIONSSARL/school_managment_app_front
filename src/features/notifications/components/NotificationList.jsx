@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
-import { Button } from '@/components/ui/Button'
-import { Select } from '@/components/ui/Select'
+import {
+  Check,
+  Trash2,
+} from 'lucide-react'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Loader } from '@/components/ui/Loader'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { notificationService } from '../api/notificationService'
 import { useAuth } from '@/hooks/useAuth'
@@ -37,10 +36,12 @@ export function NotificationList() {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
-  // Filters
+  // Filters & Search
   const [typeFilter, setTypeFilter] = useState('ALL')
   const [readFilter, setReadFilter] = useState('ALL')
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Delete dialog
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -50,6 +51,7 @@ export function NotificationList() {
     async ({ signal } = {}) => {
       if (!userId) return
       setIsLoading(true)
+      setLoadError(null)
       try {
         const res = await notificationService.getUserNotifications(userId, {
           page,
@@ -67,9 +69,17 @@ export function NotificationList() {
           setNotifications([])
           setTotalItems(0)
           setTotalPages(0)
+          const msg = res.error?.message || 'Impossible de charger les notifications.'
+          setLoadError(msg)
           if (!signal?.aborted) {
-            toastError(res.error?.message || 'Impossible de charger les notifications.')
+            toastError(msg)
           }
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          const msg = err.message || 'Impossible de charger les notifications.'
+          setLoadError(msg)
+          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -88,15 +98,6 @@ export function NotificationList() {
       task.catch(() => {})
     }
   }, [loadNotifications])
-
-  const filteredNotifications = useMemo(() => {
-    return notifications.filter((n) => {
-      if (typeFilter !== 'ALL' && n.type !== typeFilter) return false
-      if (readFilter === 'UNREAD' && n.read) return false
-      if (readFilter === 'READ' && !n.read) return false
-      return true
-    })
-  }, [notifications, typeFilter, readFilter])
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -131,6 +132,30 @@ export function NotificationList() {
     }
   }
 
+  const filteredNotifications = useMemo(() => {
+    let list = notifications
+
+    if (typeFilter !== 'ALL') {
+      list = list.filter((n) => n.type === typeFilter)
+    }
+
+    if (readFilter === 'UNREAD') {
+      list = list.filter((n) => !n.read)
+    } else if (readFilter === 'READ') {
+      list = list.filter((n) => n.read)
+    }
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase()
+      list = list.filter((n) =>
+        n.content?.toLowerCase().includes(q) ||
+        n.type?.toLowerCase().includes(q)
+      )
+    }
+
+    return list
+  }, [notifications, typeFilter, readFilter, searchTerm])
+
   const columns = [
     {
       key: 'type',
@@ -142,7 +167,7 @@ export function NotificationList() {
       key: 'content',
       label: 'Notification',
       render: (val, row) => (
-        <span className={row.read ? 'text-slate-600' : 'font-semibold text-slate-900'}>
+        <span className={row.read ? 'text-[#64748B] text-xs' : 'font-semibold text-[#0F172A] text-xs'}>
           {val}
         </span>
       ),
@@ -158,7 +183,7 @@ export function NotificationList() {
     {
       key: 'createdAt',
       label: 'Date',
-      width: '170px',
+      width: '160px',
       render: (val) =>
         val
           ? new Date(val).toLocaleDateString('fr-FR', {
@@ -168,97 +193,123 @@ export function NotificationList() {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : '-',
+          : '—',
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '140px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          {!row.read && (
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => handleMarkAsRead(row.id)}
-            >
-              Marquer lu
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="xs"
-            className="text-red-600 hover:bg-red-50 hover:text-red-700"
-            onClick={() => setDeleteTarget(row)}
-          >
-            Supprimer
-          </Button>
-        </div>
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Marquer comme lu',
+              icon: Check,
+              hidden: row.read,
+              onClick: () => handleMarkAsRead(row.id),
+            },
+            {
+              label: 'Supprimer',
+              icon: Trash2,
+              variant: 'danger',
+              onClick: () => setDeleteTarget(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
-  return (
-    <div className="p-6 sm:p-8 space-y-6 select-none">
-      <DocTypePageHead
-        title="Centre de Notifications"
-        count={totalItems}
-      />
+  const hasActiveFilters = typeFilter !== 'ALL' || readFilter !== 'ALL'
+  const activeFiltersCount = (typeFilter !== 'ALL' ? 1 : 0) + (readFilter !== 'ALL' ? 1 : 0)
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
-        <div className="w-48">
-          <Select
-            value={typeFilter}
-            onChange={(val) => setTypeFilter(val)}
-            options={TYPE_OPTIONS}
-          />
-        </div>
-        <div className="w-44">
-          <Select
-            value={readFilter}
-            onChange={(val) => setReadFilter(val)}
-            options={READ_OPTIONS}
-          />
-        </div>
-        <div className="ml-auto text-2xs text-slate-400">
-          Notifications temps réel associées à votre compte
-        </div>
+  const filtersContent = (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Type
+        </label>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          {TYPE_OPTIONS.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
-          <Loader size="md" />
-        </div>
-      ) : filteredNotifications.length === 0 ? (
-        <EmptyState
-          title="Aucune notification"
-          description="Vous n'avez aucune notification correspondant à ces critères."
-        />
-      ) : (
-        <PaginatedTable
-          columns={columns}
-          data={filteredNotifications}
-          page={page}
-          pageSize={pageSize}
-          totalItems={totalItems}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={(newSize) => {
-            setPageSize(newSize)
-            setPage(1)
-          }}
-          isLoading={isLoading}
-        />
-      )}
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          État de lecture
+        </label>
+        <select
+          value={readFilter}
+          onChange={(e) => setReadFilter(e.target.value)}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          {READ_OPTIONS.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
 
-      {/* Delete Dialog */}
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Rechercher une notification..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={() => {
+          setTypeFilter('ALL')
+          setReadFilter('ALL')
+          setPage(1)
+        }}
+      />
+
+      <EntityDataTable
+        columns={columns}
+        data={filteredNotifications}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={loadNotifications}
+        emptyTitle="Aucune notification"
+        emptyDescription={
+          searchTerm || hasActiveFilters
+            ? 'Aucune notification ne correspond aux critères.'
+            : 'Vous n’avez aucune notification pour le moment.'
+        }
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize)
+          setPage(1)
+        }}
+      />
+
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cette notification ?"
-          message="Voulez-vous supprimer définitivement cette notification ?"
+          message="Voulez-vous vraiment effacer cette notification ?"
           confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
           variant="danger"
           isLoading={isDeleting}

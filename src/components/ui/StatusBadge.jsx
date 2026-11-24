@@ -1,53 +1,51 @@
 import { Plus } from 'lucide-react'
 import { cn } from '@/utils/classNames'
 
-// Category mapping to the 4 status styles in the reference image:
-// 1. To Contact (neutral / slate)
-// 2. Follow-Up (sky blue)
-// 3. In Negotiation (amber / warning)
-// 4. Complete / Active (emerald / success)
+// Disciplined Frappe Desk Status Variants: Quiet, toned-down semantic tones
 const statusVariants = {
-  // Complete / Success (Green)
-  complete: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  active: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  paid: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  accepted: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  submitted: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  completed: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-  open: 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+  // Complete / Success (Emerald)
+  complete: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  accepted: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  submitted: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  open: 'bg-emerald-50 text-emerald-700 border-emerald-200',
 
-  // Follow-Up / Information (Sky Blue)
-  'follow-up': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  under_review: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  'under review': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  info: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  in_progress: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  'in progress': 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
-  partial: 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]',
+  // Information / In Progress (Sky)
+  'follow-up': 'bg-sky-50 text-sky-700 border-sky-200',
+  under_review: 'bg-sky-50 text-sky-700 border-sky-200',
+  'under review': 'bg-sky-50 text-sky-700 border-sky-200',
+  info: 'bg-sky-50 text-sky-700 border-sky-200',
+  in_progress: 'bg-sky-50 text-sky-700 border-sky-200',
+  'in progress': 'bg-sky-50 text-sky-700 border-sky-200',
+  partial: 'bg-sky-50 text-sky-700 border-sky-200',
 
-  // In Negotiation / Pending (Amber)
-  'in negotiation': 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-  pending: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-  waitlisted: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-  warning: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-  'at risk': 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
-  unpaid: 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]',
+  // Pending / Warning (Amber)
+  'in negotiation': 'bg-amber-50 text-amber-700 border-amber-200',
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  waitlisted: 'bg-amber-50 text-amber-700 border-amber-200',
+  warning: 'bg-amber-50 text-amber-700 border-amber-200',
+  'at risk': 'bg-amber-50 text-amber-700 border-amber-200',
+  unpaid: 'bg-amber-50 text-amber-700 border-amber-200',
 
-  // To Contact / Draft / Neutral / Danger (Slate / Neutral)
-  'to contact': 'bg-[#F9FAFB] text-[#4B5563] border-[#E5E7EB]',
-  draft: 'bg-[#F9FAFB] text-[#4B5563] border-[#E5E7EB]',
-  inactive: 'bg-[#F9FAFB] text-[#6B7280] border-[#E5E7EB]',
-  overdue: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-  rejected: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-  cancelled: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
-  suspended: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+  // Draft / Inactive / Neutral (Slate)
+  'to contact': 'bg-slate-50 text-slate-700 border-slate-200',
+  draft: 'bg-slate-50 text-slate-700 border-slate-200',
+  inactive: 'bg-slate-50 text-slate-600 border-slate-200',
+
+  // Danger / Terminated (Rose)
+  overdue: 'bg-rose-50 text-rose-700 border-rose-200',
+  rejected: 'bg-rose-50 text-rose-700 border-rose-200',
+  cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
+  suspended: 'bg-rose-50 text-rose-700 border-rose-200',
 }
 
 export function StatusBadge({
   status = 'Draft',
   label,
-  showDot = false,
-  showPlus = true,
+  showDot = true,
+  showPlus = false,
   className = '',
   size = 'sm',
 }) {
@@ -87,13 +85,13 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full font-medium border select-none transition-colors shadow-2xs',
+        'inline-flex items-center gap-1.5 rounded-md font-medium border select-none transition-colors shadow-2xs',
         variantClass,
         sizeClasses,
         className
       )}
     >
-      {showPlus && <Plus className="w-3 h-3 stroke-[2.5] opacity-75 shrink-0" />}
+      {showPlus && <Plus className="w-3 h-3 stroke-[2] opacity-75 shrink-0" />}
       {showDot && !showPlus && <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />}
       <span className="truncate">{resolvedLabel}</span>
     </span>

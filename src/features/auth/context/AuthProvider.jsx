@@ -5,9 +5,8 @@ import { useI18n } from '@/hooks/useI18n'
 import { setTokens, clearTokens, setCurrentUser } from '@/utils/tokenStorage'
 import { resetRedirectFlag } from '@/lib/axios'
 import {
-  knownRoles,
   expiredMessage,
-  normalizeRole,
+  hasMatchingRole,
   hasSessionIndicator,
   setSessionIndicator,
   normalizeUser,
@@ -159,16 +158,26 @@ export function AuthProvider({ children }) {
       })
 
       if (operation.current !== id) return false
+      if (response?.data?.twoFactorRequired) {
+        throw new ApiError(403, 'La double authentification (2FA) est requise pour ce compte.')
+      }
       setSessionIndicator(true)
 
       let next
       if (response?.data?.user) {
         next = readSession(response, requestedAt)
       } else {
-        const meRes = await apiRequest('/api/v1/auth/me')
+        const accessToken = response?.data?.accessToken || ''
+        if (!accessToken) {
+          throw new ApiError(0, 'Réponse de connexion invalide. Réessayez.')
+        }
+        const meRes = await getMe({ token: accessToken })
         const user = normalizeUser(meRes?.data?.user || meRes?.data)
+        if (!user) {
+          throw new ApiError(0, 'Réponse de connexion invalide. Réessayez.')
+        }
         next = {
-          accessToken: response?.data?.accessToken || '',
+          accessToken,
           expiresAt: requestedAt + (response?.data?.expiresIn || 86400) * 1000,
           user,
         }
@@ -332,16 +341,7 @@ export function AuthProvider({ children }) {
   const permissions = useMemo(() => session?.user?.permissions ?? [], [session])
 
   const hasRole = useCallback((requiredRoles) => {
-    if (!requiredRoles) return false
-    const needed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
-    return needed.some((r) => {
-      const norm = normalizeRole(r)
-      return (
-        roles.includes(norm) ||
-        (knownRoles.has(r) && roles.includes(r)) ||
-        (norm === 'ROLE_ADMIN' && roles.includes('ROLE_SUPER_ADMIN'))
-      )
-    })
+    return hasMatchingRole(roles, requiredRoles)
   }, [roles])
 
   const hasAnyRole = useCallback((requiredRoles) => {

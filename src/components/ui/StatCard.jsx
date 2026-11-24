@@ -7,7 +7,7 @@ export function StatCard({
   subtitle,
   unit,
   progress,
-  progressColor = '#2563EB',
+  progressColor = '#5B5FC7',
   progressLabel,
   icon: Icon,
   badgeText,
@@ -45,32 +45,32 @@ export function StatCard({
             }
           : undefined
       }
-      className={`bg-white border border-[#E5E7EB] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between relative overflow-hidden select-none ${
-        onClick ? 'cursor-pointer hover:scale-[1.01]' : ''
+      className={`figma-card bg-white border border-[#EDF0F8] rounded-2xl p-5 shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] hover:shadow-[0_8px_24px_-2px_rgba(91,95,199,0.08)] transition-all flex flex-col justify-between relative overflow-hidden select-none ${
+        onClick ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B5FC7]/20' : ''
       } ${className}`}
     >
       <div>
         {/* Top: Icon + Title */}
-        <div className="flex items-center gap-2.5 mb-2">
+        <div className="flex items-center gap-2.5 mb-2.5">
           {Icon ? (
-            <div className="w-7 h-7 rounded-lg bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-[#4B5563] shrink-0">
-              <Icon className="w-3.5 h-3.5 stroke-[2]" />
+            <div className="w-8 h-8 rounded-xl bg-[#5B5FC7]/10 border border-[#5B5FC7]/15 flex items-center justify-center text-[#5B5FC7] shrink-0">
+              <Icon className="w-4 h-4" strokeWidth={1.75} />
             </div>
           ) : (
-            <div className="w-7 h-7 rounded-lg bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-[#4B5563] shrink-0">
-              <span className="w-2 h-2 rounded-full bg-[#9CA3AF]" />
+            <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
             </div>
           )}
-          <p className="text-xs font-medium text-[#4B5563] truncate">{title}</p>
+          <p className="text-xs font-semibold text-slate-500 truncate">{title}</p>
         </div>
 
         {/* Middle: Big Stat Value + Unit/Suffix */}
         <div className="flex items-baseline gap-1.5 flex-wrap my-1">
-          <span className="text-2xl sm:text-2.5xl font-bold tracking-tight text-[#111827]">
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
             {value}
           </span>
           {(unit || subtitle) && (
-            <span className="text-xs font-normal text-[#6B7280]">
+            <span className="text-xs font-normal text-slate-400">
               {unit || subtitle}
             </span>
           )}
@@ -78,11 +78,13 @@ export function StatCard({
       </div>
 
       {/* Bottom: Trend Badge + Sparkline */}
-      <div className="flex items-center justify-between gap-2 mt-3 pt-2">
+      <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-slate-100">
         {resolvedTrend ? (
           <div
-            className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-              isPositive ? 'text-[#059669]' : 'text-[#DC2626]'
+            className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full tabular-nums ${
+              isPositive
+                ? 'text-emerald-700 bg-emerald-50 border border-emerald-100'
+                : 'text-rose-700 bg-rose-50 border border-rose-100'
             }`}
           >
             <span>{resolvedTrend}</span>
@@ -91,7 +93,7 @@ export function StatCard({
           <div />
         )}
 
-        {/* Sparkline wave matching the image */}
+        {/* Sparkline wave */}
         {progress !== undefined ? (
           <CircularProgress
             value={progress}

@@ -1,20 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  ClipboardCheck,
-  CheckCircle2,
-  Clock,
-  Award,
-  ChevronRight,
   Eye,
+  CheckSquare,
   UserCheck,
 } from 'lucide-react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { StatCard } from '@/components/ui/StatCard'
-import { TableToolbar } from '@/components/ui/TableToolbar'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Alert } from '@/components/ui/Alert'
-import { Button } from '@/components/ui/Button'
 import { admissionsService } from '../api/admissionsService'
 import { ApplicationDetailModal } from './ApplicationDetailModal'
 import { RecordDecisionModal } from './RecordDecisionModal'
@@ -25,7 +16,6 @@ export function AdmissionsPage() {
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeView, setActiveView] = useState('table')
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
@@ -90,65 +80,55 @@ export function AdmissionsPage() {
     return student
   }
 
-  const filteredApplications = applications.filter((app) => {
-    if (!searchQuery) return true
+  const filteredApplications = useMemo(() => {
+    if (!searchQuery) return applications
     const q = searchQuery.toLowerCase()
-    const nameMatch = app.candidateName?.toLowerCase().includes(q)
-    const guardianMatch =
-      app.guardian?.firstName?.toLowerCase().includes(q) ||
-      app.guardian?.lastName?.toLowerCase().includes(q)
-    return nameMatch || guardianMatch
-  })
-
-  const underReviewCount = applications.filter((a) => a.status === 'UNDER_REVIEW').length
-  const acceptedCount = applications.filter((a) => a.status === 'ACCEPTED').length
+    return applications.filter((app) => {
+      const nameMatch = app.candidateName?.toLowerCase().includes(q)
+      const guardianMatch =
+        app.guardian?.firstName?.toLowerCase().includes(q) ||
+        app.guardian?.lastName?.toLowerCase().includes(q)
+      return nameMatch || guardianMatch
+    })
+  }, [applications, searchQuery])
 
   const columns = [
     {
       key: 'candidateName',
-      label: 'Candidat / Dossier',
-      sortable: true,
+      label: 'Candidat / Identité',
       render: (_, app) => (
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111827] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center font-bold text-xs text-[#2563EB] shrink-0">
             {app.candidateName ? app.candidateName.slice(0, 2).toUpperCase() : 'CD'}
           </div>
           <div className="min-w-0">
-            <span className="font-semibold text-[#111827] text-xs hover:underline block truncate">
+            <span className="font-semibold text-[#0F172A] text-xs block truncate">
               {app.candidateName}
             </span>
-            <span className="text-[11px] text-[#6B7280]">Dossier #{app.id}</span>
+            <span className="text-[11px] text-[#64748B]">Dossier #{app.id}</span>
           </div>
         </div>
       ),
     },
     {
-      key: 'details',
+      key: 'candidateBirthDate',
       label: 'Date de Naissance',
-      render: (_, app) => (
-        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
-          <span className="text-xs text-[#4B5563]">
-            {app.candidateBirthDate ? new Date(app.candidateBirthDate).toLocaleDateString() : 'N/A'}
-          </span>
-          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
-        </div>
+      render: (val) => (
+        <span className="text-xs text-[#475569]">
+          {val ? new Date(val).toLocaleDateString() : '—'}
+        </span>
       ),
     },
     {
       key: 'guardian',
       label: 'Tuteur / Contact',
       render: (_, app) => {
-        if (!app.guardian) return <span className="text-xs text-[#9CA3AF] italic">Non renseigné</span>
+        if (!app.guardian) return <span className="text-xs text-[#94A3B8] italic">Non renseigné</span>
         const gName = `${app.guardian.firstName || ''} ${app.guardian.lastName || ''}`.trim()
         return (
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[#E5E7EB] text-[#374151] flex items-center justify-center font-bold text-[10px] shrink-0">
-              {gName ? gName.slice(0, 2).toUpperCase() : 'TU'}
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-medium text-[#111827] truncate">{gName}</div>
-              <div className="text-[10px] text-[#6B7280] truncate">{app.guardian.phone || app.guardian.email || '-'}</div>
-            </div>
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-[#0F172A] truncate">{gName}</div>
+            <div className="text-[11px] text-[#64748B] truncate">{app.guardian.phone || app.guardian.email || '—'}</div>
           </div>
         )
       },
@@ -157,8 +137,8 @@ export function AdmissionsPage() {
       key: 'submittedAt',
       label: 'Date Dépôt',
       render: (val) => (
-        <span className="text-xs text-[#4B5563]">
-          {val ? new Date(val).toLocaleDateString() : 'N/A'}
+        <span className="text-xs text-[#475569]">
+          {val ? new Date(val).toLocaleDateString() : '—'}
         </span>
       ),
     },
@@ -175,129 +155,112 @@ export function AdmissionsPage() {
           SUBMITTED: { badge: 'Follow-Up', label: 'Nouveau' },
         }
         const cfg = statusMap[val] || { badge: 'To Contact', label: val || 'Soumis' }
-        return <StatusBadge status={cfg.badge} label={cfg.label} showPlus />
+        return <StatusBadge status={cfg.badge} label={cfg.label} />
       },
     },
     {
       key: 'actions',
       label: 'Actions',
+      width: '80px',
       align: 'right',
       render: (_, app) => (
-        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-          <Button
-            size="xs"
-            variant="ghost"
-            onClick={() => handleOpenDetail(app)}
-            leftIcon={<Eye className="w-3.5 h-3.5" />}
-          >
-            Détails
-          </Button>
-          <Button
-            size="xs"
-            variant="secondary"
-            onClick={() => handleOpenDecision(app)}
-          >
-            Décision
-          </Button>
-        </div>
+        <EntityTableActions
+          row={app}
+          actions={[
+            {
+              label: 'Détails',
+              icon: Eye,
+              onClick: () => handleOpenDetail(app),
+            },
+            {
+              label: 'Décision',
+              icon: CheckSquare,
+              onClick: () => handleOpenDecision(app),
+            },
+            {
+              label: 'Convertir en élève',
+              icon: UserCheck,
+              hidden: app.status !== 'ACCEPTED',
+              onClick: () => handleConvertToStudent(app.id),
+            },
+          ]}
+        />
       ),
     },
   ]
 
+  const hasActiveFilters = statusFilter !== 'ALL'
+
+  const filtersContent = (
+    <div>
+      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+        Statut du dossier
+      </label>
+      <select
+        value={statusFilter}
+        onChange={(e) => {
+          setStatusFilter(e.target.value)
+          setPage(0)
+        }}
+        className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+      >
+        <option value="ALL">Tous les statuts</option>
+        <option value="SUBMITTED">Nouveaux dossiers</option>
+        <option value="UNDER_REVIEW">En cours d'examen</option>
+        <option value="ACCEPTED">Admis</option>
+        <option value="WAITLISTED">Liste d'attente</option>
+        <option value="REJECTED">Refusés</option>
+      </select>
+    </div>
+  )
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
-      <DocTypePageHead
-        icon={ClipboardCheck}
-        title="Gestion des Admissions"
-        count={totalElements}
-        countLabel="candidatures"
-        primaryAction={{
-          label: 'Enrich data',
-          onClick: () => fetchApplications(),
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      {/* Screen-reader heading preserving test suite & accessibility */}
+      <h1 className="sr-only">Gestion des Admissions</h1>
+
+      <EntityListToolbar
+        searchValue={searchQuery}
+        onSearchChange={(val) => {
+          setSearchQuery(val)
+          setPage(0)
+        }}
+        searchPlaceholder="Rechercher par candidat ou tuteur..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={hasActiveFilters ? 1 : 0}
+        onClearFilters={() => {
+          setStatusFilter('ALL')
+          setPage(0)
         }}
       />
 
-      {error && <Alert variant="error" message={error} />}
-
-      {/* 4 KPI Cards matching the image */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={ClipboardCheck}
-          title="Active Opportunities"
-          value={`${totalElements} active`}
-          trendValue="↗ 3.5%"
-          trendType="positive"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          title="Deals Closed This Month"
-          value={`${acceptedCount} completed`}
-          trendValue="↘ 1.2%"
-          trendType="negative"
-        />
-        <StatCard
-          icon={Clock}
-          title="Average Response Time"
-          value="4.2 days"
-          trendValue="↗ 0.8%"
-          trendType="positive"
-        />
-        <StatCard
-          icon={Award}
-          title="Engagement Rate"
-          value={`${totalElements ? Math.round((acceptedCount / totalElements) * 100) : 62}%`}
-          trendValue="↗ 8.34%"
-          trendType="positive"
-        />
-      </div>
-
-      <TableToolbar
-        activeView={activeView}
-        onViewChange={setActiveView}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Rechercher par candidat ou tuteur..."
-        primaryActionLabel="New application"
-        onPrimaryAction={() => {}}
-        filters={[
-          {
-            label: 'Person to contact',
-            onClick: () => {},
-          },
-          {
-            label: statusFilter === 'ALL' ? 'Status' : statusFilter,
-            onClick: () => {
-              const options = ['ALL', 'SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED', 'WAITLISTED', 'REJECTED']
-              const idx = options.indexOf(statusFilter)
-              setStatusFilter(options[(idx + 1) % options.length])
-            },
-          },
-        ]}
-      />
-
-      <PaginatedTable
+      <EntityDataTable
         columns={columns}
         data={filteredApplications}
-        totalItems={totalElements}
-        pageSize={15}
-        page={page + 1}
-        totalPages={totalPages}
-        onPageChange={(p) => setPage(p - 1)}
         isLoading={loading}
-        enableSelection
+        error={error}
+        onRetry={fetchApplications}
+        emptyTitle="Aucune candidature trouvée"
+        emptyDescription={
+          searchQuery || hasActiveFilters
+            ? 'Aucune candidature ne correspond à vos filtres.'
+            : 'Aucun dossier d’admission n’est enregistré pour le moment.'
+        }
+        page={page + 1}
+        pageSize={15}
+        totalItems={totalElements}
+        totalPages={totalPages}
+        onPageChange={(newPage) => setPage(newPage - 1)}
         onRowClick={(app) => handleOpenDetail(app)}
       />
 
-      {/* Modals */}
       {detailModalOpen && (
         <ApplicationDetailModal
           isOpen={detailModalOpen}
           application={selectedApplication}
-          onClose={() => {
-            setDetailModalOpen(false)
-            setSelectedApplication(null)
-          }}
-          onRecordDecision={() => {
+          onClose={() => setDetailModalOpen(false)}
+          onOpenDecision={() => {
             setDetailModalOpen(false)
             setDecisionModalOpen(true)
           }}
@@ -309,10 +272,7 @@ export function AdmissionsPage() {
         <RecordDecisionModal
           isOpen={decisionModalOpen}
           application={selectedApplication}
-          onClose={() => {
-            setDecisionModalOpen(false)
-            setSelectedApplication(null)
-          }}
+          onClose={() => setDecisionModalOpen(false)}
           onSaved={handleDecisionSaved}
         />
       )}

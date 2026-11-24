@@ -50,12 +50,12 @@ export function Pagination({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 py-3 text-xs text-[#64748B] select-none sm:flex-row',
+        'flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 select-none sm:flex-row',
         className
       )}
     >
       {showSummary && (
-        <div className="text-xs text-[#64748B]" aria-live="polite">
+        <div className="text-xs text-slate-500 tabular-nums" aria-live="polite">
           {(() => {
             const template = t(
               'pagination.summary',
@@ -75,12 +75,12 @@ export function Pagination({
       <div className="flex items-center gap-3">
         {showPageSize && onPageSizeChange && (
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-[#64748B]">{t('pagination.rows')}</span>
+            <span className="text-slate-500">{t('pagination.rows')}</span>
             <select
               aria-label={t('pagination.rows')}
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="h-8 rounded-lg border border-[#E2E8F0] bg-white px-2.5 text-xs text-[#0F172A] hover:border-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#0F172A]/15 focus:border-[#0F172A]"
+              className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-900 hover:border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-slate-900 focus:border-slate-900"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -96,7 +96,7 @@ export function Pagination({
             type="button"
             disabled={page <= 1}
             onClick={() => onPageChange?.(page - 1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-xs text-[#64748B] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
             title={t('pagination.previousPage')}
             aria-label={t('pagination.previousPage')}
           >
@@ -123,10 +123,10 @@ export function Pagination({
                 aria-current={isCurrent ? 'page' : undefined}
                 aria-label={t('pagination.page', { page: p })}
                 className={cn(
-                  'inline-flex h-8 min-w-[32px] items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors cursor-pointer',
+                  'inline-flex h-8 min-w-[32px] items-center justify-center rounded-md px-2 text-xs font-semibold tabular-nums transition-colors cursor-pointer',
                   isCurrent
-                    ? 'bg-[#0F172A] text-white shadow-2xs'
-                    : 'border border-[#E2E8F0] bg-white text-[#0F172A] hover:border-slate-300 hover:bg-slate-50'
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 )}
               >
                 {p}
@@ -138,7 +138,7 @@ export function Pagination({
             type="button"
             disabled={page >= totalPages || totalPages === 0}
             onClick={() => onPageChange?.(page + 1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-xs text-[#64748B] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
             title={t('pagination.nextPage')}
             aria-label={t('pagination.nextPage')}
           >

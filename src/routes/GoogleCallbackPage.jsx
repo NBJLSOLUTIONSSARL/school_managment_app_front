@@ -108,35 +108,35 @@ export function GoogleCallbackPage() {
   }, [initialError, searchParams, loginWithGoogle, linkGoogleAccount, navigate, t])
 
   return (
-    <div dir={dir} lang={language} className="min-h-screen relative flex items-center justify-center bg-zinc-50 p-6 select-none">
+    <div dir={dir} lang={language} className="min-h-screen relative flex items-center justify-center bg-slate-50 p-6 select-none">
       <div className="absolute top-4 end-4 z-20">
         <LanguageSwitcher size="xs" />
       </div>
 
-      <div className="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-sm p-8 text-center space-y-6">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-lg shadow-2xs p-6 sm:p-8 text-center space-y-6">
         <div className="inline-flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-[#1d4ed8] flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-md bg-slate-900 flex items-center justify-center text-white">
             <svg
               viewBox="0 0 24 24"
-              className="w-5 h-5 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
+              className="w-4 h-4 fill-none stroke-current stroke-2 stroke-linecap-round stroke-linejoin-round"
             >
               <path d="M22 10v6M2 10l10-5 10 5-10 5z" fill="currentColor" fillOpacity="0.25" />
               <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
           </div>
-          <span className="text-base font-bold text-zinc-900 tracking-tight">EduTrack</span>
+          <span className="text-sm font-semibold text-slate-900 tracking-tight">EduTrack</span>
         </div>
 
         {status === 'processing' && (
           <div className="space-y-4 py-4">
-            <Loader2 className="w-10 h-10 text-[#1d4ed8] animate-spin mx-auto" />
+            <Loader2 className="w-8 h-8 text-slate-900 animate-spin mx-auto" />
             <div>
-              <h3 className="text-lg font-bold text-zinc-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 {isLinkingFlow
                   ? t('auth.googleCallback.linkingTitle', 'Association du compte Google')
                   : t('auth.googleCallback.verifyingTitle', 'Vérification auprès de Google')}
               </h3>
-              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
                 {isLinkingFlow
                   ? t('auth.googleCallback.linkingSubtitle', 'Validation cryptographique de votre compte Google et enregistrement sécurisé...')
                   : t('auth.googleCallback.verifyingSubtitle', "Validation du jeton d'identité et initialisation sécurisée de votre session scolaire...")}
@@ -146,13 +146,13 @@ export function GoogleCallbackPage() {
         )}
 
         {status === 'success' && (
-          <div className="space-y-4 py-4 animate-in fade-in">
+          <div className="space-y-4 py-4 animate-in fade-in duration-200">
             <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-7 h-7" />
+              <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-zinc-900">{successMessage}</h3>
-              <p className="text-xs text-zinc-500 mt-1.5">
+              <h3 className="text-base font-semibold text-slate-900">{successMessage}</h3>
+              <p className="text-xs text-slate-500 mt-1.5">
                 {isLinkingFlow
                   ? t('auth.googleCallback.redirectProfile', 'Redirection vers les paramètres de votre profil...')
                   : t('auth.googleCallback.redirectDashboard', 'Redirection vers votre tableau de bord EduTrack...')}
@@ -162,26 +162,26 @@ export function GoogleCallbackPage() {
         )}
 
         {status === 'error' && (
-          <div className="space-y-5 animate-in fade-in">
+          <div className="space-y-5 animate-in fade-in duration-200">
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-7 h-7" />
+              <AlertCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-zinc-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 {isLinkingFlow
                   ? t('auth.googleCallback.linkErrorTitle', 'Échec de la liaison Google')
                   : t('auth.googleCallback.errorTitle', 'Authentification refusée')}
               </h3>
-              <p className="text-xs text-rose-700 mt-2 p-3.5 bg-rose-50/70 rounded-lg border border-rose-200 text-start leading-relaxed">
+              <p className="text-xs text-rose-700 mt-2 p-3 bg-rose-50/70 rounded-md border border-rose-200 text-start leading-relaxed">
                 {displayedError}
               </p>
             </div>
             <div className="pt-2">
               <Link
                 to={isLinkingFlow ? '/profile' : '/login'}
-                className="w-full h-11 bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-medium text-sm rounded-lg shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                className="w-full h-9 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-md shadow-2xs transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+                <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" />
                 <span>{isLinkingFlow ? t('auth.googleCallback.backToProfile', 'Retour à mon profil') : t('auth.googleCallback.backToLogin', 'Retour à la page de connexion')}</span>
               </Link>
             </div>

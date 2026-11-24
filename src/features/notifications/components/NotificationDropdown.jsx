@@ -108,34 +108,34 @@ export function NotificationDropdown() {
           setIsOpen((prev) => !prev)
           if (!isOpen) fetchNotifications(true)
         }}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/30 cursor-pointer"
+        className="relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 cursor-pointer"
         aria-label="Centre de notifications"
         aria-expanded={isOpen}
       >
-        <Bell className="w-4 h-4 stroke-[2]" />
+        <Bell className="w-4 h-4 text-slate-500" strokeWidth={1.5} />
         {unreadCount > 0 && (
-          <span className="absolute 1.5 -top-0.5 right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold text-white shadow-2xs">
+          <span className="absolute -top-1 -end-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-[#E2E8F0] bg-white shadow-xl text-xs overflow-hidden animate-in fade-in zoom-in-95">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] px-4 py-3 bg-white">
-            <span className="font-bold text-[#0F172A]">Notifications</span>
+        <div className="absolute end-0 z-50 mt-2 w-80 rounded-lg border border-slate-200 bg-white shadow-lg text-xs overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="flex items-center justify-between border-b border-slate-200 px-3.5 py-2.5 bg-white">
+            <span className="font-semibold text-slate-900">Notifications</span>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F172A]">
+              <span className="rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-2xs font-medium text-slate-700">
                 {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
               </span>
             )}
           </div>
 
-          <div className="max-h-72 overflow-y-auto divide-y divide-[#F1F5F9]">
+          <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
             {isLoading && notifications.length === 0 ? (
-              <div className="p-4 text-center text-[#94A3B8]">Chargement...</div>
+              <div className="p-4 text-center text-slate-400">Chargement...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-[#94A3B8]">
+              <div className="p-4 text-center text-slate-400">
                 Aucune notification pour le moment.
               </div>
             ) : (
@@ -144,17 +144,17 @@ export function NotificationDropdown() {
                   key={n.id}
                   className={cn(
                     'p-3 transition-colors',
-                    !n.read ? 'bg-[#F1F5F9]/60 hover:bg-[#F1F5F9]' : 'hover:bg-slate-50'
+                    !n.read ? 'bg-slate-50/80 hover:bg-slate-50' : 'hover:bg-slate-50/50'
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
                       <NotificationTypeIcon type={n.type} />
                       <div className="min-w-0 flex-1">
-                        <p className={cn('text-xs text-[#1E293B]', !n.read && 'font-semibold')}>
+                        <p className={cn('text-xs text-slate-800', !n.read && 'font-semibold')}>
                           {n.content}
                         </p>
-                        <span className="text-[10px] text-[#94A3B8]">
+                        <span className="text-[10px] text-slate-400">
                           {n.createdAt ? new Date(n.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
@@ -163,7 +163,7 @@ export function NotificationDropdown() {
                       <button
                         type="button"
                         onClick={(e) => handleMarkAsRead(n.id, e)}
-                        className="shrink-0 text-[11px] font-semibold text-[#0F172A] hover:underline cursor-pointer"
+                        className="shrink-0 text-2xs font-semibold text-slate-700 hover:text-slate-900 hover:underline cursor-pointer"
                         title="Marquer comme lu"
                       >
                         Lu
@@ -175,11 +175,11 @@ export function NotificationDropdown() {
             )}
           </div>
 
-          <div className="border-t border-[#E2E8F0] p-2.5 text-center bg-slate-50/50">
+          <div className="border-t border-slate-200 p-2.5 text-center bg-slate-50/50">
             <Link
               to="/notifications"
               onClick={() => setIsOpen(false)}
-              className="text-xs font-semibold text-[#0F172A] hover:underline"
+              className="text-xs font-medium text-slate-700 hover:text-slate-900 hover:underline"
             >
               Voir toutes les notifications →
             </Link>

@@ -88,9 +88,11 @@
     "test404": "Test 404",
     "componentGuide": "Component Guide",
     "footer": "School Management System (ERPNext Desk UI)",
-    "pedagogicalAi": "PEDAGOGICAL AI",
-    "schoolManagement": "SCHOOL MANAGEMENT",
-    "communicationAdmin": "COMMUNICATION & ADMIN"
+    "pedagogicalAi": "Pedagogical AI",
+    "schoolManagement": "School Management",
+    "communicationAdmin": "Communication & Admin",
+    "academicYear": "Academic Year 2026–2027",
+    "systemStatus": "Operational"
   },
   "roles": {
     "admin": "Administrator",

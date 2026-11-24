@@ -485,14 +485,14 @@ export function HomeworkView() {
         }
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
-        <div className="rounded-2xl border border-[#E2E8F0] bg-[#F1F5F9] px-5 py-4 text-xs leading-relaxed text-[#0F172A]">
-          <span className="font-bold">Périmètre API :</span> le backend expose uniquement les
+      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none bg-slate-50/50">
+        <div className="rounded-lg border border-slate-200 bg-slate-100/70 px-4 py-3 text-xs leading-relaxed text-slate-800">
+          <span className="font-semibold text-slate-900">Périmètre API :</span> le backend expose uniquement les
           soumissions de devoirs et leur notation. Il ne fournit ni liste des devoirs, ni création,
           ni échéance, ni classe associée. Cette page ne simule donc pas ces fonctionnalités.
         </div>
 
-        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end gap-3">
             <div className="w-full sm:w-52">
               <Select

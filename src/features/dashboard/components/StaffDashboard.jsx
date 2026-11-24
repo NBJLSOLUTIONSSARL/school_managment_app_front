@@ -60,36 +60,36 @@ export function StaffDashboard() {
   const staffActivities = [
     {
       id: '1',
-      title: 'New Student Admission',
-      subtitle: 'Dossier #ADM-2026-45 submitted for review',
-      time: '10 min ago',
+      title: 'Nouvelle demande d’admission',
+      subtitle: 'Dossier #ADM-2026-45 soumis pour vérification',
+      time: 'Il y a 10 min',
       icon: UserPlus,
-      iconBg: 'bg-[#EFF6FF]',
-      iconColor: 'text-[#2563EB]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '2',
-      title: 'Tuition Receipt Generated',
-      subtitle: 'Monthly billing cycle compiled (140 invoices)',
-      time: 'Today',
+      title: 'Facturation mensuelle générée',
+      subtitle: 'Cycle de facturation compilé (140 quittances)',
+      time: 'Aujourd’hui',
       icon: Receipt,
-      iconBg: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#1D4ED8]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '3',
-      title: 'Attendance Report Printed',
-      subtitle: 'Weekly absence log verified for prefect',
-      time: 'Yesterday',
+      title: 'Relevé d’assiduité hebdomadaire',
+      subtitle: 'Rapport des absences validé pour la vie scolaire',
+      time: 'Hier',
       icon: FileText,
-      iconBg: 'bg-[#F0F9FF]',
-      iconColor: 'text-[#0284C7]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
   ]
 
   return (
     <div className="space-y-6 select-none">
-      {/* Figma Signature Blue Banner */}
+      {/* Calm Scholastic Desk Banner */}
       <HeroBanner
         title="Secrétariat & Administration"
         description="Gestion opérationnelle des dossiers d'admissions, du registre des élèves et des encaissements scolaires."
@@ -99,19 +99,19 @@ export function StaffDashboard() {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Staff Dashboard
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Secrétariat Scolaire — Gestion administrative, admissions et facturation
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
+            Secrétariat Scolaire
+          </h2>
+          <p className="text-2xs font-medium text-slate-500 mt-0.5">
+            Gestion administrative, admissions et facturation
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
@@ -119,14 +119,14 @@ export function StaffDashboard() {
           <button
             type="button"
             onClick={fetchStaffData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+            className="px-2.5 py-1 bg-white border border-rose-200 rounded text-2xs font-medium text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
           >
             Réessayer
           </button>
         </div>
       )}
 
-      {/* Top 4 Pastel Metric Cards with Blue Palette */}
+      {/* Top 4 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           variant="blue"
@@ -164,8 +164,8 @@ export function StaffDashboard() {
           <ExamResultsWaveChart
             title="All Exam Results"
             series={[
-              { name: 'Admissions Processed', color: '#2563EB' },
-              { name: 'Registered Students', color: '#38BDF8' },
+              { name: 'Admissions Processed', color: '#5B5FC7' },
+              { name: 'Registered Students', color: '#CBD5E1' },
             ]}
           />
         </div>
@@ -174,7 +174,7 @@ export function StaffDashboard() {
             title="Applications"
             totalLabel="Total"
             totalValue={(stats?.totalApplications || 24).toString()}
-            outerColor="#2563EB"
+            outerColor="#5B5FC7"
             outerPercent={70}
             outerLabel="Accepted"
             innerColor="#38BDF8"
@@ -196,7 +196,7 @@ export function StaffDashboard() {
         </div>
         <div className="lg:col-span-1">
           <RecentActivityFeedCard
-            title="All Exam Results"
+            title="Journal des opérations"
             items={staffActivities}
             onOptionsClick={() => navigate('/events')}
             onItemClick={() => navigate('/admissions')}

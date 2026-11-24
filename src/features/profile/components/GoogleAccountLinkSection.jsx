@@ -239,17 +239,17 @@ export function GoogleAccountLinkSection() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in">
           <div
-            className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-zinc-200 p-6 space-y-4"
+            className="w-full max-w-md bg-white rounded-lg shadow-lg border border-slate-200 p-6 space-y-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-identity-title"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
-                <Lock className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-md bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                <Lock className="w-4 h-4" />
               </div>
               <div>
-                <h3 id="confirm-identity-title" className="text-base font-bold text-zinc-900">
+                <h3 id="confirm-identity-title" className="text-base font-semibold text-slate-900">
                   {t('profile.googleSection.modalTitle', 'Confirmer votre identité')}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">

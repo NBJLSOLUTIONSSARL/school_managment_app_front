@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import {
+  FileText,
+  Download,
+  Eye,
+  Printer,
+} from 'lucide-react'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { AsyncLinkField } from '@/components/ui/AsyncLinkField'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/hooks/useAuth'
 import { reportCardService } from '@/features/report-cards/api/reportCardService'
@@ -45,7 +49,6 @@ export function ReportCardList() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [activeQuery, setActiveQuery] = useState(EMPTY_QUERY)
-  const [refreshToken, setRefreshToken] = useState(0)
 
   const [termFilter, setTermFilter] = useState('')
   const [yearFilter, setYearFilter] = useState('')
@@ -68,136 +71,72 @@ export function ReportCardList() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const [downloadingId, setDownloadingId] = useState(null)
-  const [previewLoadingId, setPreviewLoadingId] = useState(null)
   const [preview, setPreview] = useState(null)
+  const [previewLoadingId, setPreviewLoadingId] = useState(null)
   const previewUrlRef = useRef(null)
   const previewFrameRef = useRef(null)
 
-  const searchStudentOptions = useCallback(async (query) => {
-    const result = await directoryService.searchStudents(query, { size: 20 })
-    if (!result.success) return []
+  useEffect(() => {
+    let active = true
 
-    return result.data.map((student) => ({
-      value: String(student.id),
-      label: studentDisplayName(student),
-      subtitle: student.studentNumber || student.user?.email || '',
-    }))
+    async function loadTeachers() {
+      const result = await directoryService.listTeachers()
+      if (active && result.success && Array.isArray(result.data)) {
+        setTeachers(result.data)
+      }
+    }
+
+    loadTeachers()
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
-    let active = true
-
-    reportCardService.getReportCards(activeQuery).then((result) => {
-      if (!active) return
-      setIsLoading(false)
-
-      if (result.success) {
-        setReportCards(Array.isArray(result.data) ? result.data : [])
-        setLoadError(null)
-      } else {
-        setLoadError(result.error)
-        toastError(result.error?.message || 'Impossible de charger les bulletins.')
-      }
-    })
-
     return () => {
-      active = false
-    }
-  }, [activeQuery, refreshToken, toastError])
-
-  useEffect(() => {
-    if (!canGenerate) return undefined
-
-    let active = true
-
-    directoryService.getAllTeachers().then((result) => {
-      if (!active) return
-      if (result.success) {
-        setTeachers(Array.isArray(result.data) ? result.data : [])
-      }
-    })
-
-    return () => {
-      active = false
-    }
-  }, [canGenerate])
-
-  useEffect(
-    () => () => {
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current)
-        previewUrlRef.current = null
       }
-    },
-    []
-  )
-
-  const teacherOptions = useMemo(
-    () =>
-      teachers.map((teacher) => ({
-        value: String(teacher.id),
-        label:
-          [teacher.user?.firstName, teacher.user?.lastName].filter(Boolean).join(' ') ||
-          teacher.user?.email ||
-          `Enseignant #${teacher.id}`,
-      })),
-    [teachers]
-  )
-
-  const filteredCards = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase()
-    if (!query) return reportCards
-
-    return reportCards.filter((card) =>
-      [
-        card.studentName,
-        card.studentNumber,
-        card.term,
-        card.academicYear,
-        card.mention,
-        card.decision,
-        card.teacherName,
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query))
-    )
-  }, [reportCards, searchTerm])
-
-  const paginated = useMemo(
-    () => paginateLocal(filteredCards, page, pageSize),
-    [filteredCards, page, pageSize]
-  )
-
-  const stats = useMemo(() => {
-    const students = new Set(reportCards.map((card) => card.studentId))
-    const lastGeneratedAt = reportCards.reduce((latest, card) => {
-      if (!card.generatedAt) return latest
-      return !latest || new Date(card.generatedAt) > new Date(latest) ? card.generatedAt : latest
-    }, null)
-
-    return {
-      total: reportCards.length,
-      students: students.size,
-      lastGeneratedAt,
     }
-  }, [reportCards])
+  }, [])
+
+  const loadReportCards = useCallback(async () => {
+    setIsLoading(true)
+    const result = await reportCardService.queryReportCards(activeQuery)
+    setIsLoading(false)
+
+    if (result.success) {
+      setReportCards(Array.isArray(result.data) ? result.data : [])
+      setLoadError(null)
+    } else {
+      setLoadError(result.error)
+      toastError(result.error?.message || 'Impossible de charger les bulletins.')
+    }
+  }, [activeQuery, toastError])
+
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- async loader updates state after awaiting
+    loadReportCards()
+  }, [loadReportCards])
+
+  const searchStudentOptions = useCallback(async (query) => {
+    const result = await directoryService.searchStudents(query)
+    if (!result.success || !Array.isArray(result.data)) return []
+    return result.data.map((student) => ({
+      value: String(student.id),
+      label: studentDisplayName(student),
+      description: student.studentNumber || student.gradeLevel || '',
+    }))
+  }, [])
 
   const handleApplyFilters = () => {
-    const term = termFilter.trim()
-    const academicYear = yearFilter.trim()
-    const studentId = studentFilter?.value || ''
-
-    if (!studentId && Boolean(term) !== Boolean(academicYear)) {
-      warning(
-        'Sans élève sélectionné, le backend n’applique le filtre que si la période et l’année académique sont toutes les deux renseignées.'
-      )
-      return
+    const nextQuery = {
+      term: termFilter.trim(),
+      academicYear: yearFilter.trim(),
+      studentId: studentFilter?.value ? String(studentFilter.value) : '',
     }
-
-    setActiveQuery({ term, academicYear, studentId })
-    setRefreshToken((previous) => previous + 1)
+    setActiveQuery(nextQuery)
     setPage(1)
-    setSearchTerm('')
   }
 
   const handleResetFilters = () => {
@@ -205,15 +144,29 @@ export function ReportCardList() {
     setYearFilter('')
     setStudentFilter(null)
     setActiveQuery(EMPTY_QUERY)
-    setRefreshToken((previous) => previous + 1)
     setPage(1)
-    setSearchTerm('')
   }
+
+  const filteredReportCards = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase()
+    if (!query) return reportCards
+
+    return reportCards.filter((card) =>
+      [card.studentName, card.term, card.academicYear, card.mention, card.decision, card.teacherName]
+        .filter(Boolean)
+        .some((val) => String(val).toLowerCase().includes(query))
+    )
+  }, [reportCards, searchTerm])
+
+  const paginated = useMemo(
+    () => paginateLocal(filteredReportCards, page, pageSize),
+    [filteredReportCards, page, pageSize]
+  )
 
   const openGenerateModal = () => {
     setGenerateForm({
-      term: termFilter || activeQuery.term || '',
-      academicYear: yearFilter || activeQuery.academicYear || '',
+      term: termFilter.trim(),
+      academicYear: yearFilter.trim(),
       student: studentFilter,
       teacherId: '',
     })
@@ -221,10 +174,10 @@ export function ReportCardList() {
     setGenerateOpen(true)
   }
 
-  const handleGenerate = async () => {
+  const handleGenerateSubmit = async () => {
+    const errors = {}
     const term = generateForm.term.trim()
     const academicYear = generateForm.academicYear.trim()
-    const errors = {}
 
     if (!term) errors.term = 'La période est obligatoire.'
     else if (term.length > 50) errors.term = 'La période ne doit pas dépasser 50 caractères.'
@@ -332,11 +285,11 @@ export function ReportCardList() {
   const columns = [
     {
       key: 'studentName',
-      label: 'Élève',
+      label: 'Élève / Identité',
       render: (value, row) => (
-        <div>
-          <div className="font-medium text-slate-900">{value || '-'}</div>
-          <div className="text-2xs text-slate-400">
+        <div className="min-w-0">
+          <div className="font-semibold text-[#0F172A] text-xs truncate">{value || '—'}</div>
+          <div className="text-[11px] text-[#64748B] truncate">
             {row.studentNumber || `Élève #${row.studentId}`}
           </div>
         </div>
@@ -344,23 +297,23 @@ export function ReportCardList() {
     },
     {
       key: 'term',
-      label: 'Période',
+      label: 'Période / Année',
       width: '160px',
       render: (value, row) => (
         <div>
-          <div className="text-xs text-slate-800">{value || '-'}</div>
-          <div className="text-2xs text-slate-400">{row.academicYear || '-'}</div>
+          <div className="text-xs text-[#0F172A]">{value || '—'}</div>
+          <div className="text-[11px] text-[#64748B]">{row.academicYear || '—'}</div>
         </div>
       ),
     },
     {
       key: 'average',
       label: 'Moyenne',
-      width: '100px',
+      width: '110px',
       align: 'center',
       render: (value) => (
-        <span className="font-mono text-xs font-semibold text-slate-900">
-          {value === null || value === undefined ? '-' : `${Number(value).toFixed(2)} / 20`}
+        <span className="font-mono text-xs font-semibold text-[#0F172A]">
+          {value === null || value === undefined ? '—' : `${Number(value).toFixed(2)} / 20`}
         </span>
       ),
     },
@@ -370,15 +323,15 @@ export function ReportCardList() {
       width: '80px',
       align: 'center',
       render: (value) => (
-        <span className="font-mono text-2xs text-slate-700">
-          {value === null || value === undefined ? '-' : `${value}${value === 1 ? 'er' : 'e'}`}
+        <span className="font-mono text-2xs text-[#475569]">
+          {value === null || value === undefined ? '—' : `${value}${value === 1 ? 'er' : 'e'}`}
         </span>
       ),
     },
     {
       key: 'mention',
       label: 'Mention / Décision',
-      width: '190px',
+      width: '200px',
       render: (value, row) => (
         <div className="flex flex-wrap items-center gap-1">
           <StatusBadge
@@ -399,14 +352,14 @@ export function ReportCardList() {
       key: 'teacherName',
       label: 'Enseignant',
       width: '150px',
-      render: (value) => <span className="text-2xs text-slate-700">{value || '-'}</span>,
+      render: (value) => <span className="text-xs text-[#475569]">{value || '—'}</span>,
     },
     {
       key: 'generatedAt',
       label: 'Généré le',
-      width: '140px',
+      width: '130px',
       render: (value) => (
-        <span className="text-2xs text-slate-600">
+        <span className="text-xs text-[#64748B]">
           {formatDate(value, { hour: '2-digit', minute: '2-digit' })}
         </span>
       ),
@@ -414,171 +367,142 @@ export function ReportCardList() {
     {
       key: 'actions',
       label: 'Actions',
-      width: '190px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={() => handlePreview(row)}
-            isLoading={previewLoadingId === row.id}
-          >
-            Aperçu
-          </Button>
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={() => handleDownload(row)}
-            isLoading={downloadingId === row.id}
-          >
-            PDF
-          </Button>
-        </div>
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Aperçu',
+              icon: Eye,
+              disabled: previewLoadingId === row.id,
+              onClick: () => handlePreview(row),
+            },
+            {
+              label: 'Télécharger PDF',
+              icon: Download,
+              disabled: downloadingId === row.id,
+              onClick: () => handleDownload(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
-  return (
-    <div className="flex-1 flex flex-col bg-[#F8FAFC]">
-      <DocTypePageHead
-        breadcrumbs={['Desk', 'Bulletins']}
-        title="Bulletins scolaires"
-        docstatus="Active"
-        primaryAction={canGenerate ? '+ Générer les bulletins' : undefined}
-        onPrimaryAction={openGenerateModal}
-        secondaryActions={[
-          {
-            label: 'Actualiser',
-            onClick: () => setRefreshToken((previous) => previous + 1),
-          },
-        ]}
-      />
+  const hasActiveFilters = Boolean(activeQuery.term || activeQuery.academicYear || activeQuery.studentId)
+  const activeFiltersCount =
+    (activeQuery.term ? 1 : 0) +
+    (activeQuery.academicYear ? 1 : 0) +
+    (activeQuery.studentId ? 1 : 0)
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none bg-[#F8FAFC]">
-        <div className="rounded-2xl border border-[#E2E8F0] bg-[#F1F5F9] px-5 py-4 text-xs leading-relaxed text-[#0F172A]">
-          <span className="font-bold">Calcul backend :</span> les moyennes pondérées, rangs,
-          mentions et décisions sont calculés exclusivement par le backend. L’API ne fournit pas le
-          détail par matière ni d’appréciation libre en dehors du PDF officiel.
-        </div>
-
-        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-2xs space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-            <Input
-              label="Période"
-              value={termFilter}
-              onChange={(event) => setTermFilter(event.target.value)}
-              placeholder="Ex: Trimestre 1"
-              maxLength={50}
-            />
-            <Input
-              label="Année académique"
-              value={yearFilter}
-              onChange={(event) => setYearFilter(event.target.value)}
-              placeholder="Ex: 2025-2026"
-              maxLength={20}
-            />
-            <AsyncLinkField
-              label="Élève (facultatif)"
-              value={studentFilter}
-              onChange={setStudentFilter}
-              search={searchStudentOptions}
-              placeholder="Tous les élèves"
-              doctype="Élève"
-            />
-            <div className="flex items-center gap-2">
-              <Button variant="primary" size="sm" onClick={handleApplyFilters}>
-                Filtrer
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleResetFilters}>
-                Réinitialiser
-              </Button>
-            </div>
-          </div>
-          <p className="text-2xs text-slate-500">
-            Sans élève sélectionné, le backend n’applique le filtre période / année que lorsque les
-            deux champs sont renseignés. Avec un élève, les deux filtres sont appliqués
-            individuellement.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="rounded border border-slate-200 bg-white px-4 py-3 shadow-2xs">
-            <div className="text-2xs uppercase tracking-wider text-slate-500">Bulletins affichés</div>
-            <div className="mt-1 text-base font-semibold text-slate-900">{stats.total}</div>
-          </div>
-          <div className="rounded border border-slate-200 bg-white px-4 py-3 shadow-2xs">
-            <div className="text-2xs uppercase tracking-wider text-slate-500">Élèves couverts</div>
-            <div className="mt-1 text-base font-semibold text-slate-900">{stats.students}</div>
-          </div>
-          <div className="rounded border border-slate-200 bg-white px-4 py-3 shadow-2xs">
-            <div className="text-2xs uppercase tracking-wider text-slate-500">
-              Dernière génération
-            </div>
-            <div className="mt-1 text-xs font-semibold text-slate-900">
-              {formatDate(stats.lastGeneratedAt, { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        </div>
-
-        {loadError && reportCards.length === 0 && !isLoading ? (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs">
-            <EmptyState
-              title="Bulletins indisponibles"
-              description={loadError.message}
-              action={{
-                label: 'Réessayer',
-                onClick: () => setRefreshToken((previous) => previous + 1),
-              }}
-            />
-          </div>
-        ) : (
-          <PaginatedTable
-            toolbar={
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                <div className="w-full sm:max-w-sm">
-                  <Input
-                    label="Rechercher dans les résultats"
-                    placeholder="Élève, période, mention..."
-                    value={searchTerm}
-                    onChange={(event) => {
-                      setSearchTerm(event.target.value)
-                      setPage(1)
-                    }}
-                  />
-                </div>
-                <div className="text-2xs text-slate-500">
-                  {filteredCards.length} bulletin(s) correspondant(s)
-                </div>
-              </div>
-            }
-            columns={columns}
-            data={paginated.items}
-            page={paginated.page}
-            pageSize={pageSize}
-            totalItems={paginated.totalItems}
-            totalPages={paginated.totalPages}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size)
-              setPage(1)
-            }}
-            isLoading={isLoading}
-            emptyTitle="Aucun bulletin"
-            emptyDescription="Aucun bulletin ne correspond aux critères. Générez les bulletins ou modifiez les filtres."
-          />
-        )}
+  const filtersContent = (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Période
+        </label>
+        <Input
+          value={termFilter}
+          onChange={(event) => setTermFilter(event.target.value)}
+          placeholder="Ex: Trimestre 1"
+          maxLength={50}
+        />
       </div>
 
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Année académique
+        </label>
+        <Input
+          value={yearFilter}
+          onChange={(event) => setYearFilter(event.target.value)}
+          placeholder="Ex: 2025-2026"
+          maxLength={20}
+        />
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Élève (facultatif)
+        </label>
+        <AsyncLinkField
+          value={studentFilter}
+          onChange={setStudentFilter}
+          search={searchStudentOptions}
+          placeholder="Tous les élèves"
+          doctype="Élève"
+        />
+      </div>
+
+      <div className="pt-2 flex justify-end gap-2">
+        <Button variant="primary" size="xs" onClick={handleApplyFilters}>
+          Appliquer
+        </Button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        onAddNew={canGenerate ? openGenerateModal : undefined}
+        addNewLabel="Générer les bulletins"
+        canAddNew={canGenerate}
+        addNewIcon={FileText}
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Élève, période, mention..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={handleResetFilters}
+      />
+
+      <EntityDataTable
+        columns={columns}
+        data={paginated.items}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={loadReportCards}
+        emptyTitle="Aucun bulletin disponible"
+        emptyDescription={
+          searchTerm || hasActiveFilters
+            ? 'Aucun bulletin ne correspond aux critères sélectionnés.'
+            : 'Générez des bulletins pour afficher les relevés académiques.'
+        }
+        emptyAction={
+          canGenerate
+            ? {
+                label: 'Générer les bulletins',
+                onClick: openGenerateModal,
+              }
+            : undefined
+        }
+        page={paginated.page}
+        pageSize={pageSize}
+        totalItems={paginated.totalItems}
+        totalPages={paginated.totalPages}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+        onRowClick={(row) => handlePreview(row)}
+      />
+
+      {/* Generate Report Cards Modal */}
       <Modal
         isOpen={generateOpen}
-        onClose={isGenerating ? undefined : () => setGenerateOpen(false)}
-        title="Générer les bulletins"
+        onClose={() => setGenerateOpen(false)}
+        title="Générer les bulletins de notes"
         size="md"
-        closeOnBackdrop={!isGenerating}
-        closeOnEsc={!isGenerating}
         footer={
-          <>
+          <div className="flex items-center justify-end gap-2">
             <Button
               variant="secondary"
               size="sm"
@@ -590,122 +514,116 @@ export function ReportCardList() {
             <Button
               variant="primary"
               size="sm"
-              onClick={handleGenerate}
+              onClick={handleGenerateSubmit}
               isLoading={isGenerating}
             >
               Lancer la génération
             </Button>
-          </>
+          </div>
         }
       >
-        <div className="space-y-3">
-          <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-2xs text-amber-800">
-            La génération calcule les moyennes et rangs côté backend, puis génère un PDF par élève.
-            Sans élève sélectionné, tous les élèves seront traités.
-          </div>
+        <div className="space-y-4 text-xs">
+          <Input
+            label="Période / Trimestre / Semestre"
+            value={generateForm.term}
+            onChange={(event) =>
+              setGenerateForm((prev) => ({ ...prev, term: event.target.value }))
+            }
+            placeholder="Ex: Trimestre 1"
+            error={generateErrors.term}
+            required
+            maxLength={50}
+          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              label="Période"
-              value={generateForm.term}
-              onChange={(event) => {
-                setGenerateForm((previous) => ({ ...previous, term: event.target.value }))
-                setGenerateErrors((previous) => ({ ...previous, term: undefined }))
-              }}
-              error={generateErrors.term}
-              placeholder="Ex: Trimestre 1"
-              maxLength={50}
-              required
-            />
-            <Input
-              label="Année académique"
-              value={generateForm.academicYear}
-              onChange={(event) => {
-                setGenerateForm((previous) => ({
-                  ...previous,
-                  academicYear: event.target.value,
-                }))
-                setGenerateErrors((previous) => ({ ...previous, academicYear: undefined }))
-              }}
-              error={generateErrors.academicYear}
-              placeholder="Ex: 2025-2026"
-              maxLength={20}
-              required
-            />
-          </div>
+          <Input
+            label="Année académique"
+            value={generateForm.academicYear}
+            onChange={(event) =>
+              setGenerateForm((prev) => ({ ...prev, academicYear: event.target.value }))
+            }
+            placeholder="Ex: 2025-2026"
+            error={generateErrors.academicYear}
+            required
+            maxLength={20}
+          />
 
           <AsyncLinkField
-            label="Élève (facultatif)"
+            label="Élève cible (laisser vide pour toute la cohorte)"
             value={generateForm.student}
-            onChange={(value) => setGenerateForm((previous) => ({ ...previous, student: value }))}
+            onChange={(option) =>
+              setGenerateForm((prev) => ({ ...prev, student: option }))
+            }
             search={searchStudentOptions}
-            placeholder="Tous les élèves"
-            helperText="Laisser vide pour générer les bulletins de tous les élèves."
+            placeholder="Rechercher un élève..."
             doctype="Élève"
           />
 
           <Select
-            label="Enseignant principal (facultatif)"
+            label="Enseignant signataire (facultatif)"
             value={generateForm.teacherId}
             onChange={(event) =>
-              setGenerateForm((previous) => ({ ...previous, teacherId: event.target.value }))
+              setGenerateForm((prev) => ({ ...prev, teacherId: event.target.value }))
             }
-            options={teacherOptions}
-            placeholder="Non renseigné"
+            options={[
+              { value: '', label: 'Aucun signataire spécifique' },
+              ...teachers.map((teacher) => ({
+                value: String(teacher.id),
+                label: `${teacher.user?.firstName || ''} ${teacher.user?.lastName || ''}`.trim() || `Professeur #${teacher.id}`,
+              })),
+            ]}
           />
         </div>
       </Modal>
 
+      {/* PDF Preview Modal */}
       <Modal
         isOpen={Boolean(preview)}
         onClose={closePreview}
-        title={
-          preview
-            ? `Bulletin — ${preview.card.studentName || `Élève #${preview.card.studentId}`}`
-            : 'Bulletin'
-        }
-        subtitle={
-          preview
-            ? `${preview.card.term} · ${preview.card.academicYear} · moyenne ${
-                preview.card.average !== null && preview.card.average !== undefined
-                  ? Number(preview.card.average).toFixed(2)
-                  : '-'
-              } / 20`
-            : undefined
-        }
-        size="full"
+        title={preview ? `Bulletin · ${preview.card.studentName || 'Élève'} (${preview.card.term || ''})` : 'Aperçu'}
+        size="xl"
         footer={
-          <>
-            <Button variant="secondary" size="sm" onClick={closePreview}>
-              Fermer
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handlePrintPreview}>
-              Imprimer
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() =>
-                preview && downloadBlob(preview.blob, preview.filename)
-              }
-            >
-              Télécharger le PDF
-            </Button>
-          </>
+          <div className="flex items-center justify-between w-full">
+            <div className="text-2xs text-slate-500 truncate">
+              {preview?.filename}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handlePrintPreview}
+                leftIcon={<Printer className="w-4 h-4" />}
+              >
+                Imprimer
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => preview?.card && handleDownload(preview.card)}
+                leftIcon={<Download className="w-4 h-4" />}
+              >
+                Télécharger
+              </Button>
+            </div>
+          </div>
         }
       >
-        {preview && (
-          <iframe
-            ref={previewFrameRef}
-            title={`Aperçu du bulletin de ${preview.card.studentName || preview.card.studentId}`}
-            src={preview.url}
-            className="h-[70vh] w-full rounded border border-slate-200 bg-white"
-          />
-        )}
+        <div className="h-[70vh] w-full rounded border border-slate-200 bg-slate-100 overflow-hidden">
+          {preview?.url ? (
+            <iframe
+              ref={previewFrameRef}
+              src={preview.url}
+              title="Aperçu du bulletin"
+              className="h-full w-full border-0"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-slate-500">
+              Chargement du PDF...
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   )
 }
 
-export const ReportCardListPage = ReportCardList
 export default ReportCardList

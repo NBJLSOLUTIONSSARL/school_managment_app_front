@@ -70,36 +70,36 @@ export function ParentDashboard() {
   const parentActivities = [
     {
       id: '1',
-      title: 'Parent-Teacher Meeting',
-      subtitle: 'Individual consultation scheduled with French teacher',
-      time: 'Friday 17:30',
+      title: 'Rencontre parents-professeurs',
+      subtitle: 'Entretien individuel programmé avec le professeur de lettres',
+      time: 'Vendredi 17:30',
       icon: Calendar,
-      iconBg: 'bg-[#EFF6FF]',
-      iconColor: 'text-[#2563EB]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '2',
-      title: 'Term 1 Tuition Paid',
-      subtitle: 'Receipt #INV-2026-089 validated by accounting',
-      time: 'Yesterday',
+      title: 'Règlement des frais validé',
+      subtitle: 'Quittance #INV-2026-089 enregistrée par la comptabilité',
+      time: 'Hier',
       icon: Coins,
-      iconBg: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#1D4ED8]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '3',
-      title: 'School Excursion Consent',
-      subtitle: 'Science museum field trip form signed',
-      time: '3 days ago',
+      title: 'Autorisation de sortie scolaire',
+      subtitle: 'Visite pédagogique au musée des sciences validée',
+      time: 'Il y a 3 jours',
       icon: Building2,
-      iconBg: 'bg-[#F0F9FF]',
-      iconColor: 'text-[#0284C7]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
   ]
 
   return (
     <div className="space-y-6 select-none">
-      {/* Figma Signature Blue Banner */}
+      {/* Calm Scholastic Desk Banner */}
       <HeroBanner
         title="Espace Famille · Suivi Scolaire"
         description="Accédez aux résultats d'évaluations, au suivi d'assiduité et aux communications de l'établissement en temps réel."
@@ -109,19 +109,19 @@ export function ParentDashboard() {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Parent Dashboard
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Espace Parents — Suivi académique, assiduité et scolarité de vos enfants
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
+            Espace Parents
+          </h2>
+          <p className="text-2xs font-medium text-slate-500 mt-0.5">
+            Suivi académique, assiduité et scolarité de vos enfants
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
@@ -129,7 +129,7 @@ export function ParentDashboard() {
           <button
             type="button"
             onClick={fetchParentData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+            className="px-2.5 py-1 bg-white border border-rose-200 rounded text-2xs font-medium text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
           >
             Réessayer
           </button>
@@ -145,8 +145,8 @@ export function ParentDashboard() {
         <>
           {/* Child Selector Tabs (if multiple children) */}
           {children.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-1">
-              <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider shrink-0">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <span className="text-2xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 me-1">
                 Enfant suivi :
               </span>
               {children.map((child, idx) => (
@@ -154,10 +154,10 @@ export function ParentDashboard() {
                   type="button"
                   key={child.id || idx}
                   onClick={() => setSelectedChildIndex(idx)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900 ${
                     selectedChildIndex === idx
-                      ? 'bg-[#2563EB] text-white shadow-2xs'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-[#EFF6FF] hover:text-[#2563EB]'
+                      ? 'bg-slate-900 text-white shadow-2xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <span>{child.firstName} {child.lastName}</span>
@@ -167,7 +167,7 @@ export function ParentDashboard() {
             </div>
           )}
 
-          {/* Top 4 Pastel Metric Cards with Blue Palette */}
+          {/* Top 4 Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               variant="blue"
@@ -205,8 +205,8 @@ export function ParentDashboard() {
               <ExamResultsWaveChart
                 title="All Exam Results"
                 series={[
-                  { name: `${currentChild?.firstName || 'Student'} Marks`, color: '#2563EB' },
-                  { name: 'Class Benchmark', color: '#38BDF8' },
+                  { name: `${currentChild?.firstName || 'Student'} Marks`, color: '#5B5FC7' },
+                  { name: 'Class Benchmark', color: '#CBD5E1' },
                 ]}
               />
             </div>
@@ -215,7 +215,7 @@ export function ParentDashboard() {
                 title="Attendance & Progress"
                 totalLabel="Average"
                 totalValue={currentChild?.average ? `${currentChild.average}/20` : '15.8/20'}
-                outerColor="#2563EB"
+                outerColor="#5B5FC7"
                 outerPercent={97}
                 outerLabel="Presence"
                 innerColor="#38BDF8"
@@ -236,7 +236,7 @@ export function ParentDashboard() {
             </div>
             <div className="lg:col-span-1">
               <RecentActivityFeedCard
-                title="All Exam Results"
+                title="Communications et vie scolaire"
                 items={parentActivities}
                 onOptionsClick={() => navigate('/events')}
                 onItemClick={() => navigate('/events')}

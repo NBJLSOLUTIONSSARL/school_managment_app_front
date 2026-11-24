@@ -29,7 +29,7 @@ export const DatePicker = forwardRef(function DatePicker(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-9 text-xs px-3 rounded-xl' : 'h-10 text-sm px-3.5 rounded-xl'
+  const sizeClass = size === 'sm' ? 'h-8 text-xs px-2.5 rounded-md' : 'h-9 text-sm px-3 rounded-md'
 
   const handleSetToday = () => {
     if (disabled) return
@@ -41,9 +41,9 @@ export const DatePicker = forwardRef(function DatePicker(
 
   return (
     <div className="w-full text-start">
-      <div className="mb-1.5 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold text-[#1E293B]">
+          <label htmlFor={inputId} className="block text-xs font-medium text-slate-800">
             {label}
             {required && (
               <span className="ms-0.5 text-rose-500" aria-hidden="true">
@@ -56,7 +56,7 @@ export const DatePicker = forwardRef(function DatePicker(
           <button
             type="button"
             onClick={handleSetToday}
-            className="cursor-pointer text-xs font-semibold text-[#0F172A] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/20"
+            className="cursor-pointer text-2xs font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
           >
             {t('common.today')}
           </button>
@@ -76,12 +76,12 @@ export const DatePicker = forwardRef(function DatePicker(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'w-full border bg-white text-[#1E293B] transition-all',
-            'focus:outline-hidden focus:ring-2 focus:ring-offset-0',
+            'w-full border bg-white text-slate-900 transition-colors',
+            'focus:outline-hidden focus:ring-1 focus:ring-offset-0',
             sizeClass,
             error
-              ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-200'
-              : 'border-[#E2E8F0] hover:border-slate-300 focus:border-[#0F172A] focus:ring-[#0F172A]/15',
+              ? 'border-rose-300 focus:border-rose-600 focus:ring-rose-600'
+              : 'border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-slate-900',
             disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
             className
           )}
@@ -90,11 +90,11 @@ export const DatePicker = forwardRef(function DatePicker(
       </div>
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-xs font-medium text-rose-600">
+        <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
           {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
-        <p id={helperId} className="mt-1 text-xs text-[#64748B]">
+        <p id={helperId} className="mt-1 text-2xs text-slate-500">
           {helperText}
         </p>
       ) : null}

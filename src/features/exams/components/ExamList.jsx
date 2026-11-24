@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
-import { PaginatedTable } from '@/components/ui/PaginatedTable'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
+import {
+  Lock,
+  Unlock,
+  ExternalLink,
+  Trash2,
+} from 'lucide-react'
+import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/hooks/useAuth'
 import { examService } from '@/features/exams/api/examService'
@@ -61,11 +62,6 @@ export function ExamList() {
     loadExams()
   }, [loadExams])
 
-  const handleRefresh = () => {
-    setIsLoading(true)
-    loadExams()
-  }
-
   const examTypes = useMemo(() => {
     const values = new Set(exams.map((exam) => exam.type).filter(Boolean))
     return Array.from(values).sort((a, b) => a.localeCompare(b, 'fr'))
@@ -103,15 +99,6 @@ export function ExamList() {
   const paginated = useMemo(
     () => paginateLocal(filteredExams, page, pageSize),
     [filteredExams, page, pageSize]
-  )
-
-  const stats = useMemo(
-    () => [
-      { label: 'Examens', value: exams.length },
-      { label: 'Ouverts', value: exams.filter((exam) => !exam.locked).length },
-      { label: 'Verrouillés', value: exams.filter((exam) => exam.locked).length },
-    ],
-    [exams]
   )
 
   const handleSort = (key) => {
@@ -156,42 +143,39 @@ export function ExamList() {
   const columns = [
     {
       key: 'title',
-      label: 'Examen',
+      label: 'Examen / Titre',
       sortable: true,
       render: (value, row) => (
-        <div>
-          <div className="font-medium text-slate-900">{value}</div>
-          <div className="text-2xs text-slate-400">
-            {row.type || 'Type non renseigné'} · #{row.id}
-          </div>
+        <div className="min-w-0">
+          <span className="font-semibold text-[#0F172A] text-xs block truncate">{value}</span>
+          <span className="text-[11px] text-[#64748B]">#{row.id}</span>
         </div>
       ),
     },
     {
       key: 'type',
       label: 'Type',
-      width: '140px',
+      width: '130px',
+      sortable: true,
       render: (value) => (
-        <span className="rounded bg-slate-100 px-2 py-0.5 text-2xs text-slate-700">
-          {value || '-'}
-        </span>
+        <span className="text-xs text-[#475569]">{value || 'Examen'}</span>
       ),
     },
     {
       key: 'date',
       label: 'Date',
-      width: '130px',
+      width: '120px',
       sortable: true,
-      render: (value) => <span className="text-xs text-slate-700">{formatDate(value)}</span>,
+      render: (value) => (
+        <span className="text-xs text-[#475569]">{formatDate(value)}</span>
+      ),
     },
     {
       key: 'teacherName',
       label: 'Enseignant',
-      width: '170px',
-      sortable: true,
-      render: (value, row) => (
-        <span className="text-xs text-slate-700">
-          {value || teacherDisplayName({ id: row.teacherId })}
+      render: (_, row) => (
+        <span className="text-xs font-medium text-[#0F172A] truncate block max-w-xs">
+          {teacherDisplayName(row)}
         </span>
       ),
     },
@@ -202,7 +186,7 @@ export function ExamList() {
       align: 'center',
       sortable: true,
       render: (value, row) => (
-        <span className="font-mono text-2xs text-slate-700">
+        <span className="font-mono text-2xs text-[#475569]">
           {value ?? 20} pts · coef. {row.coefficient ?? 1}
         </span>
       ),
@@ -218,159 +202,147 @@ export function ExamList() {
     {
       key: 'actions',
       label: 'Actions',
-      width: '190px',
+      width: '80px',
       align: 'right',
       render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="xs"
-            onClick={(event) => {
-              event.stopPropagation()
-              navigate(`/exams/${row.id}`)
-            }}
-          >
-            Ouvrir
-          </Button>
-          {canManage && (
-            <Button
-              variant="ghost"
-              size="xs"
-              isLoading={lockingId === row.id}
-              onClick={(event) => {
-                event.stopPropagation()
-                handleLockToggle(row)
-              }}
-            >
-              {row.locked ? 'Déverrouiller' : 'Verrouiller'}
-            </Button>
-          )}
-          {canDelete && !row.locked && (
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-              onClick={(event) => {
-                event.stopPropagation()
-                setDeleteTarget(row)
-              }}
-            >
-              Supprimer
-            </Button>
-          )}
-        </div>
+        <EntityTableActions
+          row={row}
+          actions={[
+            {
+              label: 'Ouvrir',
+              icon: ExternalLink,
+              onClick: () => navigate(`/exams/${row.id}`),
+            },
+            {
+              label: row.locked ? 'Déverrouiller' : 'Verrouiller',
+              icon: row.locked ? Unlock : Lock,
+              hidden: !canManage,
+              disabled: lockingId === row.id,
+              onClick: () => handleLockToggle(row),
+            },
+            {
+              label: 'Supprimer',
+              icon: Trash2,
+              variant: 'danger',
+              hidden: !canDelete || row.locked,
+              onClick: () => setDeleteTarget(row),
+            },
+          ]}
+        />
       ),
     },
   ]
 
+  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all'
+  const activeFiltersCount = (statusFilter !== 'all' ? 1 : 0) + (typeFilter !== 'all' ? 1 : 0)
+
+  const filtersContent = (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Statut
+        </label>
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value)
+            setPage(1)
+          }}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          <option value="all">Tous les statuts</option>
+          <option value="open">Ouverts</option>
+          <option value="locked">Verrouillés</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+          Type d’examen
+        </label>
+        <select
+          value={typeFilter}
+          onChange={(e) => {
+            setTypeFilter(e.target.value)
+            setPage(1)
+          }}
+          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
+        >
+          <option value="all">Tous les types</option>
+          {examTypes.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
+
   return (
-    <div className="flex-1 flex flex-col bg-[#F8FAFC]">
-      <DocTypePageHead
-        breadcrumbs={['Desk', 'Examens']}
-        title="Gestion des examens"
-        docstatus="Active"
-        primaryAction={canManage ? '+ Nouvel examen' : undefined}
-        onPrimaryAction={() => navigate('/exams/new')}
-        secondaryActions={[{ label: 'Actualiser', onClick: handleRefresh }]}
+    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
+      <EntityListToolbar
+        onAddNew={canManage ? () => navigate('/exams/new') : undefined}
+        addNewLabel="Nouvel examen"
+        canAddNew={canManage}
+        searchValue={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val)
+          setPage(1)
+        }}
+        searchPlaceholder="Titre, type, enseignant..."
+        filtersContent={filtersContent}
+        hasActiveFilters={hasActiveFilters}
+        activeFiltersCount={activeFiltersCount}
+        onClearFilters={() => {
+          setStatusFilter('all')
+          setTypeFilter('all')
+          setPage(1)
+        }}
       />
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 select-none">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border border-[#F1F5F9] bg-white p-5 shadow-2xs"
-            >
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
-                {stat.label}
-              </div>
-              <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-[#1E293B]">{stat.value}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 rounded-2xl border border-[#F1F5F9] bg-white p-4 sm:p-5 shadow-2xs">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:max-w-3xl">
-            <Input
-              label="Rechercher"
-              placeholder="Titre, type, enseignant..."
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value)
-                setPage(1)
-              }}
-              size="sm"
-            />
-            <Select
-              label="Statut"
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value)
-                setPage(1)
-              }}
-              options={[
-                { value: 'all', label: 'Tous les statuts' },
-                { value: 'open', label: 'Ouverts' },
-                { value: 'locked', label: 'Verrouillés' },
-              ]}
-              placeholder=""
-            />
-            <Select
-              label="Type"
-              value={typeFilter}
-              onChange={(event) => {
-                setTypeFilter(event.target.value)
-                setPage(1)
-              }}
-              options={[
-                { value: 'all', label: 'Tous les types' },
-                ...examTypes.map((type) => ({ value: type, label: type })),
-              ]}
-              placeholder=""
-            />
-          </div>
-
-          <div className="text-2xs text-slate-500">
-            {paginated.totalItems} examen(s) affiché(s) sur {exams.length}
-          </div>
-        </div>
-
-        {loadError && exams.length === 0 && !isLoading ? (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs">
-            <EmptyState
-              title="Examens indisponibles"
-              description={loadError.message}
-              action={{ label: 'Réessayer', onClick: handleRefresh }}
-            />
-          </div>
-        ) : (
-          <PaginatedTable
-            columns={columns}
-            data={paginated.items}
-            page={paginated.page}
-            pageSize={pageSize}
-            totalItems={paginated.totalItems}
-            totalPages={paginated.totalPages}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size)
-              setPage(1)
-            }}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            onRowClick={(row) => navigate(`/exams/${row.id}`)}
-            isLoading={isLoading}
-            emptyTitle="Aucun examen"
-            emptyDescription="Aucun examen ne correspond aux filtres sélectionnés."
-          />
-        )}
-      </div>
+      <EntityDataTable
+        columns={columns}
+        data={paginated.items}
+        isLoading={isLoading}
+        error={loadError}
+        onRetry={() => {
+          setIsLoading(true)
+          loadExams()
+        }}
+        emptyTitle="Aucun examen trouvé"
+        emptyDescription={
+          searchTerm || hasActiveFilters
+            ? 'Aucun examen ne correspond aux filtres sélectionnés.'
+            : 'Commencez par planifier un premier examen.'
+        }
+        emptyAction={
+          canManage
+            ? {
+                label: 'Nouvel examen',
+                onClick: () => navigate('/exams/new'),
+              }
+            : undefined
+        }
+        page={paginated.page}
+        pageSize={pageSize}
+        totalItems={paginated.totalItems}
+        totalPages={paginated.totalPages}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        onRowClick={(row) => navigate(`/exams/${row.id}`)}
+      />
 
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}
         title="Supprimer l’examen"
-        description={`Supprimer définitivement « ${deleteTarget?.title || ''} » ? Cette action est refusée par le backend si l’examen est verrouillé.`}
+        description={`Supprimer définitivement « ${deleteTarget?.title || ''} » ? Cette action est irréversible.`}
         confirmText="Supprimer"
         cancelText="Annuler"
         confirmVariant="danger"

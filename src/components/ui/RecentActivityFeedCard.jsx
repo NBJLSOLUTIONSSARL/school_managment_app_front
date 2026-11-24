@@ -1,7 +1,7 @@
 import { MoreVertical, UserCheck, CreditCard, GraduationCap } from 'lucide-react'
 
 export function RecentActivityFeedCard({
-  title = 'All Exam Results',
+  title = 'Recent Updates',
   items = null,
   onOptionsClick,
   onItemClick,
@@ -11,78 +11,78 @@ export function RecentActivityFeedCard({
     {
       id: '1',
       title: 'New Teacher',
-      subtitle: 'It is a long established readable..',
+      subtitle: 'Dossier d’affectation validé en salle des profs',
       time: 'Just now',
       icon: UserCheck,
-      iconBg: 'bg-[#EFF6FF]',
-      iconColor: 'text-[#2563EB]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '2',
       title: 'Fees Structure',
-      subtitle: 'It is a long established readable..',
+      subtitle: 'Barème des droits de scolarité mis à jour',
       time: 'Today',
       icon: CreditCard,
-      iconBg: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#1D4ED8]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
     {
       id: '3',
       title: 'New Course',
-      subtitle: 'It is a long established readable..',
+      subtitle: 'Programme pédagogique ajouté au cursus',
       time: '24 Sep 2023',
       icon: GraduationCap,
-      iconBg: 'bg-[#F0F9FF]',
-      iconColor: 'text-[#0284C7]',
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-600',
     },
   ]
 
   const list = items && items.length > 0 ? items : defaultItems
 
   return (
-    <div className={`bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-2xs select-none ${className}`}>
+    <div className={`figma-card bg-white rounded-2xl p-5 sm:p-6 border border-[#EDF0F8] shadow-[0_4px_20px_-2px_rgba(91,95,199,0.04)] select-none ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
+        <h3 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h3>
         <button
           type="button"
           onClick={onOptionsClick}
-          className="text-[#64748B] hover:text-[#2563EB] p-1 rounded-lg hover:bg-[#EFF6FF] transition cursor-pointer"
+          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5B5FC7]"
           aria-label="Options"
         >
-          <MoreVertical className="w-4 h-4" />
+          <MoreVertical className="w-4 h-4" strokeWidth={1.5} />
         </button>
       </div>
 
       {/* List */}
-      <div className="space-y-4">
+      <div className="space-y-1.5">
         {list.map((item) => {
           const Icon = item.icon || UserCheck
           return (
             <div
               key={item.id}
               onClick={() => onItemClick && onItemClick(item)}
-              className={`flex items-center justify-between gap-3 p-1.5 rounded-xl transition ${
-                onItemClick ? 'hover:bg-[#EFF6FF]/40 cursor-pointer' : ''
+              className={`flex items-center justify-between gap-3 p-2 rounded-xl transition-colors ${
+                onItemClick ? 'hover:bg-[#F8F9FD] cursor-pointer' : ''
               }`}
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                    item.iconBg || 'bg-[#EFF6FF]'
-                  } ${item.iconColor || 'text-[#2563EB]'}`}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border border-[#EDF0F8] ${
+                    item.iconBg || 'bg-[#5B5FC7]/10'
+                  } ${item.iconColor || 'text-[#5B5FC7]'}`}
                 >
-                  <Icon className="w-4 h-4 stroke-[2]" />
+                  <Icon className="w-4 h-4" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-[#0F172A] truncate">{item.title}</h4>
-                  <p className="text-[11px] text-[#64748B] truncate mt-0.5">
+                  <h4 className="text-xs font-medium text-slate-900 truncate">{item.title}</h4>
+                  <p className="text-2xs text-slate-500 truncate mt-0.5">
                     {item.subtitle}
                   </p>
                 </div>
               </div>
 
-              <span className="text-[11px] text-[#64748B] font-normal shrink-0">
+              <span className="text-2xs text-slate-400 font-medium shrink-0 tabular-nums">
                 {item.time}
               </span>
             </div>

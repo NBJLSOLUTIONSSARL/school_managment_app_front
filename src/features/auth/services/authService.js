@@ -10,8 +10,8 @@ import {
   setCurrentUser,
 } from '@/utils/tokenStorage'
 import {
-  knownRoles,
   normalizeRole,
+  hasMatchingRole,
   hasSessionIndicator,
   setSessionIndicator,
   normalizeUser,
@@ -33,15 +33,7 @@ export function hasRole(userOrRoles, requiredRoles) {
         ? [userOrRoles]
         : []
 
-  const needed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
-  return needed.some((r) => {
-    const norm = normalizeRole(r)
-    return (
-      userRoles.includes(norm) ||
-      (knownRoles.has(r) && userRoles.includes(r)) ||
-      (norm === 'ROLE_ADMIN' && userRoles.includes('ROLE_SUPER_ADMIN'))
-    )
-  })
+  return hasMatchingRole(userRoles, requiredRoles)
 }
 
 /**

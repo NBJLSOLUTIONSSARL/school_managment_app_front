@@ -234,4 +234,53 @@ describe('AuthProvider (SCRUM-70)', () => {
     })
     await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('no'))
   })
+
+  it('passes Bearer token to /api/v1/auth/me when login response omits user', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          tokenType: 'Bearer',
+          accessToken: token(EXP),
+          expiresIn: 3600,
+        },
+      }),
+    })
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          id: 2,
+          active: true,
+          email: 'director@school.com',
+          firstName: 'Marie',
+          lastName: 'Directeur',
+          roles: ['ROLE_DIRECTOR'],
+          permissions: ['school:configure'],
+        },
+      }),
+    })
+
+    renderAuth()
+    fireEvent.click(screen.getByTestId('login-btn'))
+    await waitFor(() => expect(screen.getByTestId('authenticated').textContent).toBe('yes'))
+
+    expect(screen.getByTestId('user-email').textContent).toBe('director@school.com')
+    expect(screen.getByTestId('roles').textContent).toBe('ROLE_DIRECTOR')
+    expect(screen.getByTestId('has-role-admin').textContent).toBe('yes')
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/v1/auth/me',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.any(Headers),
+      })
+    )
+    const meHeaders = fetch.mock.calls[1][1].headers
+    expect(meHeaders.get('Authorization')).toMatch(/^Bearer /)
+  })
 })

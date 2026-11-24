@@ -1,5 +1,5 @@
 import { Fragment, isValidElement } from 'react'
-import { LayoutGrid, Sparkles, Building2, ChevronRight } from 'lucide-react'
+import { LayoutGrid, Building2, ChevronRight } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
 import { AvatarStack } from '@/components/ui/AvatarStack'
@@ -33,7 +33,6 @@ export function DocTypePageHead({
   const primaryClick = isPrimaryObject
     ? primaryAction.onClick || onPrimaryAction
     : onPrimaryAction
-  const primaryVariant = isPrimaryObject ? primaryAction.variant || 'primary' : 'primary'
 
   // Safely normalize secondary actions
   const normalizedSecondaryActions = Array.isArray(secondaryActions)
@@ -61,43 +60,43 @@ export function DocTypePageHead({
 
   return (
     <div
-      className={`flex min-h-12 w-full flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] bg-white px-4 py-3 sm:px-6 select-none ${className}`}
+      className={`flex min-h-12 w-full flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6 select-none ${className}`}
     >
       {/* Left: Entity Icon, Title, Dot, Count */}
       <div className="flex min-w-0 items-center gap-2.5 flex-wrap sm:flex-nowrap">
-        {/* Entity Icon Badge matching the image */}
-        <div className="w-8 h-8 rounded-xl bg-gray-100/90 border border-gray-200/60 flex items-center justify-center text-gray-700 shrink-0 shadow-2xs">
-          {Icon ? <Icon className="w-4 h-4 stroke-[2]" /> : <Building2 className="w-4 h-4 stroke-[2]" />}
+        {/* Quiet Entity Icon Badge */}
+        <div className="w-7 h-7 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0 shadow-2xs">
+          {Icon ? <Icon className="w-3.5 h-3.5" strokeWidth={1.5} /> : <Building2 className="w-3.5 h-3.5" strokeWidth={1.5} />}
         </div>
 
         {breadcrumbs.length > 0 && (
           <nav
             aria-label={t('common.breadcrumb', 'Breadcrumb')}
-            className="hidden items-center gap-1 text-xs text-[#6B7280] lg:flex me-1"
+            className="hidden items-center gap-1 text-xs text-slate-500 lg:flex me-1"
           >
             {breadcrumbs.map((crumb, idx) => {
               const label = typeof crumb === 'object' && crumb !== null ? crumb.label : crumb
               const key = typeof crumb === 'object' && crumb !== null && crumb.key ? crumb.key : idx
               return (
                 <Fragment key={key}>
-                  {idx > 0 && <ChevronRight className="w-3 h-3 text-[#9CA3AF]" />}
-                  <span className="font-medium hover:text-[#111827] transition-colors">{label}</span>
+                  {idx > 0 && <ChevronRight className="w-3 h-3 text-slate-400" strokeWidth={1.5} />}
+                  <span className="font-medium hover:text-slate-900 transition-colors">{label}</span>
                 </Fragment>
               )
             })}
-            <span className="mx-1 text-[#D1D5DB]" aria-hidden="true">
+            <span className="mx-1 text-slate-300" aria-hidden="true">
               /
             </span>
           </nav>
         )}
 
-        <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#111827] truncate">
+        <h1 className="text-sm sm:text-base font-semibold tracking-tight text-slate-900 truncate">
           {title}
         </h1>
 
         {formattedCount && (
-          <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280] truncate">
-            <span className="text-[#9CA3AF]">•</span>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 truncate tabular-nums">
+            <span className="text-slate-300">•</span>
             <span>{formattedCount}</span>
           </div>
         )}
@@ -106,7 +105,7 @@ export function DocTypePageHead({
       </div>
 
       {/* Right: Avatar Stack, All Apps, Primary Action */}
-      <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
+      <div className="flex items-center flex-wrap gap-2 sm:gap-2.5">
         {onSearchChange && (
           <div className="relative hidden md:block">
             <input
@@ -114,35 +113,34 @@ export function DocTypePageHead({
               value={searchTerm ?? ''}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder || t('common.search', 'Rechercher...')}
-              className="h-8 w-44 lg:w-56 rounded-xl border border-[#E5E7EB] bg-white px-3 text-xs text-[#111827] placeholder-[#9CA3AF] focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-black/5 shadow-2xs"
+              className="h-8 w-44 lg:w-56 rounded-md border border-slate-200 bg-slate-50/70 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-300 shadow-2xs"
             />
           </div>
         )}
 
-        {/* Team Avatar Stack matching the image */}
+        {/* Team Avatar Stack */}
         {showAvatarStack && <AvatarStack avatars={avatars} extraCount={9} size="sm" />}
 
-        {/* Primary Action Button matching the image (+ Enrich data / Nouvel item) */}
+        {/* Primary Action Button — Clean, deliberate, no sparkles */}
         {primaryLabel && (
           <button
             type="button"
             onClick={primaryClick}
             disabled={isPrimaryObject ? primaryAction.disabled : false}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#111827] hover:bg-black active:bg-[#1F2937] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center px-3 py-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white rounded-md text-xs font-medium shadow-2xs transition-colors disabled:opacity-50 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
           >
-            <Sparkles className="w-3.5 h-3.5 text-white stroke-[2]" />
             <span>{primaryLabel}</span>
           </button>
         )}
 
-        {/* All Apps button matching the image (shown when enabled or custom action passed) */}
+        {/* All Apps button */}
         {(allAppsAction || allAppsAction !== undefined) && (
           <button
             type="button"
             onClick={allAppsAction?.onClick}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-xl text-xs font-medium shadow-2xs transition-colors cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-md text-xs font-medium shadow-2xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
           >
-            <LayoutGrid className="w-3.5 h-3.5 text-[#6B7280]" />
+            <LayoutGrid className="w-3.5 h-3.5 text-slate-500" strokeWidth={1.5} />
             <span>All Apps</span>
           </button>
         )}
@@ -165,7 +163,7 @@ export function DocTypePageHead({
           <button
             type="button"
             onClick={onMenuAction}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#E5E7EB] bg-white text-xs text-[#6B7280] hover:bg-slate-50 hover:text-[#111827] transition-all cursor-pointer shadow-2xs"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
             title={t('common.moreOptions', 'Plus')}
             aria-label={t('common.moreOptions', 'Plus')}
           >

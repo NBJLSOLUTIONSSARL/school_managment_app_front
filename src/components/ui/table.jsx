@@ -15,7 +15,7 @@ const Table = React.forwardRef(function Table({ className, ...props }, ref) {
 Table.displayName = 'Table'
 
 const TableHeader = React.forwardRef(function TableHeader({ className, ...props }, ref) {
-  return <thead ref={ref} className={cn('[&_tr]:border-b border-[#E2E8F0] bg-[#F8FAFC]', className)} {...props} />
+  return <thead ref={ref} className={cn('[&_tr]:border-b border-slate-200 bg-slate-50/70', className)} {...props} />
 })
 TableHeader.displayName = 'TableHeader'
 
@@ -23,7 +23,7 @@ const TableBody = React.forwardRef(function TableBody({ className, ...props }, r
   return (
     <tbody
       ref={ref}
-      className={cn('[&_tr:last-child]:border-0 divide-y divide-[#E2E8F0]', className)}
+      className={cn('[&_tr:last-child]:border-0 divide-y divide-slate-100', className)}
       {...props}
     />
   )
@@ -34,7 +34,7 @@ const TableFooter = React.forwardRef(function TableFooter({ className, ...props 
   return (
     <tfoot
       ref={ref}
-      className={cn('border-t border-[#E2E8F0] bg-[#F8FAFC] font-medium [&>tr]:last:border-b-0', className)}
+      className={cn('border-t border-slate-200 bg-slate-50/70 font-medium [&>tr]:last:border-b-0', className)}
       {...props}
     />
   )
@@ -46,7 +46,7 @@ const TableRow = React.forwardRef(function TableRow({ className, ...props }, ref
     <tr
       ref={ref}
       className={cn(
-        'border-b border-[#E2E8F0] transition-colors hover:bg-slate-50 data-[state=selected]:bg-[#F1F5F9]',
+        'border-b border-slate-100 transition-colors hover:bg-slate-50/70 data-[state=selected]:bg-slate-100/70',
         className
       )}
       {...props}
@@ -60,7 +60,7 @@ const TableHead = React.forwardRef(function TableHead({ className, ...props }, r
     <th
       ref={ref}
       className={cn(
-        'h-8 px-3 py-1.5 text-left align-middle text-[10px] font-bold uppercase tracking-wider text-[#64748B] [&:has([role=checkbox])]:pr-0',
+        'h-8 px-3 py-1.5 text-left align-middle text-2xs font-semibold text-slate-500 [&:has([role=checkbox])]:pr-0',
         className
       )}
       {...props}
@@ -73,7 +73,7 @@ const TableCell = React.forwardRef(function TableCell({ className, ...props }, r
   return (
     <td
       ref={ref}
-      className={cn('p-2.5 px-3 align-middle text-xs text-[#0F172A] [&:has([role=checkbox])]:pr-0', className)}
+      className={cn('py-2.5 px-3 align-middle text-xs text-slate-900 [&:has([role=checkbox])]:pr-0', className)}
       {...props}
     />
   )
@@ -84,7 +84,7 @@ const TableCaption = React.forwardRef(function TableCaption({ className, ...prop
   return (
     <caption
       ref={ref}
-      className={cn('mt-3 text-[11px] text-[#64748B]', className)}
+      className={cn('mt-3 text-2xs text-slate-500', className)}
       {...props}
     />
   )
@@ -101,3 +101,4 @@ export {
   TableCell,
   TableCaption,
 }
+export default Table
