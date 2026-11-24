@@ -1,6 +1,7 @@
 export * from './components/ObservationsView'
 export * from './components/ConsentsView'
 export * from './components/AnalysesView'
+export * from './components/PeriodComparisonView'
 export * from './components/StrategiesView'
 export * from './api/observationsApi'
 export * from './api/aiConsentsApi'

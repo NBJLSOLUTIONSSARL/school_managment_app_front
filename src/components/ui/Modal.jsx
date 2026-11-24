@@ -109,7 +109,7 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div
         aria-hidden="true"
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs transition-opacity"
+        className="fixed inset-0 bg-[var(--ink)]/40 backdrop-blur-sm transition-opacity"
         onClick={closeOnBackdrop ? onClose : undefined}
       />
 
@@ -121,20 +121,20 @@ export function Modal({
         aria-describedby={subtitle ? subtitleId : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-lg focus:outline-none animate-in fade-in zoom-in-95 duration-150',
+          'relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-panel border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--ink)] shadow-elevated focus:outline-none animate-in fade-in zoom-in-95 duration-fast',
           sizeStyles[size] || sizeStyles.md,
           className
         )}
       >
-        <div className="flex items-start justify-between border-b border-slate-200 bg-white px-5 py-3.5">
+        <div className="flex items-start justify-between border-b border-[var(--border-subtle)] bg-[var(--surface)] px-5 py-4">
           <div>
             {title && (
-              <h3 id={titleId} className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
+              <h3 id={titleId} className="text-card-title font-display font-semibold text-[var(--ink)] tracking-tight">
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p id={subtitleId} className="mt-0.5 text-xs text-slate-500">
+              <p id={subtitleId} className="mt-0.5 text-label text-[var(--ink-muted)]">
                 {subtitle}
               </p>
             )}
@@ -142,17 +142,17 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-sm leading-none text-slate-400 transition-colors hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900 cursor-pointer"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-body leading-none text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)] hover:bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--blue-core)]/20 cursor-pointer"
             aria-label={t('common.close')}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 text-xs text-slate-800">{children}</div>
+        <div className="flex-1 overflow-y-auto p-5 text-body text-[var(--ink)]">{children}</div>
 
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50/70 px-5 py-3">
+          <div className="flex items-center justify-end gap-2.5 border-t border-[var(--border-subtle)] bg-[var(--muted)]/50 px-5 py-3">
             {footer}
           </div>
         )}

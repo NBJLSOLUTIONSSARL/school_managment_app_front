@@ -1,0 +1,458 @@
+{
+  "version": "1.0.0",
+  "designSystem": {
+    "style": "shadcn-new-york-v4",
+    "theme": "slate-blue",
+    "accentColor": "#2563EB",
+    "accentTint": "#EFF6FF",
+    "accentBorder": "#3B82F6",
+    "baseBg": "#F8FAFC",
+    "cardBg": "#FFFFFF",
+    "borderColor": "#E2E8F0",
+    "typography": {
+      "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      "numericFont": "font-mono tabular-nums"
+    },
+    "density": "Frappe Desk UI Data-Dense"
+  },
+  "roles": [
+    {
+      "code": "ROLE_SUPER_ADMIN",
+      "name": "Super Administrator",
+      "scope": "ALL_SCHOOLS",
+      "description": "Multi-tenant platform owner managing schools, system health, and global configuration."
+    },
+    {
+      "code": "ROLE_DIRECTOR",
+      "name": "Director / School Administrator",
+      "scope": "SCHOOL_WIDE",
+      "description": "Executive authority over one school institution: academics, staff, finances, and settings."
+    },
+    {
+      "code": "ROLE_SECRETARY",
+      "name": "Secretary / Registrar",
+      "scope": "SCHOOL_WIDE_STUDENT_DATA",
+      "description": "Front desk and admissions processing, student dossiers, legal documents, and justifications."
+    },
+    {
+      "code": "ROLE_TEACHER",
+      "name": "Teacher",
+      "scope": "OWN_CLASSES_AND_STUDENTS",
+      "description": "Classroom instruction, roll-call attendance, grade entry, homework grading, and observations."
+    },
+    {
+      "code": "ROLE_ACCOUNTANT",
+      "name": "Accountant / Bursar",
+      "scope": "FINANCIAL_LEDGER_ONLY",
+      "description": "Tuition fees, installments, invoice generation, payment processing, and financial reporting."
+    },
+    {
+      "code": "ROLE_LIBRARIAN",
+      "name": "Librarian",
+      "scope": "LIBRARY_MODULE_ONLY",
+      "description": "Book catalog, lending circulation, return check-in, and penalty calculation."
+    },
+    {
+      "code": "ROLE_PARENT",
+      "name": "Parent / Guardian",
+      "scope": "OWN_CHILDREN_ONLY",
+      "description": "Family portal tracking enrolled children's grades, attendance, homework, and fees."
+    },
+    {
+      "code": "ROLE_STUDENT",
+      "name": "Student",
+      "scope": "SELF_ONLY",
+      "description": "Learner portal for class schedules, homework submission, grades, and learning strategies."
+    }
+  ],
+  "permissions": [
+    { "key": "system:monitor", "domain": "system", "legacy": "PERM_SYSTEM_MONITOR", "description": "View system health, uptime, and server metrics" },
+    { "key": "system:config", "domain": "system", "legacy": "PERM_SYSTEM_CONFIG", "description": "Configure platform parameters and settings" },
+    { "key": "system:backup", "domain": "system", "legacy": "PERM_SYSTEM_BACKUP", "description": "Trigger and inspect database backups" },
+    { "key": "school:manage", "domain": "school", "legacy": "PERM_SCHOOL_MANAGE", "description": "Create, edit, and suspend school tenants" },
+    { "key": "school:configure", "domain": "school", "legacy": "PERM_SCHOOL_CONFIGURE", "description": "Edit school profile, branding, and grading scales" },
+    { "key": "user:read", "domain": "user", "legacy": "PERM_USER_READ", "description": "Read user directory and profiles" },
+    { "key": "user:write", "domain": "user", "legacy": "PERM_USER_WRITE", "description": "Create, update, or deactivate users" },
+    { "key": "role:manage", "domain": "role", "legacy": "PERM_ROLE_MANAGE", "description": "Assign roles and update permissions matrix" },
+    { "key": "audit:read", "domain": "audit", "legacy": "PERM_READ_LOG", "description": "View immutable security audit logs" },
+    { "key": "student:read", "domain": "student", "legacy": "PERM_STUDENT_READ", "description": "View student dossiers and directory" },
+    { "key": "student:write", "domain": "student", "legacy": "PERM_STUDENT_WRITE", "description": "Register and update student records" },
+    { "key": "student:delete", "domain": "student", "legacy": "PERM_STUDENT_DELETE", "description": "Archive/delete student record" },
+    { "key": "guardian:read", "domain": "guardian", "legacy": "PERM_GUARDIAN_READ", "description": "View guardians directory" },
+    { "key": "guardian:write", "domain": "guardian", "legacy": "PERM_GUARDIAN_WRITE", "description": "Create or update guardian records" },
+    { "key": "teacher:read", "domain": "teacher", "legacy": "PERM_TEACHER_READ", "description": "View teachers directory" },
+    { "key": "teacher:write", "domain": "teacher", "legacy": "PERM_TEACHER_WRITE", "description": "Create or update teacher profiles" },
+    { "key": "staff:read", "domain": "staff", "legacy": "PERM_STAFF_READ", "description": "View administrative staff directory" },
+    { "key": "staff:write", "domain": "staff", "legacy": "PERM_STAFF_WRITE", "description": "Create or update staff records" },
+    { "key": "staff:manage", "domain": "staff", "legacy": "PERM_STAFF_MANAGE", "description": "Approve leave requests and staff evaluations" },
+    { "key": "department:read", "domain": "department", "legacy": "PERM_DEPARTMENT_READ", "description": "View academic departments" },
+    { "key": "department:write", "domain": "department", "legacy": "PERM_DEPARTMENT_WRITE", "description": "Manage academic departments" },
+    { "key": "academics:manage", "domain": "academics", "legacy": "PERM_ACADEMICS_MANAGE", "description": "Configure academic years, terms, and sections" },
+    { "key": "class:read", "domain": "class", "legacy": "PERM_CLASS_READ", "description": "View classes and student enrollments" },
+    { "key": "class:write", "domain": "class", "legacy": "PERM_CLASS_WRITE", "description": "Create and edit classes and subject allocations" },
+    { "key": "class:teacher:read", "domain": "class", "legacy": "PERM_CLASS_TEACHER_READ", "description": "View assigned teaching classes" },
+    { "key": "subject:read", "domain": "subject", "legacy": "PERM_SUBJECT_READ", "description": "View subjects and coefficients" },
+    { "key": "subject:write", "domain": "subject", "legacy": "PERM_SUBJECT_WRITE", "description": "Manage subjects, credits, and coefficients" },
+    { "key": "timetable:read", "domain": "timetable", "legacy": "PERM_TIMETABLE_READ", "description": "View school and class timetables" },
+    { "key": "timetable:write", "domain": "timetable", "legacy": "PERM_TIMETABLE_WRITE", "description": "Edit timetable slots and detect conflicts" },
+    { "key": "timetable:teacher:read", "domain": "timetable", "legacy": "PERM_TIMETABLE_TEACHER_READ", "description": "View teacher personal timetable" },
+    { "key": "timetable:parent:read", "domain": "timetable", "legacy": "PERM_TIMETABLE_PARENT_READ", "description": "View child class timetable" },
+    { "key": "timetable:student:read", "domain": "timetable", "legacy": "PERM_TIMETABLE_STUDENT_READ", "description": "View student personal timetable" },
+    { "key": "attendance:read", "domain": "attendance", "legacy": "PERM_ATTENDANCE_READ", "description": "View attendance rates and absence logs" },
+    { "key": "attendance:write", "domain": "attendance", "legacy": "PERM_ATTENDANCE_WRITE", "description": "Conduct roll-call and record absences" },
+    { "key": "attendance:justify", "domain": "attendance", "legacy": "PERM_ATTENDANCE_JUSTIFY", "description": "Approve or reject absence justifications" },
+    { "key": "attendance:parent:read", "domain": "attendance", "legacy": "PERM_ATTENDANCE_PARENT_READ", "description": "View child presence calendar" },
+    { "key": "attendance:parent:write", "domain": "attendance", "legacy": "PERM_ATTENDANCE_PARENT_WRITE", "description": "Submit justification for child absence" },
+    { "key": "attendance:student:read", "domain": "attendance", "legacy": "PERM_ATTENDANCE_STUDENT_READ", "description": "View own attendance stats" },
+    { "key": "grade:read", "domain": "grade", "legacy": "PERM_GRADE_READ", "description": "View evaluation grades" },
+    { "key": "grade:write", "domain": "grade", "legacy": "PERM_GRADE_WRITE", "description": "Create exams and enter grades" },
+    { "key": "grade:parent:read", "domain": "grade", "legacy": "PERM_GRADE_PARENT_READ", "description": "View child exam results" },
+    { "key": "grade:student:read", "domain": "grade", "legacy": "PERM_GRADE_STUDENT_READ", "description": "View self exam results" },
+    { "key": "reportcard:read", "domain": "reportcard", "legacy": "PERM_REPORTCARD_READ", "description": "View term report cards" },
+    { "key": "reportcard:publish", "domain": "reportcard", "legacy": "PERM_REPORTCARD_PUBLISH", "description": "Generate, sign, and publish bulletins" },
+    { "key": "reportcard:parent:read", "domain": "reportcard", "legacy": "PERM_REPORTCARD_PARENT_READ", "description": "Download child PDF report cards" },
+    { "key": "reportcard:student:read", "domain": "reportcard", "legacy": "PERM_REPORTCARD_STUDENT_READ", "description": "Download self PDF report card" },
+    { "key": "homework:read", "domain": "homework", "legacy": "PERM_HOMEWORK_READ", "description": "View homework tasks" },
+    { "key": "homework:write", "domain": "homework", "legacy": "PERM_HOMEWORK_WRITE", "description": "Create homework and grade submissions" },
+    { "key": "homework:parent:read", "domain": "homework", "legacy": "PERM_HOMEWORK_PARENT_READ", "description": "View child homework assignments" },
+    { "key": "homework:student:read", "domain": "homework", "legacy": "PERM_HOMEWORK_STUDENT_READ", "description": "View own homework assignments" },
+    { "key": "homework:student:write", "domain": "homework", "legacy": "PERM_HOMEWORK_STUDENT_WRITE", "description": "Submit online homework work" },
+    { "key": "course:manage", "domain": "course", "legacy": "PERM_COURSE_MANAGE", "description": "Upload syllabus and course resources" },
+    { "key": "course:read", "domain": "course", "legacy": "PERM_COURSE_READ", "description": "Read course materials and download syllabus" },
+    { "key": "observation:read", "domain": "observation", "legacy": "PERM_READ_OBSERVATION", "description": "Read pedagogical observations" },
+    { "key": "observation:write", "domain": "observation", "legacy": "PERM_WRITE_OBSERVATION", "description": "Record pedagogical observations" },
+    { "key": "ai:validate", "domain": "ai", "legacy": "PERM_VALIDATE_ANALYSIS", "description": "Validate and publish AI analyses" },
+    { "key": "ai:parent:read", "domain": "ai", "legacy": "PERM_READ_ANALYSIS", "description": "Read published learning strategies for child" },
+    { "key": "strategy:student:read", "domain": "strategy", "legacy": "PERM_READ_STRATEGY", "description": "Read published learner strategy" },
+    { "key": "application:read", "domain": "application", "legacy": "PERM_APPLICATION_READ", "description": "View admissions candidate applications" },
+    { "key": "application:write", "domain": "application", "legacy": "PERM_APPLICATION_WRITE", "description": "Process admissions, interviews, and enrollment" },
+    { "key": "document:verify", "domain": "document", "legacy": "PERM_DOCUMENT_VERIFY", "description": "Verify and approve uploaded legal documents" },
+    { "key": "certificate:generate", "domain": "certificate", "legacy": "PERM_CERTIFICATE_GENERATE", "description": "Generate student ID cards and certificates" },
+    { "key": "finance:read", "domain": "finance", "legacy": "PERM_FINANCE_READ", "description": "View financial ledgers and accounting summaries" },
+    { "key": "finance:write", "domain": "finance", "legacy": "PERM_FINANCE_WRITE", "description": "Manage financial parameters and triggers" },
+    { "key": "invoice:read", "domain": "invoice", "legacy": "PERM_INVOICE_READ", "description": "View invoices and installment schedules" },
+    { "key": "invoice:write", "domain": "invoice", "legacy": "PERM_INVOICE_WRITE", "description": "Create, edit, and generate invoices" },
+    { "key": "invoice:manage", "domain": "invoice", "legacy": "PERM_INVOICE_MANAGE", "description": "Manage overdue accounts and trigger reminders" },
+    { "key": "payment:read", "domain": "payment", "legacy": "PERM_PAYMENT_READ", "description": "View payments and receipts" },
+    { "key": "payment:write", "domain": "payment", "legacy": "PERM_PAYMENT_WRITE", "description": "Record payments and issue official receipts" },
+    { "key": "fee:manage", "domain": "fee", "legacy": "PERM_FEE_MANAGE", "description": "Configure fee types and discount rules" },
+    { "key": "expense:read", "domain": "expense", "legacy": "PERM_EXPENSE_READ", "description": "View school operational expenses" },
+    { "key": "expense:write", "domain": "expense", "legacy": "PERM_EXPENSE_WRITE", "description": "Create and approve operational expenses" },
+    { "key": "payroll:manage", "domain": "payroll", "legacy": "PERM_PAYROLL_MANAGE", "description": "Process staff payroll and issue payslips" },
+    { "key": "finance:parent:read", "domain": "finance", "legacy": "PERM_FINANCE_PARENT_READ", "description": "View child tuition invoices and payment receipts" },
+    { "key": "library:read", "domain": "library", "legacy": "PERM_LIBRARY_READ", "description": "Browse book catalog and circulation status" },
+    { "key": "library:write", "domain": "library", "legacy": "PERM_LIBRARY_WRITE", "description": "Catalog books and manage inventory" },
+    { "key": "library:loan:read", "domain": "library", "legacy": "PERM_LIBRARY_LOAN_READ", "description": "View active and past book loans" },
+    { "key": "library:loan:write", "domain": "library", "legacy": "PERM_LIBRARY_LOAN_WRITE", "description": "Issue and return book loans" },
+    { "key": "library:loan:manage", "domain": "library", "legacy": "PERM_LIBRARY_LOAN_MANAGE", "description": "Manage overdue loans and renewal limits" },
+    { "key": "library:penalty:manage", "domain": "library", "legacy": "PERM_LIBRARY_PENALTY_MANAGE", "description": "Calculate and settle library overdue fines" },
+    { "key": "addon:read", "domain": "addon", "legacy": "PERM_ADDON_READ", "description": "Access enabled add-on modules" },
+    { "key": "addon:parent:read", "domain": "addon", "legacy": "PERM_ADDON_PARENT_READ", "description": "View canteen and transport passes" },
+    { "key": "addon:student:read", "domain": "addon", "legacy": "PERM_ADDON_STUDENT_READ", "description": "View student bus route and meal pass" },
+    { "key": "announcement:read", "domain": "announcement", "legacy": "PERM_ANNOUNCEMENT_READ", "description": "Read school announcements" },
+    { "key": "announcement:write", "domain": "announcement", "legacy": "PERM_ANNOUNCEMENT_WRITE", "description": "Publish school announcements" },
+    { "key": "message:send", "domain": "message", "legacy": "PERM_MESSAGE_SEND", "description": "Send and receive internal direct messages" },
+    { "key": "meeting:manage", "domain": "meeting", "legacy": "PERM_MEETING_MANAGE", "description": "Coordinate parent-teacher appointment slots" },
+    { "key": "meeting:teacher:manage", "domain": "meeting", "legacy": "PERM_MEETING_TEACHER_MANAGE", "description": "Manage teacher availability slots" },
+    { "key": "meeting:parent:manage", "domain": "meeting", "legacy": "PERM_MEETING_PARENT_MANAGE", "description": "Book appointments with teachers" },
+    { "key": "report:read", "domain": "report", "legacy": "PERM_REPORT_READ", "description": "Generate and export academic reports" },
+    { "key": "report:finance:read", "domain": "report", "legacy": "PERM_REPORT_FINANCE_READ", "description": "Generate and export financial reports" }
+  ],
+  "rolesConfig": {
+    "ROLE_SUPER_ADMIN": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "ALL_SCHOOLS",
+        "rule": "Global platform scope across all school tenants.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_SUPER_ADMIN')"
+      },
+      "forbiddenRoutes": ["/grades", "/observations", "/analyses", "/homework"],
+      "sidebar": [
+        { "key": "overview", "labelKey": "nav.overview", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "system:monitor", "badge": null, "status": "EXISTS" },
+        { "key": "schools", "labelKey": "nav.schools", "sectionKey": "nav.sectionPlatform", "icon": "Building2", "route": "/schools", "permission": "school:manage", "badge": { "source": "GET /v1/admin/schools/stats", "property": "activeCount" }, "status": "MISSING_PAGE" },
+        { "key": "users", "labelKey": "nav.users", "sectionKey": "nav.sectionPlatform", "icon": "Users", "route": "/users", "permission": "user:read", "badge": { "source": "GET /v1/users/stats", "property": "pendingApproval" }, "status": "MISSING_PAGE" },
+        { "key": "rolesPermissions", "labelKey": "nav.rolesPermissions", "sectionKey": "nav.sectionPlatform", "icon": "ShieldCheck", "route": "/settings", "permission": "role:manage", "badge": null, "status": "EXISTS" },
+        { "key": "globalSettings", "labelKey": "nav.globalSettings", "sectionKey": "nav.sectionSystem", "icon": "Sliders", "route": "/settings", "permission": "system:config", "badge": null, "status": "EXISTS" },
+        { "key": "auditLogs", "labelKey": "nav.auditLogs", "sectionKey": "nav.sectionSystem", "icon": "ShieldAlert", "route": "/audit-logs", "permission": "audit:read", "badge": { "source": "GET /v1/audit-logs/alerts/count", "property": "highSeverity" }, "status": "EXISTS" },
+        { "key": "systemHealth", "labelKey": "nav.systemHealth", "sectionKey": "nav.sectionSystem", "icon": "Activity", "route": "/system-health", "permission": "system:monitor", "badge": null, "status": "MISSING_PAGE" },
+        { "key": "backups", "labelKey": "nav.backups", "sectionKey": "nav.sectionSystem", "icon": "Database", "route": "/settings", "permission": "system:backup", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "newSchool", "labelKey": "dashboard.actions.newSchool", "icon": "Building2", "route": "/schools/new", "modal": "SchoolProvisionModal", "permission": "school:manage", "variant": "primaryBlue" },
+        { "key": "backupNow", "labelKey": "dashboard.actions.backupNow", "icon": "Database", "route": null, "endpoint": "POST /v1/admin/backups/trigger", "permission": "system:backup", "variant": "outline" },
+        { "key": "securityScan", "labelKey": "dashboard.actions.securityScan", "icon": "ShieldAlert", "route": "/audit-logs", "permission": "audit:read", "variant": "outline" },
+        { "key": "flushCache", "labelKey": "dashboard.actions.flushCache", "icon": "RefreshCw", "route": null, "endpoint": "POST /v1/admin/cache/clear", "permission": "system:config", "variant": "dangerOutline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_active_schools", "titleKey": "dashboard.kpis.activeSchools", "type": "KPI_CARD", "endpoint": "GET /v1/admin/schools/stats", "permission": "school:manage", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/schools", "emptyStateKey": "dashboard.empty.noSchools" },
+        { "widgetKey": "kpi_total_users", "titleKey": "dashboard.kpis.totalUsers", "type": "KPI_CARD", "endpoint": "GET /v1/users/stats", "permission": "user:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/users", "emptyStateKey": "dashboard.empty.noUsers" },
+        { "widgetKey": "kpi_uptime", "titleKey": "dashboard.kpis.systemUptime", "type": "KPI_CARD", "endpoint": "GET /actuator/health", "permission": "system:monitor", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 30, "clickThrough": "/system-health", "emptyStateKey": "dashboard.empty.healthUnavailable" },
+        { "widgetKey": "kpi_storage", "titleKey": "dashboard.kpis.storageUsage", "type": "KPI_CARD", "endpoint": "GET /v1/admin/system/storage", "permission": "system:monitor", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 300, "clickThrough": "/settings", "emptyStateKey": "dashboard.empty.storageEmpty" },
+        { "widgetKey": "chart_activity_wave", "titleKey": "dashboard.widgets.activityWave", "type": "AREA_CHART", "endpoint": "GET /v1/audit-logs/metrics/logins", "permission": "audit:read", "row": 2, "col": 1, "colSpan": 8, "refreshInterval": 120, "clickThrough": "/audit-logs", "emptyStateKey": "dashboard.empty.noActivity" },
+        { "widgetKey": "health_matrix", "titleKey": "dashboard.widgets.servicesHealth", "type": "STATUS_LIST", "endpoint": "GET /actuator/health", "permission": "system:monitor", "row": 2, "col": 9, "colSpan": 4, "refreshInterval": 30, "clickThrough": "/system-health", "emptyStateKey": "dashboard.empty.noServices" },
+        { "widgetKey": "table_audit_alerts", "titleKey": "dashboard.widgets.recentAuditAlerts", "type": "DATA_TABLE", "endpoint": "GET /api/audit-logs?severity=HIGH&size=6", "permission": "audit:read", "row": 3, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/audit-logs", "emptyStateKey": "dashboard.empty.noAlerts" },
+        { "widgetKey": "list_backups", "titleKey": "dashboard.widgets.backupHistory", "type": "DATA_LIST", "endpoint": "GET /v1/admin/backups?size=5", "permission": "system:backup", "row": 3, "col": 8, "colSpan": 5, "refreshInterval": 180, "clickThrough": "/settings", "emptyStateKey": "dashboard.empty.noBackups" }
+      ]
+    },
+    "ROLE_DIRECTOR": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "SCHOOL_WIDE",
+        "rule": "Complete school authority across all staff, students, and finances within the institution.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_DIRECTOR') or hasRole('ROLE_ADMIN')"
+      },
+      "forbiddenRoutes": ["/schools", "/system-health"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "student:read", "badge": null, "status": "EXISTS" },
+        { "key": "students", "labelKey": "nav.students", "sectionKey": "nav.sectionAcademics", "icon": "GraduationCap", "route": "/students", "permission": "student:read", "badge": { "source": "GET /v1/students/count", "property": "total" }, "status": "EXISTS" },
+        { "key": "academicYears", "labelKey": "nav.academicYears", "sectionKey": "nav.sectionAcademics", "icon": "Calendar", "route": "/academic-years", "permission": "academics:manage", "badge": null, "status": "EXISTS" },
+        { "key": "classes", "labelKey": "nav.classes", "sectionKey": "nav.sectionAcademics", "icon": "School", "route": "/classes", "permission": "class:read", "badge": null, "status": "EXISTS" },
+        { "key": "subjects", "labelKey": "nav.subjects", "sectionKey": "nav.sectionAcademics", "icon": "BookOpen", "route": "/subjects", "permission": "subject:read", "badge": null, "status": "EXISTS" },
+        { "key": "timetables", "labelKey": "nav.timetables", "sectionKey": "nav.sectionAcademics", "icon": "Calendar", "route": "/timetables", "permission": "timetable:read", "badge": null, "status": "EXISTS" },
+        { "key": "attendance", "labelKey": "nav.attendance", "sectionKey": "nav.sectionAcademics", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:read", "badge": { "source": "GET /v1/attendance/alerts/count", "property": "activeAlerts" }, "status": "EXISTS" },
+        { "key": "examsGrades", "labelKey": "nav.examsGrades", "sectionKey": "nav.sectionAcademics", "icon": "Award", "route": "/grades", "permission": "grade:read", "badge": null, "status": "EXISTS" },
+        { "key": "reportCards", "labelKey": "nav.reportCards", "sectionKey": "nav.sectionAcademics", "icon": "FileText", "route": "/report-cards", "permission": "reportcard:read", "badge": null, "status": "EXISTS" },
+        { "key": "admissions", "labelKey": "nav.admissions", "sectionKey": "nav.sectionAdminStaff", "icon": "ClipboardCheck", "route": "/admissions", "permission": "application:read", "badge": { "source": "GET /v1/applications/count", "property": "pending" }, "status": "EXISTS" },
+        { "key": "teachers", "labelKey": "nav.teachers", "sectionKey": "nav.sectionAdminStaff", "icon": "UserCheck", "route": "/teachers", "permission": "teacher:read", "badge": null, "status": "EXISTS" },
+        { "key": "staff", "labelKey": "nav.staff", "sectionKey": "nav.sectionAdminStaff", "icon": "Briefcase", "route": "/staff", "permission": "staff:read", "badge": { "source": "GET /api/leave-requests/count", "property": "pending" }, "status": "EXISTS" },
+        { "key": "departments", "labelKey": "nav.departments", "sectionKey": "nav.sectionAdminStaff", "icon": "Building2", "route": "/departments", "permission": "department:read", "badge": null, "status": "EXISTS" },
+        { "key": "finances", "labelKey": "nav.finances", "sectionKey": "nav.sectionFinanceOps", "icon": "CreditCard", "route": "/finances/invoices", "permission": "finance:read", "badge": { "source": "GET /v1/finances/invoices/count", "property": "overdue" }, "status": "EXISTS" },
+        { "key": "reports", "labelKey": "nav.reports", "sectionKey": "nav.sectionFinanceOps", "icon": "BarChart3", "route": "/reports", "permission": "report:read", "badge": null, "status": "EXISTS" },
+        { "key": "aiAnalyses", "labelKey": "nav.aiAnalyses", "sectionKey": "nav.sectionFinanceOps", "icon": "Brain", "route": "/analyses", "permission": "ai:validate", "badge": { "source": "GET /api/ai-analyses/count", "property": "drafts" }, "status": "EXISTS" },
+        { "key": "addons", "labelKey": "nav.addons", "sectionKey": "nav.sectionFinanceOps", "icon": "Sparkles", "route": "/addons", "permission": "addon:read", "badge": null, "status": "EXISTS" },
+        { "key": "settings", "labelKey": "nav.settings", "sectionKey": "nav.sectionFinanceOps", "icon": "Sliders", "route": "/settings", "permission": "school:configure", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "newAdmission", "labelKey": "dashboard.actions.newAdmission", "icon": "UserPlus", "route": "/admissions/new", "modal": "NewCandidateModal", "permission": "application:write", "variant": "primaryBlue" },
+        { "key": "publishBulletins", "labelKey": "dashboard.actions.publishBulletins", "icon": "FileText", "route": "/report-cards", "permission": "reportcard:publish", "variant": "outline" },
+        { "key": "triggerReminders", "labelKey": "dashboard.actions.triggerReminders", "icon": "Send", "route": null, "endpoint": "POST /v1/finances/invoices/trigger-overdue-reminders", "permission": "finance:write", "variant": "outline" },
+        { "key": "schoolSettings", "labelKey": "dashboard.actions.schoolSettings", "icon": "Sliders", "route": "/settings", "permission": "school:configure", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_enrolled_students", "titleKey": "dashboard.kpis.enrolledStudents", "type": "KPI_CARD", "endpoint": "GET /v1/reports/enrollment?summary=true", "permission": "student:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/students", "emptyStateKey": "dashboard.empty.noStudents" },
+        { "widgetKey": "kpi_daily_attendance", "titleKey": "dashboard.kpis.dailyAttendanceRate", "type": "KPI_CARD", "endpoint": "GET /v1/attendance/classes/daily-rate", "permission": "attendance:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.noAttendanceToday" },
+        { "widgetKey": "kpi_tuition_collection", "titleKey": "dashboard.kpis.tuitionCollection", "type": "KPI_CARD", "endpoint": "GET /v1/finances/invoices/accounting-summary", "permission": "finance:read", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/finances/invoices", "emptyStateKey": "dashboard.empty.noFinancials" },
+        { "widgetKey": "kpi_faculty_presence", "titleKey": "dashboard.kpis.facultyPresence", "type": "KPI_CARD", "endpoint": "GET /v1/staff/evaluations/summary", "permission": "staff:read", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 300, "clickThrough": "/teachers", "emptyStateKey": "dashboard.empty.noFaculty" },
+        { "widgetKey": "chart_attendance_trend", "titleKey": "dashboard.widgets.attendanceTrend", "type": "AREA_CHART", "endpoint": "GET /v1/reports/attendance?groupBy=month", "permission": "report:read", "row": 2, "col": 1, "colSpan": 8, "refreshInterval": 300, "clickThrough": "/reports", "emptyStateKey": "dashboard.empty.noAttendanceData" },
+        { "widgetKey": "chart_academic_distribution", "titleKey": "dashboard.widgets.academicDistribution", "type": "DONUT_CHART", "endpoint": "GET /v1/reports/academic?summary=true", "permission": "report:read", "row": 2, "col": 9, "colSpan": 4, "refreshInterval": 300, "clickThrough": "/grades", "emptyStateKey": "dashboard.empty.noExamData" },
+        { "widgetKey": "table_pending_admissions", "titleKey": "dashboard.widgets.pendingAdmissions", "type": "DATA_TABLE", "endpoint": "GET /v1/applications?status=PENDING&size=5", "permission": "application:write", "row": 3, "col": 1, "colSpan": 6, "refreshInterval": 60, "clickThrough": "/admissions", "emptyStateKey": "dashboard.empty.noPendingApplications" },
+        { "widgetKey": "table_admin_approvals", "titleKey": "dashboard.widgets.administrativeApprovals", "type": "DATA_TABLE", "endpoint": "GET /api/leave-requests?status=PENDING&size=5", "permission": "staff:manage", "row": 3, "col": 7, "colSpan": 6, "refreshInterval": 60, "clickThrough": "/staff", "emptyStateKey": "dashboard.empty.noPendingApprovals" }
+      ]
+    },
+    "ROLE_SECRETARY": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "SCHOOL_WIDE_STUDENT_DATA",
+        "rule": "Full student dossier registration, document compliance, and admission records. No financial or grade editing access.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_SECRETARY') or hasRole('ROLE_STAFF')"
+      },
+      "forbiddenRoutes": ["/grades", "/finances/invoices", "/settings", "/audit-logs"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "application:read", "badge": null, "status": "EXISTS" },
+        { "key": "admissions", "labelKey": "nav.admissions", "sectionKey": "nav.sectionRegistrar", "icon": "ClipboardCheck", "route": "/admissions", "permission": "application:read", "badge": { "source": "GET /v1/applications/count", "property": "pending" }, "status": "EXISTS" },
+        { "key": "students", "labelKey": "nav.students", "sectionKey": "nav.sectionRegistrar", "icon": "GraduationCap", "route": "/students", "permission": "student:read", "badge": null, "status": "EXISTS" },
+        { "key": "guardians", "labelKey": "nav.guardians", "sectionKey": "nav.sectionRegistrar", "icon": "Users", "route": "/guardians", "permission": "guardian:read", "badge": null, "status": "EXISTS" },
+        { "key": "documentsVerify", "labelKey": "nav.documentsVerify", "sectionKey": "nav.sectionRegistrar", "icon": "FileCheck", "route": "/students", "permission": "document:verify", "badge": { "source": "GET /v1/documents/checklist/count", "property": "unverified" }, "status": "EXISTS" },
+        { "key": "attendanceJustif", "labelKey": "nav.attendanceJustif", "sectionKey": "nav.sectionScolarite", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:justify", "badge": { "source": "GET /v1/attendance/justifications/count", "property": "pending" }, "status": "EXISTS" },
+        { "key": "parentMeetings", "labelKey": "nav.parentMeetings", "sectionKey": "nav.sectionScolarite", "icon": "Calendar", "route": "/events", "permission": "meeting:manage", "badge": { "source": "GET /v1/meetings/bookings/count", "property": "today" }, "status": "EXISTS" },
+        { "key": "announcements", "labelKey": "nav.announcements", "sectionKey": "nav.sectionCommunication", "icon": "Megaphone", "route": "/announcements", "permission": "announcement:write", "badge": null, "status": "EXISTS" },
+        { "key": "messages", "labelKey": "nav.messages", "sectionKey": "nav.sectionCommunication", "icon": "Mail", "route": "/messages", "permission": "message:send", "badge": { "source": "GET /api/messages/unread-count", "property": "unread" }, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "registerCandidate", "labelKey": "dashboard.actions.registerCandidate", "icon": "UserPlus", "route": "/admissions/new", "modal": "NewCandidateModal", "permission": "application:write", "variant": "primaryBlue" },
+        { "key": "schoolCertificate", "labelKey": "dashboard.actions.schoolCertificate", "icon": "FileText", "route": "/students", "modal": "StudentCertificateModal", "permission": "certificate:generate", "variant": "outline" },
+        { "key": "printIdCards", "labelKey": "dashboard.actions.printIdCards", "icon": "CreditCard", "route": "/students", "modal": "StudentIdCardBatchModal", "permission": "certificate:generate", "variant": "outline" },
+        { "key": "postAnnouncement", "labelKey": "dashboard.actions.postAnnouncement", "icon": "Megaphone", "route": "/announcements/new", "modal": "NewAnnouncementModal", "permission": "announcement:write", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_pending_apps", "titleKey": "dashboard.kpis.pendingApplications", "type": "KPI_CARD", "endpoint": "GET /v1/applications?status=PENDING", "permission": "application:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/admissions", "emptyStateKey": "dashboard.empty.noPendingApplications" },
+        { "widgetKey": "kpi_docs_verify", "titleKey": "dashboard.kpis.docsToVerify", "type": "KPI_CARD", "endpoint": "GET /v1/documents/checklist?status=PENDING", "permission": "document:verify", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/students", "emptyStateKey": "dashboard.empty.noDocsToVerify" },
+        { "widgetKey": "kpi_justifications_queue", "titleKey": "dashboard.kpis.justificationsQueue", "type": "KPI_CARD", "endpoint": "GET /v1/attendance/justifications?status=PENDING", "permission": "attendance:justify", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.noJustificationsQueue" },
+        { "widgetKey": "kpi_interviews_today", "titleKey": "dashboard.kpis.interviewsToday", "type": "KPI_CARD", "endpoint": "GET /v1/meetings/bookings?date=today", "permission": "meeting:manage", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/events", "emptyStateKey": "dashboard.empty.noInterviewsToday" },
+        { "widgetKey": "table_admissions_pipeline", "titleKey": "dashboard.widgets.admissionsPipeline", "type": "DATA_TABLE", "endpoint": "GET /v1/applications?size=6", "permission": "application:read", "row": 2, "col": 1, "colSpan": 8, "refreshInterval": 60, "clickThrough": "/admissions", "emptyStateKey": "dashboard.empty.noPipeline" },
+        { "widgetKey": "checklist_missing_docs", "titleKey": "dashboard.widgets.missingDocsChecklist", "type": "PROGRESS_LIST", "endpoint": "GET /v1/documents/checklist", "permission": "document:verify", "row": 2, "col": 9, "colSpan": 4, "refreshInterval": 120, "clickThrough": "/students", "emptyStateKey": "dashboard.empty.allDocsComplete" },
+        { "widgetKey": "table_absence_justifications", "titleKey": "dashboard.widgets.absenceJustificationsReview", "type": "DATA_TABLE", "endpoint": "GET /v1/attendance/justifications?status=PENDING&size=5", "permission": "attendance:justify", "row": 3, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.noJustificationsPending" },
+        { "widgetKey": "list_today_appointments", "titleKey": "dashboard.widgets.parentAppointmentsToday", "type": "APPOINTMENT_LIST", "endpoint": "GET /v1/meetings/bookings?date=today", "permission": "meeting:manage", "row": 3, "col": 8, "colSpan": 5, "refreshInterval": 60, "clickThrough": "/events", "emptyStateKey": "dashboard.empty.noAppointmentsToday" }
+      ]
+    },
+    "ROLE_TEACHER": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "OWN_CLASSES_AND_STUDENTS",
+        "rule": "Access strictly limited to assigned classes, subjects, and enrolled students.",
+        "backendEnforcement": "UserOrganizationAccessPolicy checking ClassSubjectTeacherRepository"
+      },
+      "forbiddenRoutes": ["/finances", "/admissions", "/settings", "/audit-logs"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "class:teacher:read", "badge": null, "status": "EXISTS" },
+        { "key": "myTimetable", "labelKey": "nav.myTimetable", "sectionKey": "nav.sectionTeaching", "icon": "Calendar", "route": "/timetables", "permission": "timetable:teacher:read", "badge": null, "status": "EXISTS" },
+        { "key": "myClasses", "labelKey": "nav.myClasses", "sectionKey": "nav.sectionTeaching", "icon": "School", "route": "/classes", "permission": "class:teacher:read", "badge": null, "status": "EXISTS" },
+        { "key": "rollCall", "labelKey": "nav.rollCall", "sectionKey": "nav.sectionTeaching", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:write", "badge": { "source": "GET /v1/attendance/classes/teacher-today/count", "property": "pendingRollCalls" }, "status": "EXISTS" },
+        { "key": "examsGrades", "labelKey": "nav.examsGrades", "sectionKey": "nav.sectionTeaching", "icon": "Award", "route": "/grades", "permission": "grade:write", "badge": { "source": "GET /v1/exams/count?unlocked=true", "property": "unlockedCount" }, "status": "EXISTS" },
+        { "key": "homework", "labelKey": "nav.homework", "sectionKey": "nav.sectionTeaching", "icon": "BookOpen", "route": "/homework", "permission": "homework:write", "badge": { "source": "GET /v1/homework/submissions/count?graded=false", "property": "ungraded" }, "status": "EXISTS" },
+        { "key": "coursesResources", "labelKey": "nav.coursesResources", "sectionKey": "nav.sectionTeaching", "icon": "FileText", "route": "/homework", "permission": "course:manage", "badge": null, "status": "EXISTS" },
+        { "key": "observations", "labelKey": "nav.observations", "sectionKey": "nav.sectionPedagogy", "icon": "Eye", "route": "/observations", "permission": "observation:write", "badge": null, "status": "EXISTS" },
+        { "key": "aiAnalyses", "labelKey": "nav.aiAnalyses", "sectionKey": "nav.sectionPedagogy", "icon": "Brain", "route": "/analyses", "permission": "ai:validate", "badge": { "source": "GET /api/ai-analyses/count?status=DRAFT", "property": "drafts" }, "status": "EXISTS" },
+        { "key": "parentMeetings", "labelKey": "nav.parentMeetings", "sectionKey": "nav.sectionCommunication", "icon": "Calendar", "route": "/events", "permission": "meeting:teacher:manage", "badge": { "source": "GET /v1/meetings/bookings/count?teacherId=me", "property": "upcoming" }, "status": "EXISTS" },
+        { "key": "messages", "labelKey": "nav.messages", "sectionKey": "nav.sectionCommunication", "icon": "Mail", "route": "/messages", "permission": "message:send", "badge": { "source": "GET /api/messages/unread-count", "property": "unread" }, "status": "EXISTS" },
+        { "key": "announcements", "labelKey": "nav.announcements", "sectionKey": "nav.sectionCommunication", "icon": "Megaphone", "route": "/announcements", "permission": "announcement:read", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "takeAttendance", "labelKey": "dashboard.actions.takeAttendance", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:write", "variant": "primaryBlue" },
+        { "key": "createExam", "labelKey": "dashboard.actions.createExam", "icon": "Award", "route": "/exams/new", "modal": "NewExamModal", "permission": "grade:write", "variant": "outline" },
+        { "key": "assignHomework", "labelKey": "dashboard.actions.assignHomework", "icon": "BookOpen", "route": "/homework/new", "modal": "NewHomeworkModal", "permission": "homework:write", "variant": "outline" },
+        { "key": "writeObservation", "labelKey": "dashboard.actions.writeObservation", "icon": "Eye", "route": "/observations/new", "modal": "NewObservationModal", "permission": "observation:write", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_today_classes", "titleKey": "dashboard.kpis.todayClasses", "type": "KPI_CARD", "endpoint": "GET /v1/timetables/calendar?date=today", "permission": "timetable:teacher:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/timetables", "emptyStateKey": "dashboard.empty.noClassesToday" },
+        { "widgetKey": "kpi_rollcall_status", "titleKey": "dashboard.kpis.rollCallStatus", "type": "KPI_CARD", "endpoint": "GET /v1/attendance/classes/teacher-today", "permission": "attendance:write", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 30, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.rollCallDone" },
+        { "widgetKey": "kpi_homework_grading", "titleKey": "dashboard.kpis.homeworkToGrade", "type": "KPI_CARD", "endpoint": "GET /v1/homework/submissions?graded=false", "permission": "homework:write", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/homework", "emptyStateKey": "dashboard.empty.allGraded" },
+        { "widgetKey": "kpi_ai_validations", "titleKey": "dashboard.kpis.aiValidations", "type": "KPI_CARD", "endpoint": "GET /api/ai-analyses?status=DRAFT", "permission": "ai:validate", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 300, "clickThrough": "/analyses", "emptyStateKey": "dashboard.empty.noAiDrafts" },
+        { "widgetKey": "schedule_live_slots", "titleKey": "dashboard.widgets.scheduleAndRollCall", "type": "SCHEDULE_WIDGET", "endpoint": "GET /v1/timetables/calendar?date=today", "permission": "timetable:teacher:read", "row": 2, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/timetables", "emptyStateKey": "dashboard.empty.noSlotsToday" },
+        { "widgetKey": "card_quick_grades", "titleKey": "dashboard.widgets.quickGradeEntry", "type": "EXAM_LIST", "endpoint": "GET /v1/exams?myExams=true&size=5", "permission": "grade:write", "row": 2, "col": 8, "colSpan": 5, "refreshInterval": 120, "clickThrough": "/grades", "emptyStateKey": "dashboard.empty.noActiveExams" },
+        { "widgetKey": "list_student_observations", "titleKey": "dashboard.widgets.observationsFollowup", "type": "OBSERVATION_FEED", "endpoint": "GET /api/observations?myStudents=true&size=5", "permission": "observation:read", "row": 3, "col": 1, "colSpan": 6, "refreshInterval": 180, "clickThrough": "/observations", "emptyStateKey": "dashboard.empty.noObservations" },
+        { "widgetKey": "list_parent_appointments", "titleKey": "dashboard.widgets.upcomingParentMeetings", "type": "APPOINTMENT_LIST", "endpoint": "GET /v1/meetings/bookings?teacherId=me&size=4", "permission": "meeting:teacher:manage", "row": 3, "col": 7, "colSpan": 6, "refreshInterval": 120, "clickThrough": "/events", "emptyStateKey": "dashboard.empty.noMeetingsBooked" }
+      ]
+    },
+    "ROLE_ACCOUNTANT": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "FINANCIAL_LEDGER_ONLY",
+        "rule": "Full institutional financial data access. No academic grade or pedagogical record access.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_ACCOUNTANT') or hasRole('ROLE_ADMIN')"
+      },
+      "forbiddenRoutes": ["/grades", "/observations", "/analyses", "/homework", "/settings"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "finance:read", "badge": null, "status": "EXISTS" },
+        { "key": "invoices", "labelKey": "nav.invoices", "sectionKey": "nav.sectionBilling", "icon": "CreditCard", "route": "/finances/invoices", "permission": "invoice:read", "badge": { "source": "GET /v1/finances/invoices/count?status=UNPAID", "property": "unpaid" }, "status": "EXISTS" },
+        { "key": "payments", "labelKey": "nav.payments", "sectionKey": "nav.sectionBilling", "icon": "Receipt", "route": "/finances/payments", "permission": "payment:read", "badge": null, "status": "EXISTS" },
+        { "key": "feeTypesDiscounts", "labelKey": "nav.feeTypesDiscounts", "sectionKey": "nav.sectionBilling", "icon": "Percent", "route": "/finances/fee-types", "permission": "fee:manage", "badge": null, "status": "EXISTS" },
+        { "key": "overdueReminders", "labelKey": "nav.overdueReminders", "sectionKey": "nav.sectionCollection", "icon": "AlertCircle", "route": "/finances/overdue", "permission": "invoice:manage", "badge": { "source": "GET /v1/finances/invoices/count?status=OVERDUE", "property": "overdue" }, "status": "MISSING_PAGE" },
+        { "key": "expenses", "labelKey": "nav.expenses", "sectionKey": "nav.sectionExpenses", "icon": "Coins", "route": "/finances/expenses", "permission": "expense:read", "badge": null, "status": "EXISTS" },
+        { "key": "payroll", "labelKey": "nav.payroll", "sectionKey": "nav.sectionExpenses", "icon": "Briefcase", "route": "/staff", "permission": "payroll:manage", "badge": null, "status": "EXISTS" },
+        { "key": "financialReports", "labelKey": "nav.financialReports", "sectionKey": "nav.sectionReports", "icon": "BarChart3", "route": "/reports", "permission": "report:finance:read", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "recordPayment", "labelKey": "dashboard.actions.recordPayment", "icon": "Receipt", "route": "/finances/payments/new", "modal": "RecordPaymentModal", "permission": "payment:write", "variant": "primaryBlue" },
+        { "key": "generateInvoices", "labelKey": "dashboard.actions.generateInvoices", "icon": "CreditCard", "route": "/finances/invoices/generate", "modal": "GenerateInvoicesModal", "permission": "invoice:write", "variant": "outline" },
+        { "key": "recordExpense", "labelKey": "dashboard.actions.recordExpense", "icon": "Coins", "route": "/finances/expenses/new", "modal": "RecordExpenseModal", "permission": "expense:write", "variant": "outline" },
+        { "key": "sendReminders", "labelKey": "dashboard.actions.sendReminders", "icon": "AlertCircle", "route": null, "endpoint": "POST /v1/finances/invoices/trigger-overdue-reminders", "permission": "invoice:manage", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_revenue_mtd", "titleKey": "dashboard.kpis.revenueMtd", "type": "KPI_CARD", "endpoint": "GET /v1/finances/invoices/accounting-summary", "permission": "finance:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/finances/invoices", "emptyStateKey": "dashboard.empty.noRevenue" },
+        { "widgetKey": "kpi_unpaid_balance", "titleKey": "dashboard.kpis.unpaidBalance", "type": "KPI_CARD", "endpoint": "GET /v1/finances/invoices/accounting-summary", "permission": "invoice:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/finances/invoices", "emptyStateKey": "dashboard.empty.noUnpaid" },
+        { "widgetKey": "kpi_overdue_invoices", "titleKey": "dashboard.kpis.overdueInvoices", "type": "KPI_CARD", "endpoint": "GET /v1/finances/invoices/accounting-summary", "permission": "invoice:read", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/finances/overdue", "emptyStateKey": "dashboard.empty.noOverdue" },
+        { "widgetKey": "kpi_expenses_mtd", "titleKey": "dashboard.kpis.expensesMtd", "type": "KPI_CARD", "endpoint": "GET /v1/finances/expenses/summary", "permission": "expense:read", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 180, "clickThrough": "/finances/expenses", "emptyStateKey": "dashboard.empty.noExpenses" },
+        { "widgetKey": "chart_cash_flow", "titleKey": "dashboard.widgets.cashFlowTrends", "type": "BAR_LINE_CHART", "endpoint": "GET /v1/reports/finance?groupBy=month", "permission": "report:finance:read", "row": 2, "col": 1, "colSpan": 8, "refreshInterval": 300, "clickThrough": "/reports", "emptyStateKey": "dashboard.empty.noCashFlowData" },
+        { "widgetKey": "chart_payment_methods", "titleKey": "dashboard.widgets.paymentMethodsDistribution", "type": "DONUT_CHART", "endpoint": "GET /v1/finances/payments/stats", "permission": "payment:read", "row": 2, "col": 9, "colSpan": 4, "refreshInterval": 300, "clickThrough": "/finances/payments", "emptyStateKey": "dashboard.empty.noPaymentData" },
+        { "widgetKey": "table_overdue_queue", "titleKey": "dashboard.widgets.overdueAccountsQueue", "type": "DATA_TABLE", "endpoint": "GET /v1/finances/invoices?status=OVERDUE&size=5", "permission": "invoice:manage", "row": 3, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/finances/invoices", "emptyStateKey": "dashboard.empty.noOverdueAccounts" },
+        { "widgetKey": "table_recent_payments", "titleKey": "dashboard.widgets.recentPaymentsReceipts", "type": "DATA_TABLE", "endpoint": "GET /v1/finances/payments?size=5", "permission": "payment:read", "row": 3, "col": 8, "colSpan": 5, "refreshInterval": 60, "clickThrough": "/finances/payments", "emptyStateKey": "dashboard.empty.noRecentPayments" }
+      ]
+    },
+    "ROLE_LIBRARIAN": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "LIBRARY_MODULE_ONLY",
+        "rule": "Library catalog and borrowing records only. Guarded by app.features.library.enabled feature flag.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_LIBRARIAN') or hasRole('ROLE_ADMIN')"
+      },
+      "forbiddenRoutes": ["/grades", "/finances", "/admissions", "/settings"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "library:read", "badge": null, "status": "EXISTS" },
+        { "key": "catalog", "labelKey": "nav.catalog", "sectionKey": "nav.sectionLibrary", "icon": "BookOpen", "route": "/addons", "permission": "library:read", "badge": { "source": "GET /v1/library/books/count", "property": "total" }, "status": "EXISTS" },
+        { "key": "activeLoans", "labelKey": "nav.activeLoans", "sectionKey": "nav.sectionLibrary", "icon": "BookMarked", "route": "/addons", "permission": "library:loan:read", "badge": { "source": "GET /v1/library/loans/count?status=ACTIVE", "property": "active" }, "status": "EXISTS" },
+        { "key": "returnsDue", "labelKey": "nav.returnsDue", "sectionKey": "nav.sectionLibrary", "icon": "CalendarClock", "route": "/addons", "permission": "library:loan:manage", "badge": { "source": "GET /v1/library/loans/count?status=OVERDUE", "property": "overdue" }, "status": "EXISTS" },
+        { "key": "penalties", "labelKey": "nav.penalties", "sectionKey": "nav.sectionLibrary", "icon": "AlertCircle", "route": "/addons", "permission": "library:penalty:manage", "badge": { "source": "GET /v1/library/penalties/count?status=UNPAID", "property": "unpaid" }, "status": "EXISTS" },
+        { "key": "members", "labelKey": "nav.members", "sectionKey": "nav.sectionLibrary", "icon": "Users", "route": "/addons", "permission": "library:read", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "issueLoan", "labelKey": "dashboard.actions.issueLoan", "icon": "BookMarked", "route": "/addons", "modal": "IssueLoanModal", "permission": "library:loan:write", "variant": "primaryBlue" },
+        { "key": "returnBook", "labelKey": "dashboard.actions.returnBook", "icon": "CheckCircle2", "route": "/addons", "modal": "ReturnBookModal", "permission": "library:loan:write", "variant": "outline" },
+        { "key": "addBook", "labelKey": "dashboard.actions.addBook", "icon": "Plus", "route": "/addons", "modal": "NewBookModal", "permission": "library:write", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_catalog_count", "titleKey": "dashboard.kpis.catalogCount", "type": "KPI_CARD", "endpoint": "GET /v1/library/books/stats", "permission": "library:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noBooks" },
+        { "widgetKey": "kpi_active_loans", "titleKey": "dashboard.kpis.activeLoansCount", "type": "KPI_CARD", "endpoint": "GET /v1/library/loans?status=ACTIVE", "permission": "library:loan:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noActiveLoans" },
+        { "widgetKey": "kpi_overdue_loans", "titleKey": "dashboard.kpis.overdueLoansCount", "type": "KPI_CARD", "endpoint": "GET /v1/library/loans?status=OVERDUE", "permission": "library:loan:manage", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noOverdueLoans" },
+        { "widgetKey": "kpi_penalties_due", "titleKey": "dashboard.kpis.penaltiesDue", "type": "KPI_CARD", "endpoint": "GET /v1/library/penalties/summary", "permission": "library:penalty:manage", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 180, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noPenalties" },
+        { "widgetKey": "chart_loan_trends", "titleKey": "dashboard.widgets.loanReturnTrends", "type": "BAR_CHART", "endpoint": "GET /v1/library/loans/trends", "permission": "library:read", "row": 2, "col": 1, "colSpan": 8, "refreshInterval": 300, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noLoanTrends" },
+        { "widgetKey": "list_popular_books", "titleKey": "dashboard.widgets.popularBooks", "type": "RANKED_LIST", "endpoint": "GET /v1/library/books/popular", "permission": "library:read", "row": 2, "col": 9, "colSpan": 4, "refreshInterval": 300, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noPopularBooks" },
+        { "widgetKey": "table_overdue_loans_desk", "titleKey": "dashboard.widgets.overdueLoansDesk", "type": "DATA_TABLE", "endpoint": "GET /v1/library/loans?status=OVERDUE&size=5", "permission": "library:loan:manage", "row": 3, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noOverdueLoansDesk" },
+        { "widgetKey": "table_recent_returns", "titleKey": "dashboard.widgets.recentBookReturns", "type": "DATA_TABLE", "endpoint": "GET /v1/library/loans?status=RETURNED&size=5", "permission": "library:read", "row": 3, "col": 8, "colSpan": 5, "refreshInterval": 60, "clickThrough": "/addons", "emptyStateKey": "dashboard.empty.noRecentReturns" }
+      ]
+    },
+    "ROLE_PARENT": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "OWN_CHILDREN_ONLY",
+        "rule": "Strictly limited to authenticated guardian's legally linked children.",
+        "backendEnforcement": "GET /api/v1/guardians/me/students and SpEL @accessControlService.canAccessStudent(studentId)"
+      },
+      "forbiddenRoutes": ["/students", "/teachers", "/staff", "/finances", "/settings", "/audit-logs"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "grade:parent:read", "badge": null, "status": "EXISTS" },
+        { "key": "gradesReportCards", "labelKey": "nav.gradesReportCards", "sectionKey": "nav.sectionMyChildren", "icon": "Award", "route": "/report-cards", "permission": "grade:parent:read", "badge": null, "status": "EXISTS" },
+        { "key": "attendanceJustif", "labelKey": "nav.attendanceJustif", "sectionKey": "nav.sectionMyChildren", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:parent:read", "badge": { "source": "GET /v1/attendance/students/{childId}/unexcused-count", "property": "unexcused" }, "status": "EXISTS" },
+        { "key": "timetable", "labelKey": "nav.timetable", "sectionKey": "nav.sectionMyChildren", "icon": "Calendar", "route": "/timetables", "permission": "timetable:parent:read", "badge": null, "status": "EXISTS" },
+        { "key": "homework", "labelKey": "nav.homework", "sectionKey": "nav.sectionMyChildren", "icon": "BookOpen", "route": "/homework", "permission": "homework:parent:read", "badge": { "source": "GET /v1/homework/students/{childId}/due-count", "property": "dueThisWeek" }, "status": "EXISTS" },
+        { "key": "observationsAi", "labelKey": "nav.observationsAi", "sectionKey": "nav.sectionMyChildren", "icon": "Brain", "route": "/analyses", "permission": "ai:parent:read", "badge": null, "status": "EXISTS" },
+        { "key": "feesInvoices", "labelKey": "nav.feesInvoices", "sectionKey": "nav.sectionFinances", "icon": "CreditCard", "route": "/finances/invoices", "permission": "finance:parent:read", "badge": { "source": "GET /v1/finances/invoices/students/{childId}/unpaid-count", "property": "unpaid" }, "status": "EXISTS" },
+        { "key": "messages", "labelKey": "nav.messages", "sectionKey": "nav.sectionCommunication", "icon": "Mail", "route": "/messages", "permission": "message:send", "badge": { "source": "GET /api/messages/unread-count", "property": "unread" }, "status": "EXISTS" },
+        { "key": "parentMeetings", "labelKey": "nav.parentMeetings", "sectionKey": "nav.sectionCommunication", "icon": "Calendar", "route": "/events", "permission": "meeting:parent:manage", "badge": { "source": "GET /v1/meetings/bookings/count?guardianId=me", "property": "confirmed" }, "status": "EXISTS" },
+        { "key": "announcements", "labelKey": "nav.announcements", "sectionKey": "nav.sectionCommunication", "icon": "Megaphone", "route": "/announcements", "permission": "announcement:read", "badge": null, "status": "EXISTS" },
+        { "key": "canteenTransport", "labelKey": "nav.canteenTransport", "sectionKey": "nav.sectionServices", "icon": "Sparkles", "route": "/addons", "permission": "addon:parent:read", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "submitJustification", "labelKey": "dashboard.actions.submitJustification", "icon": "FileCheck", "route": "/attendance/justify", "modal": "ParentAbsenceJustificationModal", "permission": "attendance:parent:write", "variant": "primaryBlue" },
+        { "key": "bookTeacherMeeting", "labelKey": "dashboard.actions.bookTeacherMeeting", "icon": "Calendar", "route": "/events", "modal": "BookMeetingModal", "permission": "meeting:parent:manage", "variant": "outline" },
+        { "key": "downloadReportCard", "labelKey": "dashboard.actions.downloadReportCard", "icon": "FileText", "route": null, "endpoint": "GET /v1/report-cards/students/{childId}/pdf", "permission": "reportcard:parent:read", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_child_average", "titleKey": "dashboard.kpis.childGeneralAverage", "type": "KPI_CARD", "endpoint": "GET /v1/report-cards?studentId={childId}", "permission": "grade:parent:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/report-cards", "emptyStateKey": "dashboard.empty.noGradesYet" },
+        { "widgetKey": "kpi_child_attendance", "titleKey": "dashboard.kpis.childAttendanceRate", "type": "KPI_CARD", "endpoint": "GET /v1/attendance/students/{childId}/stats", "permission": "attendance:parent:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 60, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.noAbsenceRecorded" },
+        { "widgetKey": "kpi_child_homework", "titleKey": "dashboard.kpis.childHomeworkDue", "type": "KPI_CARD", "endpoint": "GET /v1/homework?studentId={childId}&status=PENDING", "permission": "homework:parent:read", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/homework", "emptyStateKey": "dashboard.empty.noHomeworkDue" },
+        { "widgetKey": "kpi_fee_balance", "titleKey": "dashboard.kpis.feeBalanceDue", "type": "KPI_CARD", "endpoint": "GET /v1/finances/invoices/students/{childId}", "permission": "finance:parent:read", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 300, "clickThrough": "/finances/invoices", "emptyStateKey": "dashboard.empty.allFeesPaid" },
+        { "widgetKey": "card_child_timetable", "titleKey": "dashboard.widgets.childScheduleToday", "type": "SCHEDULE_WIDGET", "endpoint": "GET /v1/timetables/calendar?studentId={childId}&date=today", "permission": "timetable:parent:read", "row": 2, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/timetables", "emptyStateKey": "dashboard.empty.noClassToday" },
+        { "widgetKey": "card_recent_grades", "titleKey": "dashboard.widgets.recentGradesPosted", "type": "GRADE_LIST", "endpoint": "GET /v1/exams?studentId={childId}&size=5", "permission": "grade:parent:read", "row": 2, "col": 8, "colSpan": 5, "refreshInterval": 120, "clickThrough": "/report-cards", "emptyStateKey": "dashboard.empty.noRecentGrades" },
+        { "widgetKey": "card_ai_strategy", "titleKey": "dashboard.widgets.publishedAiStrategy", "type": "STRATEGY_CARD", "endpoint": "GET /api/learning-strategies?studentId={childId}&published=true", "permission": "ai:parent:read", "row": 3, "col": 1, "colSpan": 6, "refreshInterval": 300, "clickThrough": "/analyses", "emptyStateKey": "dashboard.empty.noStrategyPublished" },
+        { "widgetKey": "list_parent_meetings", "titleKey": "dashboard.widgets.confirmedMeetings", "type": "APPOINTMENT_LIST", "endpoint": "GET /v1/meetings/bookings?guardianId=me&size=3", "permission": "meeting:parent:manage", "row": 3, "col": 7, "colSpan": 6, "refreshInterval": 120, "clickThrough": "/events", "emptyStateKey": "dashboard.empty.noMeetingsBooked" }
+      ]
+    },
+    "ROLE_STUDENT": {
+      "defaultLanding": "/dashboard",
+      "dataScope": {
+        "type": "SELF_ONLY",
+        "rule": "Access strictly restricted to authenticated student's own enrolled profile.",
+        "backendEnforcement": "SecurityConfig hasRole('ROLE_STUDENT') and SpEL checking principal ID"
+      },
+      "forbiddenRoutes": ["/students", "/teachers", "/staff", "/finances", "/settings", "/audit-logs", "/admissions"],
+      "sidebar": [
+        { "key": "dashboard", "labelKey": "nav.dashboard", "sectionKey": "nav.sectionMain", "icon": "LayoutDashboard", "route": "/dashboard", "permission": "grade:student:read", "badge": null, "status": "EXISTS" },
+        { "key": "myTimetable", "labelKey": "nav.myTimetable", "sectionKey": "nav.sectionAcademics", "icon": "Calendar", "route": "/timetables", "permission": "timetable:student:read", "badge": null, "status": "EXISTS" },
+        { "key": "gradesReportCards", "labelKey": "nav.gradesReportCards", "sectionKey": "nav.sectionAcademics", "icon": "Award", "route": "/report-cards", "permission": "grade:student:read", "badge": null, "status": "EXISTS" },
+        { "key": "homework", "labelKey": "nav.homework", "sectionKey": "nav.sectionAcademics", "icon": "BookOpen", "route": "/homework", "permission": "homework:student:read", "badge": { "source": "GET /v1/homework/students/me/submissions/count?status=PENDING", "property": "pending" }, "status": "EXISTS" },
+        { "key": "coursesResources", "labelKey": "nav.coursesResources", "sectionKey": "nav.sectionAcademics", "icon": "FileText", "route": "/homework", "permission": "course:read", "badge": null, "status": "EXISTS" },
+        { "key": "attendance", "labelKey": "nav.attendance", "sectionKey": "nav.sectionAcademics", "icon": "CalendarCheck", "route": "/attendance", "permission": "attendance:student:read", "badge": null, "status": "EXISTS" },
+        { "key": "learningStrategy", "labelKey": "nav.learningStrategy", "sectionKey": "nav.sectionLearning", "icon": "Compass", "route": "/strategies", "permission": "strategy:student:read", "badge": null, "status": "EXISTS" },
+        { "key": "announcements", "labelKey": "nav.announcements", "sectionKey": "nav.sectionCommunication", "icon": "Megaphone", "route": "/announcements", "permission": "announcement:read", "badge": null, "status": "EXISTS" },
+        { "key": "messages", "labelKey": "nav.messages", "sectionKey": "nav.sectionCommunication", "icon": "Mail", "route": "/messages", "permission": "message:send", "badge": { "source": "GET /api/messages/unread-count", "property": "unread" }, "status": "EXISTS" },
+        { "key": "canteenTransport", "labelKey": "nav.canteenTransport", "sectionKey": "nav.sectionServices", "icon": "Sparkles", "route": "/addons", "permission": "addon:student:read", "badge": null, "status": "EXISTS" }
+      ],
+      "quickActions": [
+        { "key": "submitHomework", "labelKey": "dashboard.actions.submitHomework", "icon": "Upload", "route": "/homework/submit", "modal": "SubmitHomeworkModal", "permission": "homework:student:write", "variant": "primaryBlue" },
+        { "key": "viewTimetable", "labelKey": "dashboard.actions.viewTimetable", "icon": "Calendar", "route": "/timetables", "permission": "timetable:student:read", "variant": "outline" },
+        { "key": "downloadReportCard", "labelKey": "dashboard.actions.downloadReportCard", "icon": "FileText", "route": null, "endpoint": "GET /v1/report-cards/students/me/pdf", "permission": "reportcard:student:read", "variant": "outline" }
+      ],
+      "dashboard": [
+        { "widgetKey": "kpi_term_average", "titleKey": "dashboard.kpis.termAverage", "type": "KPI_CARD", "endpoint": "GET /v1/report-cards?studentId=me", "permission": "grade:student:read", "row": 1, "col": 1, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/report-cards", "emptyStateKey": "dashboard.empty.noGradesYet" },
+        { "widgetKey": "kpi_homework_pending", "titleKey": "dashboard.kpis.homeworkToSubmit", "type": "KPI_CARD", "endpoint": "GET /v1/homework/students/me/submissions", "permission": "homework:student:read", "row": 1, "col": 4, "colSpan": 3, "refreshInterval": 120, "clickThrough": "/homework", "emptyStateKey": "dashboard.empty.noHomeworkDue" },
+        { "widgetKey": "kpi_upcoming_tests", "titleKey": "dashboard.kpis.upcomingExams", "type": "KPI_CARD", "endpoint": "GET /v1/exams?myExams=true&size=5", "permission": "grade:student:read", "row": 1, "col": 7, "colSpan": 3, "refreshInterval": 180, "clickThrough": "/report-cards", "emptyStateKey": "dashboard.empty.noUpcomingExams" },
+        { "widgetKey": "kpi_student_attendance", "titleKey": "dashboard.kpis.studentAttendanceRate", "type": "KPI_CARD", "endpoint": "GET /v1/attendance/students/me/stats", "permission": "attendance:student:read", "row": 1, "col": 10, "colSpan": 3, "refreshInterval": 300, "clickThrough": "/attendance", "emptyStateKey": "dashboard.empty.noAttendanceRecorded" },
+        { "widgetKey": "card_student_schedule", "titleKey": "dashboard.widgets.myScheduleToday", "type": "SCHEDULE_WIDGET", "endpoint": "GET /v1/timetables/calendar?studentId=me&date=today", "permission": "timetable:student:read", "row": 2, "col": 1, "colSpan": 7, "refreshInterval": 60, "clickThrough": "/timetables", "emptyStateKey": "dashboard.empty.noClassesToday" },
+        { "widgetKey": "card_homework_checklist", "titleKey": "dashboard.widgets.homeworkChecklist", "type": "SUBMISSION_LIST", "endpoint": "GET /v1/homework/students/me/submissions", "permission": "homework:student:read", "row": 2, "col": 8, "colSpan": 5, "refreshInterval": 120, "clickThrough": "/homework", "emptyStateKey": "dashboard.empty.noHomeworkAssigned" },
+        { "widgetKey": "card_student_grades", "titleKey": "dashboard.widgets.latestEvaluations", "type": "GRADE_LIST", "endpoint": "GET /v1/exams?studentId=me&size=5", "permission": "grade:student:read", "row": 3, "col": 1, "colSpan": 7, "refreshInterval": 180, "clickThrough": "/report-cards", "emptyStateKey": "dashboard.empty.noEvaluationsYet" },
+        { "widgetKey": "card_student_strategy", "titleKey": "dashboard.widgets.myPersonalizedStrategy", "type": "STRATEGY_CARD", "endpoint": "GET /api/learning-strategies?studentId=me&published=true", "permission": "strategy:student:read", "row": 3, "col": 8, "colSpan": 5, "refreshInterval": 300, "clickThrough": "/strategies", "emptyStateKey": "dashboard.empty.noStrategyPublished" }
+      ]
+    }
+  }
+}

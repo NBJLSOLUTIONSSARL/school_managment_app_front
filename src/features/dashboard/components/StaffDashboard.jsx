@@ -9,8 +9,8 @@ import {
   UserPlus,
   FileText,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
@@ -60,36 +60,36 @@ export function StaffDashboard() {
   const staffActivities = [
     {
       id: '1',
-      title: 'Nouvelle demande d’admission',
-      subtitle: 'Dossier #ADM-2026-45 soumis pour vérification',
-      time: 'Il y a 10 min',
+      title: 'New Student Admission',
+      subtitle: 'Dossier #ADM-2026-45 submitted for review',
+      time: '10 min ago',
       icon: UserPlus,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#EFF6FF]',
+      iconColor: 'text-[#2563EB]',
     },
     {
       id: '2',
-      title: 'Facturation mensuelle générée',
-      subtitle: 'Cycle de facturation compilé (140 quittances)',
-      time: 'Aujourd’hui',
+      title: 'Tuition Receipt Generated',
+      subtitle: 'Monthly billing cycle compiled (140 invoices)',
+      time: 'Today',
       icon: Receipt,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#DBEAFE]',
+      iconColor: 'text-[#1D4ED8]',
     },
     {
       id: '3',
-      title: 'Relevé d’assiduité hebdomadaire',
-      subtitle: 'Rapport des absences validé pour la vie scolaire',
-      time: 'Hier',
+      title: 'Attendance Report Printed',
+      subtitle: 'Weekly absence log verified for prefect',
+      time: 'Yesterday',
       icon: FileText,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#F0F9FF]',
+      iconColor: 'text-[#0284C7]',
     },
   ]
 
   return (
     <div className="space-y-6 select-none">
-      {/* Calm Scholastic Desk Banner */}
+      {/* Figma Signature Blue Banner */}
       <HeroBanner
         title="Secrétariat & Administration"
         description="Gestion opérationnelle des dossiers d'admissions, du registre des élèves et des encaissements scolaires."
@@ -99,19 +99,19 @@ export function StaffDashboard() {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
-          <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
-            Secrétariat Scolaire
-          </h2>
-          <p className="text-2xs font-medium text-slate-500 mt-0.5">
-            Gestion administrative, admissions et facturation
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Staff Dashboard
+          </h1>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Secrétariat Scolaire — Gestion administrative, admissions et facturation
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
@@ -119,43 +119,66 @@ export function StaffDashboard() {
           <button
             type="button"
             onClick={fetchStaffData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded text-2xs font-medium text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
           >
             Réessayer
           </button>
         </div>
       )}
 
-      {/* Top 4 Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          variant="blue"
-          title="Applications"
-          value={loading ? '...' : (stats?.totalApplications ? `${stats.totalApplications}` : '24')}
-          icon={FileCheck}
-          onClick={() => navigate('/admissions')}
-        />
-        <StatCard
-          variant="skyBlue"
-          title="Total Students"
-          value={loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '1 248')}
-          icon={Users}
-          onClick={() => navigate('/students')}
-        />
-        <StatCard
-          variant="mediumBlue"
-          title="Pending Invoices"
-          value={loading ? '...' : (stats?.unpaidInvoicesCount ? `${stats.unpaidInvoicesCount}` : '14')}
-          icon={AlertCircle}
-          onClick={() => navigate('/finances/invoices')}
-        />
-        <StatCard
-          variant="darkBlue"
-          title="Revenue Collected"
-          value={loading ? '...' : (stats?.totalPaidAmount ? `$${Math.round(stats.totalPaidAmount / 1000)}K` : '$186K')}
-          icon={Coins}
-          onClick={() => navigate('/finances/invoices')}
-        />
+      {/* shadcn dashboard-01 Top 4 Metric Cards */}
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/admissions')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Dossiers d'Admission</CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalApplications ? `${stats.totalApplications}` : '24')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Dont 8 candidatures en attente</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/students')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Effectif Inscrit</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalStudents ? `${stats.totalStudents}` : '1 248')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Élèves enregistrés au registre</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Factures en Attente</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.unpaidInvoicesCount ? `${stats.unpaidInvoicesCount}` : '14')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">À relancer ce mois-ci</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Recouvrement Total</CardTitle>
+            <Coins className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : (stats?.totalPaidAmount ? `$${Math.round(stats.totalPaidAmount / 1000)}K` : '$186K')}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+92% taux d'encaissement</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Middle Row: Trend Wave Chart + Radial Distribution */}
@@ -164,8 +187,8 @@ export function StaffDashboard() {
           <ExamResultsWaveChart
             title="All Exam Results"
             series={[
-              { name: 'Admissions Processed', color: '#5B5FC7' },
-              { name: 'Registered Students', color: '#CBD5E1' },
+              { name: 'Admissions Processed', color: '#2563EB' },
+              { name: 'Registered Students', color: '#38BDF8' },
             ]}
           />
         </div>
@@ -174,7 +197,7 @@ export function StaffDashboard() {
             title="Applications"
             totalLabel="Total"
             totalValue={(stats?.totalApplications || 24).toString()}
-            outerColor="#5B5FC7"
+            outerColor="#2563EB"
             outerPercent={70}
             outerLabel="Accepted"
             innerColor="#38BDF8"
@@ -196,7 +219,7 @@ export function StaffDashboard() {
         </div>
         <div className="lg:col-span-1">
           <RecentActivityFeedCard
-            title="Journal des opérations"
+            title="All Exam Results"
             items={staffActivities}
             onOptionsClick={() => navigate('/events')}
             onItemClick={() => navigate('/admissions')}

@@ -11,6 +11,7 @@ import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { Pagination } from '@/components/ui/Pagination'
 import { Loader, Spinner, Skeleton } from '@/components/ui/Loader'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Card } from '@/components/ui/card'
 import { useToast } from '@/hooks/useToast'
 import { parseProblemDetail, parseAiError } from '@/utils/apiHelpers'
 
@@ -48,7 +49,7 @@ export function ComponentShowcaseView() {
       id: '1',
       doc: 'INV-2026-0001',
       student: 'Léa Moreau',
-      amount: '450 €',
+      amount: '€450',
       status: 'Paid',
       date: '2026-10-12',
     },
@@ -56,7 +57,7 @@ export function ComponentShowcaseView() {
       id: '2',
       doc: 'INV-2026-0002',
       student: 'Thomas Petit',
-      amount: '520 €',
+      amount: '€520',
       status: 'Pending',
       date: '2026-10-14',
     },
@@ -64,7 +65,7 @@ export function ComponentShowcaseView() {
       id: '3',
       doc: 'INV-2026-0003',
       student: 'Hugo Laurent',
-      amount: '380 €',
+      amount: '€380',
       status: 'Overdue',
       date: '2026-10-01',
     },
@@ -72,7 +73,7 @@ export function ComponentShowcaseView() {
       id: '4',
       doc: 'INV-2026-0004',
       student: 'Emma Dubois',
-      amount: '600 €',
+      amount: '€600',
       status: 'Draft',
       date: '2026-10-20',
     },
@@ -80,7 +81,7 @@ export function ComponentShowcaseView() {
       id: '5',
       doc: 'INV-2026-0005',
       student: 'Maxime Simon',
-      amount: '450 €',
+      amount: '€450',
       status: 'Submitted',
       date: '2026-10-22',
     },
@@ -88,7 +89,7 @@ export function ComponentShowcaseView() {
       id: '6',
       doc: 'INV-2026-0006',
       student: 'Sarah Garcia',
-      amount: '450 €',
+      amount: '€450',
       status: 'Active',
       date: '2026-10-25',
     },
@@ -99,7 +100,7 @@ export function ComponentShowcaseView() {
       key: 'doc',
       label: 'Référence',
       width: '130px',
-      render: (val) => <span className="font-mono text-2xs font-semibold">{val}</span>,
+      render: (val) => <span className="font-mono text-caption font-semibold">{val}</span>,
     },
     { key: 'student', label: 'Élève', sortable: true },
     {
@@ -126,7 +127,7 @@ export function ComponentShowcaseView() {
           data: {
             error: {
               code: 'AI_RATE_LIMIT_EXCEEDED',
-              message: 'Quota horaire de requêtes IA dépassé pour l’établissement.',
+              message: 'Quota horaire de requêtes IA dépassé pour l\'établissement.',
             },
           },
         },
@@ -184,7 +185,7 @@ export function ComponentShowcaseView() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50">
+    <div className="flex-1 flex flex-col bg-[var(--paper)]">
       <DocTypePageHead
         breadcrumbs={['Desk', 'Documentation', 'Composants']}
         title="Catalogue des Composants Réutilisables"
@@ -201,7 +202,7 @@ export function ComponentShowcaseView() {
 
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto pb-1 text-xs">
+        <div className="flex items-center gap-1 border-b border-[var(--border-subtle)] overflow-x-auto pb-1 text-caption">
           {[
             { id: 'buttons', label: '1. Boutons' },
             { id: 'forms', label: '2. Formulaires (Input/Select/Date)' },
@@ -215,10 +216,10 @@ export function ComponentShowcaseView() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-2 rounded-t font-medium transition-colors whitespace-nowrap ${
+              className={`px-3 py-2 rounded-tight font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-white border border-b-white -mb-px text-slate-900 border-slate-200 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-[var(--surface)] border border-[var(--border-subtle)] border-b-[var(--surface)] -mb-px text-[var(--ink)] font-semibold'
+                  : 'text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--muted)]'
               }`}
             >
               {tab.label}
@@ -229,10 +230,12 @@ export function ComponentShowcaseView() {
         {/* Tab 1: Buttons */}
         {activeTab === 'buttons' && (
           <div className="space-y-6">
-            <div className="rounded border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Variantes de Button
-              </h3>
+            <Card className="space-y-4">
+              <div className="border-b border-[var(--border-subtle)] pb-3">
+                <h3 className="text-caption font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+                  Variantes de Button
+                </h3>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="primary">Primary (Desk Save)</Button>
                 <Button variant="secondary">Secondary (Default)</Button>
@@ -243,12 +246,14 @@ export function ComponentShowcaseView() {
                 <Button variant="outline">Outline</Button>
                 <Button variant="ghost">Ghost</Button>
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Tailles & États de Chargement
-              </h3>
+            <Card className="space-y-4">
+              <div className="border-b border-[var(--border-subtle)] pb-3">
+                <h3 className="text-caption font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+                  Tailles & États de Chargement
+                </h3>
+              </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Button size="xs" variant="primary">
                   Taille XS
@@ -272,19 +277,19 @@ export function ComponentShowcaseView() {
                   Avec Icône
                 </Button>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Tab 2: Forms */}
         {activeTab === 'forms' && (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <Card className="space-y-6">
+            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">
+                <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
                   Composants de Formulaire Compacts
                 </h3>
-                <p className="text-2xs text-slate-500">
+                <p className="text-caption text-[var(--ink-muted)]">
                   Input, Select et DatePicker conformes à la grille Desk
                 </p>
               </div>
@@ -331,24 +336,24 @@ export function ComponentShowcaseView() {
                 required
               />
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Tab 3: Badges */}
         {activeTab === 'badges' && (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-6">
+          <Card className="space-y-6">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">
+              <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
                 Badges de Statut (StatusBadge)
               </h3>
-              <p className="text-2xs text-slate-500">
+              <p className="text-caption text-[var(--ink-muted)]">
                 Pillules de statut standardisées pour les DocTypes et entités métier
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <span className="text-2xs font-semibold text-slate-500 block mb-2">
+                <span className="text-caption font-semibold text-[var(--ink-muted)] block mb-2">
                   Statuts de documents (Docstatus) :
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -362,7 +367,7 @@ export function ComponentShowcaseView() {
               </div>
 
               <div>
-                <span className="text-2xs font-semibold text-slate-500 block mb-2">
+                <span className="text-caption font-semibold text-[var(--ink-muted)] block mb-2">
                   Avec puce colorée (showDot) :
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -375,19 +380,20 @@ export function ComponentShowcaseView() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Tab 4: Modals */}
         {activeTab === 'modals' && (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Modales & Dialogues de Confirmation
-            </h3>
-            <p className="text-2xs text-slate-500">
-              Fenêtres modales accessibles, contrôlées par le clavier (touche Échap) et clics
-              d'arrière-plan.
-            </p>
+          <Card className="space-y-4">
+            <div className="border-b border-[var(--border-subtle)] pb-3">
+              <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
+                Modales & Dialogues de Confirmation
+              </h3>
+              <p className="text-caption text-[var(--ink-muted)]">
+                Fenêtres modales accessibles, contrôlées par le clavier (touche Échap) et clics d'arrière-plan.
+              </p>
+            </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
               <Button variant="primary" onClick={() => setIsBasicModalOpen(true)}>
@@ -397,19 +403,19 @@ export function ComponentShowcaseView() {
                 Ouvrir Confirmation (ConfirmDialog)
               </Button>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Tab 5: Tables */}
         {activeTab === 'tables' && (
           <div className="space-y-6">
-            <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between">
+            <Card className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
+                  <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
                     Table Paginée Réutilisable (PaginatedTable)
                   </h3>
-                  <p className="text-2xs text-slate-500">
+                  <p className="text-caption text-[var(--ink-muted)]">
                     Tri par colonne, sélection de taille de page, et mise en page compacte
                   </p>
                 </div>
@@ -425,11 +431,11 @@ export function ComponentShowcaseView() {
                 onPageSizeChange={setPageSize}
               />
 
-              <div className="pt-3 border-t border-slate-100">
-                <span className="text-2xs font-semibold text-slate-500 block mb-2">
+              <div className="pt-3 border-t border-[var(--border-subtle)]">
+                <span className="text-caption font-semibold text-[var(--ink-muted)] block mb-2">
                   Composant Pagination Standalone (120 éléments) :
                 </span>
-                <div className="rounded border border-slate-200 overflow-hidden">
+                <div className="rounded-card border border-[var(--border-subtle)] overflow-hidden">
                   <Pagination
                     page={page}
                     pageSize={pageSize}
@@ -439,12 +445,14 @@ export function ComponentShowcaseView() {
                   />
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                État Vide Réutilisable (EmptyState)
-              </h3>
+            <Card className="space-y-4">
+              <div className="border-b border-[var(--border-subtle)] pb-3">
+                <h3 className="text-caption font-semibold uppercase tracking-wider text-[var(--ink-muted)]">
+                  État Vide Réutilisable (EmptyState)
+                </h3>
+              </div>
               <EmptyState
                 title="Aucune facture enregistrée"
                 description="Toutes les cotisations scolaires pour cette classe ont été soldées."
@@ -453,25 +461,25 @@ export function ComponentShowcaseView() {
                   onClick: () => success('Action du bouton EmptyState déclenchée'),
                 }}
               />
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Tab 6: Feedbacks */}
         {activeTab === 'feedbacks' && (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-6">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
+          <Card className="space-y-6">
+            <div className="border-b border-[var(--border-subtle)] pb-3">
+              <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
                 Notifications Toast & Indicateurs de Chargement
               </h3>
-              <p className="text-2xs text-slate-500">
+              <p className="text-caption text-[var(--ink-muted)]">
                 Retours d'information immédiats pour l'utilisateur
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <span className="text-2xs font-semibold text-slate-500 block mb-2">
+                <span className="text-caption font-semibold text-[var(--ink-muted)] block mb-2">
                   Déclencher des Toasts :
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -490,7 +498,7 @@ export function ComponentShowcaseView() {
                     Toast Erreur
                   </Button>
                   <Button
-                    variant="subtle"
+                    variant="warning"
                     size="sm"
                     onClick={() => warning('Attention : cette action affecte 25 élèves.')}
                   >
@@ -506,49 +514,49 @@ export function ComponentShowcaseView() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-100 pt-4">
-                <span className="text-2xs font-semibold text-slate-500 block mb-3">
+              <div className="border-t border-[var(--border-subtle)] pt-4">
+                <span className="text-caption font-semibold text-[var(--ink-muted)] block mb-3">
                   Loaders & Squelettes :
                 </span>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
-                    <Spinner size="xs" />
-                    <span className="text-2xs text-slate-500">XS</span>
+                    <Spinner size="xs" color="text-[var(--blue-core)]" />
+                    <span className="text-caption text-[var(--ink-muted)]">XS</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Spinner size="sm" />
-                    <span className="text-2xs text-slate-500">SM</span>
+                    <Spinner size="sm" color="text-[var(--blue-core)]" />
+                    <span className="text-caption text-[var(--ink-muted)]">SM</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Spinner size="md" />
-                    <span className="text-2xs text-slate-500">MD</span>
+                    <Spinner size="md" color="text-[var(--blue-core)]" />
+                    <span className="text-caption text-[var(--ink-muted)]">MD</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Spinner size="lg" />
-                    <span className="text-2xs text-slate-500">LG</span>
+                    <Spinner size="lg" color="text-[var(--blue-core)]" />
+                    <span className="text-caption text-[var(--ink-muted)]">LG</span>
                   </div>
                   <Loader text="Chargement..." />
                 </div>
 
                 <div className="mt-4 space-y-2 max-w-md">
-                  <span className="text-2xs text-slate-400">Exemple Skeleton :</span>
+                  <span className="text-caption text-[var(--ink-muted)]">Exemple Skeleton :</span>
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Tab 7: API & Errors */}
         {activeTab === 'api-errors' && (
-          <div className="rounded border border-slate-200 bg-white p-6 shadow-2xs space-y-6">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
+          <Card className="space-y-6">
+            <div className="border-b border-[var(--border-subtle)] pb-3">
+              <h3 className="text-card-title font-display font-semibold text-[var(--ink)]">
                 Validation des Helpers API & Parsers d'Erreurs
               </h3>
-              <p className="text-2xs text-slate-500">
+              <p className="text-caption text-[var(--ink-muted)]">
                 Vérification des parsers ProblemDetail RFC 7807 (invalidParams), erreurs IA (
                 {'{ code, message }'}), et intercepteur 401
               </p>
@@ -556,19 +564,18 @@ export function ComponentShowcaseView() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Demo ProblemDetail */}
-              <div className="rounded border border-slate-200 p-4 space-y-3 bg-slate-50/50">
-                <div className="font-semibold text-xs text-slate-800">
+              <Card className="space-y-3 bg-[var(--muted)]/50">
+                <div className="font-semibold text-caption text-[var(--ink)]">
                   1. ProblemDetail (invalidParams)
                 </div>
-                <p className="text-2xs text-slate-500">
-                  Extrait automatiquement les champs invalides pour surligner les inputs
-                  correspondants.
+                <p className="text-caption text-[var(--ink-muted)]">
+                  Extrait automatiquement les champs invalides pour surligner les inputs correspondants.
                 </p>
                 <Button size="xs" variant="secondary" onClick={handleRunProblemDetailDemo}>
                   Simuler Erreur ProblemDetail
                 </Button>
                 {problemDetailResult && (
-                  <div className="rounded bg-white p-2 border border-slate-200 text-[11px] font-mono overflow-auto max-h-40">
+                  <div className="rounded-tight bg-[var(--surface)] p-2 border border-[var(--border-subtle)] text-caption font-mono overflow-auto max-h-40">
                     <div>
                       <strong>Title:</strong> {problemDetailResult.title}
                     </div>
@@ -581,14 +588,14 @@ export function ComponentShowcaseView() {
                     <pre>{JSON.stringify(problemDetailResult.invalidParams, null, 2)}</pre>
                   </div>
                 )}
-              </div>
+              </Card>
 
               {/* Demo AI Error */}
-              <div className="rounded border border-slate-200 p-4 space-y-3 bg-slate-50/50">
-                <div className="font-semibold text-xs text-slate-800">
+              <Card className="space-y-3 bg-[var(--muted)]/50">
+                <div className="font-semibold text-caption text-[var(--ink)]">
                   2. Erreur Format IA ({'{ code, message }'})
                 </div>
-                <p className="text-2xs text-slate-500">
+                <p className="text-caption text-[var(--ink-muted)]">
                   Parse les codes spécifiques comme AI_RATE_LIMIT_EXCEEDED en messages clairs.
                 </p>
                 <div className="flex gap-2">
@@ -610,27 +617,26 @@ export function ComponentShowcaseView() {
                   </Button>
                 </div>
                 {aiResult && (
-                  <div className="rounded bg-white p-2 border border-slate-200 text-[11px] font-mono overflow-auto max-h-40">
+                  <div className="rounded-tight bg-[var(--surface)] p-2 border border-[var(--border-subtle)] text-caption font-mono overflow-auto max-h-40">
                     <pre>{JSON.stringify(aiResult, null, 2)}</pre>
                   </div>
                 )}
-              </div>
+              </Card>
 
               {/* Demo 401 Interceptor */}
-              <div className="rounded border border-slate-200 p-4 space-y-3 bg-slate-50/50">
-                <div className="font-semibold text-xs text-slate-800">
+              <Card className="space-y-3 bg-[var(--muted)]/50">
+                <div className="font-semibold text-caption text-[var(--ink)]">
                   3. Intercepteur Axios 401
                 </div>
-                <p className="text-2xs text-slate-500">
-                  Purge les tokens d'accès/rafraîchissement et redirige immédiatement vers /login
-                  avec returnUrl.
+                <p className="text-caption text-[var(--ink-muted)]">
+                  Purge les tokens d'accès/rafraîchissement et redirige immédiatement vers /login avec returnUrl.
                 </p>
                 <Button size="xs" variant="dangerSubtle" onClick={handleTest401}>
                   Déclencher 401 Unauthorized
                 </Button>
-              </div>
+              </Card>
             </div>
-          </div>
+          </Card>
         )}
       </div>
 
@@ -658,20 +664,20 @@ export function ComponentShowcaseView() {
           </>
         }
       >
-        <div className="space-y-3 text-xs text-slate-600">
+        <div className="space-y-3 text-body text-[var(--ink-muted)]">
           <p>
             Cette boîte de dialogue respecte le principe <strong>Keyboard-First</strong> et les
             tokens de design de Frappe / ERPNext.
           </p>
-          <div className="rounded bg-slate-50 p-3 border border-slate-200">
-            <span className="font-semibold text-slate-800">Raccourcis intégrés :</span>
-            <ul className="list-disc list-inside mt-1 space-y-0.5 text-2xs text-slate-500">
+          <div className="rounded-tight bg-[var(--muted)] p-3 border border-[var(--border-subtle)]">
+            <span className="font-semibold text-[var(--ink)]">Raccourcis intégrés :</span>
+            <ul className="list-disc list-inside mt-1 space-y-0.5 text-caption text-[var(--ink-muted)]">
               <li>
-                <kbd className="font-mono bg-white px-1 border rounded">Échap</kbd> : Ferme la
+                <kbd className="font-mono bg-[var(--surface)] px-1 border border-[var(--border-subtle)] rounded-tight">Échap</kbd> : Ferme la
                 modale immédiatement
               </li>
               <li>
-                <kbd className="font-mono bg-white px-1 border rounded">Tab</kbd> : Navigation
+                <kbd className="font-mono bg-[var(--surface)] px-1 border border-[var(--border-subtle)] rounded-tight">Tab</kbd> : Navigation
                 séquentielle accessible
               </li>
             </ul>
@@ -700,6 +706,13 @@ export function ComponentShowcaseView() {
       />
     </div>
   )
+}
+
+// Mock service for demo
+const exampleService = {
+  async generateStudentReportAi() {
+    return { success: true, data: { report: 'Appréciation générée avec succès.' } }
+  }
 }
 
 export const ComponentShowcasePage = ComponentShowcaseView

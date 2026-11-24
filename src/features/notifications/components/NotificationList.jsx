@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import {
-  Check,
-  Trash2,
-} from 'lucide-react'
-import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
+import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Loader } from '@/components/ui/Loader'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { notificationService } from '../api/notificationService'
 import { useAuth } from '@/hooks/useAuth'
@@ -36,12 +37,10 @@ export function NotificationList() {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(null)
 
-  // Filters & Search
+  // Filters
   const [typeFilter, setTypeFilter] = useState('ALL')
   const [readFilter, setReadFilter] = useState('ALL')
-  const [searchTerm, setSearchTerm] = useState('')
 
   // Delete dialog
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -51,7 +50,6 @@ export function NotificationList() {
     async ({ signal } = {}) => {
       if (!userId) return
       setIsLoading(true)
-      setLoadError(null)
       try {
         const res = await notificationService.getUserNotifications(userId, {
           page,
@@ -62,24 +60,23 @@ export function NotificationList() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setNotifications(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          setNotifications(Array.from(map.values()))
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
         } else {
           setNotifications([])
           setTotalItems(0)
           setTotalPages(0)
-          const msg = res.error?.message || 'Impossible de charger les notifications.'
-          setLoadError(msg)
           if (!signal?.aborted) {
-            toastError(msg)
+            toastError(res.error?.message || 'Impossible de charger les notifications.')
           }
-        }
-      } catch (err) {
-        if (!signal?.aborted) {
-          const msg = err.message || 'Impossible de charger les notifications.'
-          setLoadError(msg)
-          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -99,6 +96,41 @@ export function NotificationList() {
     }
   }, [loadNotifications])
 
+  // Synchronize across views with edutrack:notifications-updated and edutrack:ws-notification
+  useEffect(() => {
+    function handleNotificationsUpdated(event) {
+      const { id, action } = event.detail || {}
+      if (action === 'READ' && id) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        )
+      } else if (action === 'DELETE' && id) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id))
+        setTotalItems((prev) => Math.max(0, prev - 1))
+      }
+    }
+
+    function handleWsNew() {
+      loadNotifications()
+    }
+
+    window.addEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+    window.addEventListener('edutrack:ws-notification', handleWsNew)
+    return () => {
+      window.removeEventListener('edutrack:notifications-updated', handleNotificationsUpdated)
+      window.removeEventListener('edutrack:ws-notification', handleWsNew)
+    }
+  }, [loadNotifications])
+
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((n) => {
+      if (typeFilter !== 'ALL' && n.type !== typeFilter) return false
+      if (readFilter === 'UNREAD' && n.read) return false
+      if (readFilter === 'READ' && !n.read) return false
+      return true
+    })
+  }, [notifications, typeFilter, readFilter])
+
   const handleMarkAsRead = async (id) => {
     try {
       const res = await notificationService.markAsRead(id)
@@ -107,6 +139,11 @@ export function NotificationList() {
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         )
         success('Notification marquée comme lue.')
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id, action: 'READ' },
+          })
+        )
       } else {
         toastError(res.error?.message || 'Erreur lors de la mise à jour.')
       }
@@ -122,6 +159,11 @@ export function NotificationList() {
       const res = await notificationService.deleteNotification(deleteTarget.id)
       if (res.success) {
         success('Notification supprimée.')
+        window.dispatchEvent(
+          new CustomEvent('edutrack:notifications-updated', {
+            detail: { id: deleteTarget.id, action: 'DELETE' },
+          })
+        )
         setDeleteTarget(null)
         loadNotifications()
       } else {
@@ -131,30 +173,6 @@ export function NotificationList() {
       setIsDeleting(false)
     }
   }
-
-  const filteredNotifications = useMemo(() => {
-    let list = notifications
-
-    if (typeFilter !== 'ALL') {
-      list = list.filter((n) => n.type === typeFilter)
-    }
-
-    if (readFilter === 'UNREAD') {
-      list = list.filter((n) => !n.read)
-    } else if (readFilter === 'READ') {
-      list = list.filter((n) => n.read)
-    }
-
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase()
-      list = list.filter((n) =>
-        n.content?.toLowerCase().includes(q) ||
-        n.type?.toLowerCase().includes(q)
-      )
-    }
-
-    return list
-  }, [notifications, typeFilter, readFilter, searchTerm])
 
   const columns = [
     {
@@ -167,7 +185,7 @@ export function NotificationList() {
       key: 'content',
       label: 'Notification',
       render: (val, row) => (
-        <span className={row.read ? 'text-[#64748B] text-xs' : 'font-semibold text-[#0F172A] text-xs'}>
+        <span className={row.read ? 'text-slate-600' : 'font-semibold text-slate-900'}>
           {val}
         </span>
       ),
@@ -183,7 +201,7 @@ export function NotificationList() {
     {
       key: 'createdAt',
       label: 'Date',
-      width: '160px',
+      width: '170px',
       render: (val) =>
         val
           ? new Date(val).toLocaleDateString('fr-FR', {
@@ -193,124 +211,101 @@ export function NotificationList() {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : '—',
+          : '-',
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '80px',
+      width: '140px',
       align: 'right',
       render: (_, row) => (
-        <EntityTableActions
-          row={row}
-          actions={[
-            {
-              label: 'Marquer comme lu',
-              icon: Check,
-              hidden: row.read,
-              onClick: () => handleMarkAsRead(row.id),
-            },
-            {
-              label: 'Supprimer',
-              icon: Trash2,
-              variant: 'danger',
-              onClick: () => setDeleteTarget(row),
-            },
-          ]}
-        />
+        <div className="flex items-center justify-end gap-1">
+          {!row.read && (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => handleMarkAsRead(row.id)}
+            >
+              Marquer lu
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={() => setDeleteTarget(row)}
+          >
+            Supprimer
+          </Button>
+        </div>
       ),
     },
   ]
 
-  const hasActiveFilters = typeFilter !== 'ALL' || readFilter !== 'ALL'
-  const activeFiltersCount = (typeFilter !== 'ALL' ? 1 : 0) + (readFilter !== 'ALL' ? 1 : 0)
-
-  const filtersContent = (
-    <div className="space-y-3">
-      <div>
-        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-          Type
-        </label>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
-        >
-          {TYPE_OPTIONS.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-          État de lecture
-        </label>
-        <select
-          value={readFilter}
-          onChange={(e) => setReadFilter(e.target.value)}
-          className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
-        >
-          {READ_OPTIONS.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  )
+  const isFiltered = typeFilter !== 'ALL' || readFilter !== 'ALL'
+  const displayCount = isFiltered ? filteredNotifications.length : totalItems
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
-      <EntityListToolbar
-        searchValue={searchTerm}
-        onSearchChange={(val) => {
-          setSearchTerm(val)
-          setPage(1)
-        }}
-        searchPlaceholder="Rechercher une notification..."
-        filtersContent={filtersContent}
-        hasActiveFilters={hasActiveFilters}
-        activeFiltersCount={activeFiltersCount}
-        onClearFilters={() => {
-          setTypeFilter('ALL')
-          setReadFilter('ALL')
-          setPage(1)
-        }}
+    <div data-contract="notification-center" className="p-6 sm:p-8 space-y-6 select-none">
+      <DocTypePageHead
+        title="Centre de Notifications"
+        count={displayCount}
       />
 
-      <EntityDataTable
-        columns={columns}
-        data={filteredNotifications}
-        isLoading={isLoading}
-        error={loadError}
-        onRetry={loadNotifications}
-        emptyTitle="Aucune notification"
-        emptyDescription={
-          searchTerm || hasActiveFilters
-            ? 'Aucune notification ne correspond aux critères.'
-            : 'Vous n’avez aucune notification pour le moment.'
-        }
-        page={page}
-        pageSize={pageSize}
-        totalItems={totalItems}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        onPageSizeChange={(newSize) => {
-          setPageSize(newSize)
-          setPage(1)
-        }}
-      />
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#F1F5F9] bg-white p-4 text-xs shadow-2xs">
+        <div className="w-48">
+          <Select
+            value={typeFilter}
+            onChange={(val) => setTypeFilter(val)}
+            options={TYPE_OPTIONS}
+          />
+        </div>
+        <div className="w-44">
+          <Select
+            value={readFilter}
+            onChange={(val) => setReadFilter(val)}
+            options={READ_OPTIONS}
+          />
+        </div>
+        <div className="ml-auto text-2xs text-slate-400">
+          Notifications temps réel associées à votre compte
+        </div>
+      </div>
 
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+          <Loader size="md" />
+        </div>
+      ) : filteredNotifications.length === 0 ? (
+        <EmptyState
+          title="Aucune notification"
+          description="Vous n'avez aucune notification correspondant à ces critères."
+        />
+      ) : (
+        <PaginatedTable
+          columns={columns}
+          data={filteredNotifications}
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setPage(1)
+          }}
+          isLoading={isLoading}
+        />
+      )}
+
+      {/* Delete Dialog */}
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer cette notification ?"
-          message="Voulez-vous vraiment effacer cette notification ?"
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
+          description="Voulez-vous supprimer définitivement cette notification ?"
+          confirmText={isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

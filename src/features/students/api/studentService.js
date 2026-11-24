@@ -26,9 +26,9 @@ export const studentService = {
         params: {
           page: springPage,
           size,
-          name: name ? name.trim() : undefined,
-          studentNumber: studentNumber ? studentNumber.trim() : undefined,
-          status: status && status !== 'ALL' ? status.trim() : undefined,
+          name: name?.trim() || undefined,
+          studentNumber: studentNumber?.trim() || undefined,
+          status: status && status !== 'ALL' ? status.trim() || undefined : undefined,
           sort: sort || undefined,
         },
       })

@@ -50,6 +50,49 @@ export const guardianService = {
   },
 
   /**
+   * Get children for currently authenticated parent
+   */
+  async getMyChildren() {
+    try {
+      const res = await axiosClient.get('/v1/guardians/me/students')
+      const data = extractApiData(res)
+      return {
+        success: true,
+        data: Array.isArray(data) ? data : [],
+        error: null,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: parseApiError(error),
+      }
+    }
+  },
+
+  /**
+   * Get all students associated with a guardian
+   * @param {number|string} id
+   */
+  async getStudentsByGuardianId(id) {
+    try {
+      const res = await axiosClient.get(`/v1/guardians/${id}/students`)
+      const data = extractApiData(res)
+      return {
+        success: true,
+        data: Array.isArray(data) ? data : [],
+        error: null,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: parseApiError(error),
+      }
+    }
+  },
+
+  /**
    * Create a new guardian
    * @param {Object} payload
    */

@@ -24,13 +24,18 @@ const pageResponse = {
 }
 
 function authContextValue(overrides = {}) {
+  const user = { id: 3, email: 'alice@example.test', roles: ['ROLE_TEACHER'], permissions: [], ...(overrides.user || {}) }
+  const userRoles = Array.isArray(user.roles) ? user.roles : []
   return {
-    user: { id: 1, email: 'alice@example.test', roles: ['ROLE_TEACHER'], permissions: [] },
+    user,
     isAuthenticated: true,
     isLoading: false,
     request: vi.fn(),
     hasPermission: vi.fn((perm) => overrides.permissions?.includes(perm) ?? false),
-    hasRole: vi.fn(() => false),
+    hasRole: vi.fn((role) => {
+      const checked = Array.isArray(role) ? role : [role]
+      return checked.some((r) => userRoles.includes(r))
+    }),
     hasAnyRole: vi.fn(() => false),
     ...overrides,
   }
@@ -329,6 +334,89 @@ describe('ObservationsPage edit and delete', () => {
   })
 })
 
+describe('ObservationsPage parental consent enforcement', () => {
+  const consentResponse = (overrides = {}) => ({
+    content: [],
+    page: 0,
+    size: 10,
+    totalElements: 0,
+    totalPages: 0,
+    ...overrides,
+  })
+
+  async function loadStudent(auth, studentId = '12') {
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents/student/')) {
+        return Promise.resolve(
+          consentResponse({
+            content: auth.__consentContent ?? [],
+            totalElements: auth.__consentContent?.length ?? 0,
+          })
+        )
+      }
+      return Promise.resolve({
+        content: [],
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+      })
+    })
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: studentId } })
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: /charger les observations/i }).filter((b) => !b.disabled).pop())
+    })
+  }
+
+  it('displays active consent banner when consent is granted', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 1, studentId: 12, guardianId: 5, granted: true, grantedAt: '2026-10-01' }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental actif pour l[’']analyse IA/i)).toBeInTheDocument()
+    )
+    expect(screen.getByText('Actif')).toBeInTheDocument()
+  })
+
+  it('displays revoked consent warning when consent is revoked', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 2, studentId: 12, guardianId: 5, granted: false, grantedAt: null }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental révoqué/i)).toBeInTheDocument()
+    )
+  })
+
+  it('displays missing consent warning when no consent exists', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = []
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental manquant/i)).toBeInTheDocument()
+    )
+  })
+
+  it('updates consent status dynamically when edutrack:consent-changed event fires', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_READ_CONSENT'] })
+    auth.__consentContent = [{ id: 3, studentId: 12, guardianId: 5, granted: false, grantedAt: null }]
+    await loadStudent(auth)
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental révoqué/i)).toBeInTheDocument()
+    )
+
+    auth.__consentContent = [{ id: 4, studentId: 12, guardianId: 5, granted: true, grantedAt: '2026-11-01' }]
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('edutrack:consent-changed', { detail: { studentId: 12 } }))
+    })
+
+    await waitFor(() =>
+      expect(screen.getByText(/consentement parental actif pour l[’']analyse IA/i)).toBeInTheDocument()
+    )
+  })
+})
+
 describe('ObservationsPage keyboard shortcuts', () => {
   it('triggers save on Ctrl+S when form is open', async () => {
     const { auth } = renderPage({ permissions: ['PERM_READ_OBSERVATION', 'PERM_WRITE_OBSERVATION'] })
@@ -363,5 +451,76 @@ describe('ObservationsPage keyboard shortcuts', () => {
       HTMLFormElement.prototype.requestSubmit = originalRequestSubmit
     }
     await waitFor(() => expect(screen.getByText(/observation créée/i)).toBeInTheDocument())
+  })
+})
+
+describe('ObservationsPage author-only privacy and role enforcement', () => {
+  it('masks observation content and hides edit/delete buttons when user is not the author', async () => {
+    const foreignObservation = {
+      ...observation,
+      id: 99,
+      authorUserId: 888, // different from user.id (3)
+      content: 'Observation rédigée par un autre enseignant',
+    }
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_OBSERVATION', 'PERM_WRITE_OBSERVATION'],
+      user: { id: 3, roles: ['ROLE_TEACHER'] },
+    })
+    auth.request.mockResolvedValue({
+      content: [foreignObservation],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(getLoadButton())
+
+    await waitFor(() => {
+      expect(screen.getByText(/confidentiel \(réservé à l’auteur\)/i)).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Observation rédigée par un autre enseignant')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '✎' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '🗑️' })).not.toBeInTheDocument()
+  })
+
+  it('allows administrator to view content and manage observations from any author', async () => {
+    const foreignObservation = {
+      ...observation,
+      id: 99,
+      authorUserId: 888,
+      content: 'Observation rédigée par un autre enseignant',
+    }
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_OBSERVATION', 'PERM_WRITE_OBSERVATION'],
+      user: { id: 1, roles: ['ROLE_ADMIN'] },
+    })
+    auth.request.mockResolvedValue({
+      content: [foreignObservation],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(getLoadButton())
+
+    await waitFor(() => {
+      expect(screen.getByText('Observation rédigée par un autre enseignant')).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: '✎' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '🗑️' })).toBeInTheDocument()
+  })
+
+  it('does not display create button for roles that cannot create observations (e.g. ROLE_STUDENT)', async () => {
+    renderPage({
+      permissions: ['PERM_READ_OBSERVATION', 'PERM_WRITE_OBSERVATION'],
+      user: { id: 50, roles: ['ROLE_STUDENT'] },
+    })
+    expect(screen.queryByRole('button', { name: /nouvelle observation/i })).not.toBeInTheDocument()
   })
 })

@@ -3,32 +3,32 @@ import { cn } from '@/utils/classNames'
 
 const variantStyles = {
   primary:
-    'bg-[#5B5FC7] text-white hover:bg-[#484BB5] active:bg-[#3E41A1] focus:ring-[#5B5FC7]/20 shadow-[0_2px_8px_rgba(91,95,199,0.25)] font-semibold',
+    'bg-[var(--blue-core)] text-white hover:bg-[var(--blue-hover)] active:bg-[var(--blue-core)] focus:ring-[var(--blue-core)]/30 shadow-hair font-semibold',
   secondary:
-    'bg-white text-slate-700 border border-[#EDF0F8] hover:bg-[#F8F9FD] hover:text-slate-900 active:bg-slate-100 focus:ring-[#5B5FC7]/15 shadow-2xs font-medium',
+    'bg-[var(--surface)] text-[var(--blue-core)] border border-[var(--border-subtle)] hover:bg-[var(--blue-wash)] hover:border-[var(--blue-core)] focus:ring-[var(--blue-core)]/20 shadow-2xs font-medium',
   subtle:
-    'bg-[#5B5FC7]/10 text-[#5B5FC7] hover:bg-[#5B5FC7]/15 active:bg-[#5B5FC7]/20 focus:ring-[#5B5FC7]/20 font-semibold',
+    'bg-[var(--blue-wash)] text-[var(--blue-core)] hover:bg-[var(--light-blue)] focus:ring-[var(--blue-core)]/20 font-semibold',
   danger:
-    'bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 focus:ring-rose-500/20 shadow-2xs font-medium',
+    'bg-[var(--rose)] text-white hover:bg-[var(--rose)]/90 focus:ring-[var(--rose)]/30 shadow-hair font-semibold',
   dangerSubtle:
-    'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 focus:ring-rose-200 font-medium',
+    'bg-[var(--rose-wash)] text-[var(--rose)] border border-[var(--rose)]/30 hover:bg-[var(--rose-wash)]/80 focus:ring-[var(--rose)]/20 font-medium',
   success:
-    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 focus:ring-emerald-500/20 shadow-2xs font-medium',
+    'bg-[var(--emerald)] text-white hover:bg-[var(--emerald)]/90 focus:ring-[var(--emerald)]/30 shadow-hair font-semibold',
   ghost:
-    'bg-transparent text-slate-600 hover:bg-[#F8F9FD] hover:text-slate-900 focus:ring-[#5B5FC7]/15 font-medium',
+    'bg-transparent text-[var(--blue-core)] hover:bg-[var(--blue-wash)] hover:text-[var(--blue-hover)] focus:ring-[var(--blue-core)]/20 font-medium',
   outline:
-    'bg-transparent text-slate-700 border border-[#EDF0F8] hover:bg-[#F8F9FD] hover:text-slate-900 focus:ring-[#5B5FC7]/15 font-medium',
+    'bg-transparent text-[var(--blue-core)] border border-[var(--blue-core)] hover:bg-[var(--blue-wash)] focus:ring-[var(--blue-core)]/20 font-medium',
 }
 
 const sizeStyles = {
-  xs: 'h-6 px-2.5 text-2xs gap-1 rounded-md',
-  sm: 'h-8 px-3 text-xs gap-1.5 rounded-lg',
-  md: 'h-9 px-3.5 text-xs gap-2 rounded-xl',
-  lg: 'h-10 px-4 text-sm gap-2 rounded-xl',
+  xs: 'h-8 px-2.5 text-label gap-1 rounded-tight',
+  sm: 'h-9 px-3 text-xs gap-1.5 rounded-tight',
+  md: 'h-10 px-4 text-body gap-2 rounded-card',
+  lg: 'h-11 px-5 text-body gap-2 rounded-card',
 }
 
 /**
- * Reusable Button component with quiet craft neutrals and single slate accent.
+ * Reusable Button component with EduTrack Design Tokens.
  */
 export const Button = forwardRef(function Button(
   {
@@ -64,12 +64,12 @@ export const Button = forwardRef(function Button(
       aria-busy={isLoading || undefined}
       onClick={resolvedOnClick}
       className={cn(
-        'inline-flex items-center justify-center font-sans tracking-tight transition-colors duration-150 select-none',
-        'focus:outline-hidden focus:ring-2 focus:ring-offset-1',
+        'inline-flex items-center justify-center font-ui tracking-tight transition-all select-none',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--surface)]',
         variantStyles[variant] || variantStyles.secondary,
         sizeStyles[size] || sizeStyles.sm,
         isDisabled && 'cursor-not-allowed opacity-50 shadow-none pointer-events-none',
-        !isDisabled && 'cursor-pointer',
+        !isDisabled && 'cursor-pointer active-press',
         className
       )}
       {...props}

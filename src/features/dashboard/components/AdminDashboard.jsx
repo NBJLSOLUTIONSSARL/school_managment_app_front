@@ -1,37 +1,36 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  School,
+  Users,
+  UserCheck,
+  DollarSign,
+  Activity,
+  ArrowUpRight,
   AlertCircle,
-  GraduationCap,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react'
-import { WhiteThemeDashboardHeader } from '@/components/ui/WhiteThemeDashboardHeader'
-import { WhiteThemeKpiCards } from '@/components/ui/WhiteThemeKpiCards'
-import { RevenueAssistedLineChartCard } from '@/components/ui/RevenueAssistedLineChartCard'
-import { TeamUtilizationBarChartCard } from '@/components/ui/TeamUtilizationBarChartCard'
-import { ProjectHealthSegmentedCard } from '@/components/ui/ProjectHealthSegmentedCard'
-import { UpcomingMeetingsCards } from '@/components/ui/UpcomingMeetingsCards'
-import { CompanyDetailsTableCard } from '@/components/ui/CompanyDetailsTableCard'
-
-// Pedagogical secondary components
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/Button'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
-import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
-import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
-
-import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
 
 export function AdminDashboard() {
-  const { user } = useAuth()
   const navigate = useNavigate()
 
   const [stats, setStats] = useState(null)
-  const [, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showPedagogicalSection, setShowPedagogicalSection] = useState(false)
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true)
@@ -67,191 +66,367 @@ export function AdminDashboard() {
     }
   }, [])
 
-  const greetingName = user?.firstName || (user?.lastName ? `Directeur ${user.lastName}` : 'Alex')
-
-  // Navigation handlers for the 6 top KPI cards
-  const handleKpiCardClick = (card) => {
-    switch (card.id) {
-      case 'revenue':
-        navigate('/finances/invoices')
-        break
-      case 'projects':
-        navigate('/departments')
-        break
-      case 'tasks':
-        navigate('/homework')
-        break
-      case 'meetings':
-        navigate('/events')
-        break
-      case 'health':
-        navigate('/students')
-        break
-      case 'ai-productivity':
-        navigate('/analyses')
-        break
-      default:
-        break
+  // Format numbers for display in K format (e.g. 15.00K, 2.00K)
+  const formatK = (num, fallback = '0.00K') => {
+    if (num === null || num === undefined) return fallback
+    const val = Number(num)
+    if (Number.isNaN(val)) return fallback
+    if (val >= 1000) {
+      return `${(val / 1000).toFixed(2)}K`
     }
+    return val.toLocaleString('en-US')
   }
 
-  return (
-    <div className="space-y-6 select-none pb-8">
-      {/* 1. White Theme Main Greeting Header */}
-      <WhiteThemeDashboardHeader
-        name={greetingName}
-        greeting="Good morning"
-        subtitle="Today's workspace updates."
-        onAskAi={() => navigate('/analyses')}
-        onSearch={() => navigate('/students')}
-      />
+  // Format revenue in €K format (e.g. €19.3K)
+  const formatEarnings = (num, fallback = '€45,231.89') => {
+    if (num === null || num === undefined) return fallback
+    const val = Number(num)
+    if (Number.isNaN(val)) return fallback
+    if (val >= 1000) {
+      return `€${val.toLocaleString('en-US')}`
+    }
+    return `€${val.toLocaleString('en-US')}`
+  }
 
-      {/* Subheader and Institutional context */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+  const transactions = [
+    {
+      id: 'TX-1049',
+      student: 'Liam Johnson',
+      email: 'liam.johnson@edutrack.school',
+      type: 'Écolage Annuel',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-15',
+      amount: '€750.00',
+    },
+    {
+      id: 'TX-1048',
+      student: 'Olivia Martin',
+      email: 'olivia.m@edutrack.school',
+      type: 'Frais Inscription',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-14',
+      amount: '€250.00',
+    },
+    {
+      id: 'TX-1047',
+      student: 'Noah Williams',
+      email: 'noah.w@edutrack.school',
+      type: 'Cantine Scolaire',
+      status: 'En attente',
+      variant: 'warning',
+      date: '2026-11-14',
+      amount: '€180.00',
+    },
+    {
+      id: 'TX-1046',
+      student: 'Emma Brown',
+      email: 'emma.b@edutrack.school',
+      type: 'Transport T1',
+      status: 'Payé',
+      variant: 'success',
+      date: '2026-11-12',
+      amount: '€120.00',
+    },
+    {
+      id: 'TX-1045',
+      student: 'Lucas Davis',
+      email: 'lucas.d@edutrack.school',
+      type: 'Écolage Trimestre 2',
+      status: 'Validé',
+      variant: 'blue',
+      date: '2026-11-10',
+      amount: '€450.00',
+    },
+  ]
+
+  const recentActivities = [
+    {
+      name: 'Olivia Martin',
+      email: 'olivia.martin@email.com',
+      initials: 'OM',
+      roleOrClass: 'Terminale S1 · Inscription validée',
+      amount: '+€1,999.00',
+    },
+    {
+      name: 'Jackson Lee',
+      email: 'jackson.lee@email.com',
+      initials: 'JL',
+      roleOrClass: 'Première L2 · Frais réglés',
+      amount: '+€39.00',
+    },
+    {
+      name: 'Isabella Nguyen',
+      email: 'isabella.nguyen@email.com',
+      initials: 'IN',
+      roleOrClass: 'Seconde A · Dossier médical à jour',
+      amount: '+€299.00',
+    },
+    {
+      name: 'William Kim',
+      email: 'will@email.com',
+      initials: 'WK',
+      roleOrClass: 'Troisième B · Club Robotique',
+      amount: '+€99.00',
+    },
+    {
+      name: 'Sofia Davis',
+      email: 'sofia.davis@email.com',
+      initials: 'SD',
+      roleOrClass: 'Quatrième C · Transport validé',
+      amount: '+€39.00',
+    },
+  ]
+
+  const totalStudents = stats?.totalStudents ?? 350
+  const totalTeachers = stats?.totalTeachers ?? 28
+  const totalClasses = stats?.totalClasses ?? 12
+  const attendanceRate = stats?.attendanceRate ?? 94
+  const totalPaid = stats?.totalPaid ?? 45231.89
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 md:gap-6 select-none">
+      {/* Header with live metrics */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800 tracking-tight">
-            Vue d'ensemble de l'établissement
-          </h2>
-          <p className="text-2xs font-medium text-slate-500 mt-0.5">
-            Suivi consolidé des métriques de travail, financières et académiques
+          <h1 className="text-display-md font-display font-bold tracking-tight text-[var(--ink)]">
+            Tableau de bord — Établissement
+          </h1>
+          <p className="text-body text-[var(--ink-muted)] mt-1">
+            {totalStudents} élèves · {totalTeachers} enseignants · {totalClasses} classes · {attendanceRate}% assiduité
           </p>
         </div>
-
-        {/* Quick button to toggle academic modules */}
-        <button
-          type="button"
-          onClick={() => setShowPedagogicalSection((prev) => !prev)}
-          className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-[#5B5FC7] hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-auto cursor-pointer"
-        >
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>{showPedagogicalSection ? 'Masquer modules académiques' : 'Afficher modules académiques'}</span>
-          {showPedagogicalSection ? (
-            <ChevronUp className="w-3 h-3" />
-          ) : (
-            <ChevronDown className="w-3 h-3" />
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => navigate('/students')}
+            className="cursor-pointer gap-1.5"
+          >
+            <School className="w-4 h-4" />
+            <span>Gérer les élèves</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Error alert with retry button */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-2xs">
+        <div className="p-4 rounded-card border border-[var(--rose)]/20 bg-[var(--rose-wash)] text-[var(--rose)] text-body flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={fetchDashboardData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+            className="cursor-pointer text-caption"
           >
             Réessayer
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* 2. Top 6 KPI Metric Cards */}
-      <WhiteThemeKpiCards onCardClick={handleKpiCardClick} />
+      {/* Metric Cards — 4 key indicators */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card
+          interactive
+          onClick={() => navigate('/finances/invoices')}
+          className="animate-entrance animate-entrance-stagger-1"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Recettes du mois</CardTitle>
+            <DollarSign className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatEarnings(totalPaid)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +20.1% vs mois dernier
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* 3. Charts Row: Revenue & AI Wave (Col 7) + Team Utilization (Col 5) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-7">
-          <RevenueAssistedLineChartCard
-            title="REVENUE & AI-ASSISTED REVENUE"
-            pinnedMonthIndex={3}
+        <Card
+          interactive
+          onClick={() => navigate('/students')}
+          className="animate-entrance animate-entrance-stagger-2"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Élèves inscrits</CardTitle>
+            <Users className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatK(totalStudents)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +180 nouvelles inscriptions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          interactive
+          onClick={() => navigate('/teachers')}
+          className="animate-entrance animate-entrance-stagger-3"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Corps enseignant</CardTitle>
+            <UserCheck className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : formatK(totalTeachers)}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +19% actifs cette semaine
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          interactive
+          onClick={() => navigate('/attendance')}
+          className="animate-entrance animate-entrance-stagger-4"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Taux de présence</CardTitle>
+            <Activity className="h-4 w-4 text-[var(--ink-muted)]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-display-lg font-display font-bold text-[var(--ink)]">
+              {loading ? '...' : `${attendanceRate}%`}
+            </div>
+            <p className="text-caption text-[var(--ink-muted)] mt-1">
+              +201 connectés cette heure
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Split Grid: Transactions (col-span-2) + Recent Activity (col-span-1) */}
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        {/* Left Column: Transactions & Invoices Table */}
+        <Card className="xl:col-span-2 animate-entrance animate-entrance-stagger-5">
+          <CardHeader className="flex flex-row items-center">
+            <div className="grid gap-1">
+              <CardTitle>Derniers règlements</CardTitle>
+              <CardDescription>
+                Ecolage, cantine, transport — derniers paiements enregistrés.
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/finances/invoices')}
+              className="ml-auto gap-1 cursor-pointer"
+            >
+              <span>Voir tout</span>
+              <ArrowUpRight className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Élève / Tuteur</TableHead>
+                  <TableHead className="hidden xl:table-cell">Type</TableHead>
+                  <TableHead className="hidden xl:table-cell">Statut</TableHead>
+                  <TableHead className="hidden md:table-cell">Date</TableHead>
+                  <TableHead className="text-right">Montant</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id} selectable onClick={() => navigate('/finances/invoices')}>
+                    <TableCell>
+                      <div className="font-medium text-[var(--ink)]">{tx.student}</div>
+                      <div className="hidden text-caption text-[var(--ink-muted)] md:inline">
+                        {tx.email}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell text-[var(--ink-muted)]">
+                      {tx.type}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <Badge variant={tx.variant} className="text-caption">
+                        {tx.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-[var(--ink-muted)]">
+                      {tx.date}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-[var(--ink)] font-mono">
+                      {tx.amount}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Right Column: Recent Activities */}
+        <Card className="animate-entrance animate-entrance-stagger-6">
+          <CardHeader>
+            <CardTitle>Inscriptions récentes</CardTitle>
+            <CardDescription>
+              Nouveaux élèves et mouvements récents.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {recentActivities.map((act) => (
+              <div key={act.name} className="flex items-center gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-[var(--blue-wash)] text-[var(--blue-core)] text-caption font-bold">
+                    {act.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid gap-0.5 min-w-0">
+                  <p className="text-body font-semibold leading-none truncate text-[var(--ink)]">
+                    {act.name}
+                  </p>
+                  <p className="text-caption text-[var(--ink-muted)] truncate">
+                    {act.roleOrClass}
+                  </p>
+                </div>
+                <div className="ml-auto font-medium text-caption text-[var(--ink)] shrink-0 font-mono">
+                  {act.amount}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics & Academic Insights Grid */}
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 animate-entrance animate-entrance-stagger-7">
+          <ExamResultsWaveChart
+            title="Résultats d'examens"
+            series={[
+              { name: 'Enseignants', color: '#1E40AF' },
+              { name: 'Élèves', color: '#38BDF8' },
+            ]}
           />
         </div>
-        <div className="lg:col-span-5">
-          <TeamUtilizationBarChartCard
-            title="TEAM UTILIZATION"
-            initialPeriod="Last Week"
-            onPeriodChange={() => {}}
+        <div className="animate-entrance animate-entrance-stagger-8">
+          <RadialDistributionCard
+            title="Répartition élèves"
+            totalLabel="Total"
+            totalValue={totalStudents.toString()}
+            outerColor="#1E40AF"
+            outerPercent={75}
+            outerLabel="Garçons"
+            innerColor="#38BDF8"
+            innerPercent={55}
+            innerLabel="Filles"
+            onOptionsClick={() => navigate('/students')}
           />
         </div>
       </div>
-
-      {/* 4. Middle Row: Project Health (Col 7) + Upcoming Meetings (Col 5) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-7">
-          <ProjectHealthSegmentedCard
-            title="PROJECT HEALTH"
-            totalSegments={24}
-            onProjectClick={() => navigate('/departments')}
-          />
-        </div>
-        <div className="lg:col-span-5">
-          <UpcomingMeetingsCards
-            title="UPCOMING MEETINGS"
-            onMeetingClick={() => navigate('/events')}
-            onActionClick={() => navigate('/events')}
-          />
-        </div>
-      </div>
-
-      {/* 5. Bottom Row: Company Details Table */}
-      <CompanyDetailsTableCard
-        title="COMPANY DETAILS"
-        onRowClick={() => navigate('/departments')}
-      />
-
-      {/* 6. Optional Expandable Academic Modules (Exam Results, Radial Distribution, Star Students, Recent Activity) */}
-      {showPedagogicalSection && (
-        <div className="space-y-5 pt-4 border-t border-slate-200/80 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#5B5FC7]" />
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              Indicateurs Académiques & Pédagogiques Détaillés
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2">
-              <ExamResultsWaveChart
-                title="All Exam Results"
-                series={[
-                  { name: 'Teacher', color: '#5B5FC7' },
-                  { name: 'Students', color: '#CBD5E1' },
-                ]}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <RadialDistributionCard
-                title="Students"
-                totalLabel="Total"
-                totalValue={stats?.totalStudents ? stats.totalStudents.toString() : '15000'}
-                outerColor="#5B5FC7"
-                outerPercent={75}
-                outerLabel="Male"
-                innerColor="#38BDF8"
-                innerPercent={55}
-                innerLabel="Female"
-                onOptionsClick={() => navigate('/students')}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2">
-              <StarStudentsCard
-                title="Star Students"
-                onOptionsClick={() => navigate('/students')}
-                onRowClick={() => navigate('/students')}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <RecentActivityFeedCard
-                title="Dernières activités"
-                onOptionsClick={() => navigate('/events')}
-                onItemClick={(item) => {
-                  if (item.title?.includes('Teacher')) navigate('/teachers')
-                  else if (item.title?.includes('Fees')) navigate('/finances/invoices')
-                  else navigate('/events')
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -14,6 +14,8 @@ export const Select = forwardRef(function Select(
     id,
     disabled = false,
     children,
+    value,
+    onChange,
     ...props
   },
   ref
@@ -26,15 +28,36 @@ export const Select = forwardRef(function Select(
     .filter(Boolean)
     .join(' ')
 
-  const sizeClass = size === 'sm' ? 'h-8 text-xs ps-2.5 pe-7 rounded-md' : 'h-9 text-sm ps-3 pe-8 rounded-md'
+  const sizeClass = size === 'sm' ? 'h-9 text-xs ps-3 pe-8 rounded-tight' : 'h-10 text-body ps-3.5 pe-8 rounded-card'
+
+  const normalizedValue =
+    typeof value === 'object' && value !== null
+      ? (value.value ?? value.id ?? '')
+      : value
+
+  const handleSelectChange = (e) => {
+    if (!onChange) return
+    const selectVal = e?.target?.value ?? ''
+    if (e && typeof e === 'object') {
+      try {
+        e.value = selectVal
+        e.toJSON = () => selectVal
+        e.toString = () => selectVal
+        e.valueOf = () => selectVal
+      } catch {
+        // Safeguard if object is non-extensible
+      }
+    }
+    onChange(e)
+  }
 
   return (
     <div className="w-full text-start">
       {label && (
-        <label htmlFor={selectId} className="mb-1 block text-xs font-medium text-slate-800">
+        <label htmlFor={selectId} className="mb-1.5 block text-label font-semibold text-[var(--ink)]">
           {label}
           {required && (
-            <span className="ms-0.5 text-rose-500" aria-hidden="true">
+            <span className="ms-0.5 text-rose" aria-hidden="true">
               *
             </span>
           )}
@@ -50,14 +73,16 @@ export const Select = forwardRef(function Select(
           aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
+          value={normalizedValue}
+          onChange={handleSelectChange}
           className={cn(
-            'w-full appearance-none border bg-white text-slate-900 transition-colors cursor-pointer',
-            'focus:outline-hidden focus:ring-1 focus:ring-offset-0',
+            'w-full appearance-none border bg-[var(--surface)] text-[var(--ink)] transition-all cursor-pointer',
+            'focus:outline-none focus:ring-2 focus:ring-offset-0',
             sizeClass,
             error
-              ? 'border-rose-300 focus:border-rose-600 focus:ring-rose-600'
-              : 'border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:ring-slate-900',
-            disabled && 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
+              ? 'border-[var(--rose)]/50 focus:border-[var(--rose)] focus:ring-[var(--rose)]/20'
+              : 'border-[var(--border-subtle)] hover:border-[var(--blue-muted)] focus:border-[var(--blue-core)] focus:ring-[var(--blue-core)]/20',
+            disabled && 'cursor-not-allowed border-[var(--border-subtle)] bg-[var(--muted)] text-[var(--ink-muted)]',
             className
           )}
           {...props}
@@ -76,7 +101,7 @@ export const Select = forwardRef(function Select(
             : children}
         </select>
 
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-slate-400">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-2 text-[var(--ink-muted)]/50">
           <svg
             className="h-3.5 w-3.5 rtl:rotate-180"
             viewBox="0 0 20 20"
@@ -93,11 +118,11 @@ export const Select = forwardRef(function Select(
       </div>
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-1 text-2xs font-medium text-rose-600">
+        <p id={errorId} role="alert" className="mt-1 text-caption font-medium text-[var(--rose)]">
           {typeof error === 'object' && error !== null ? error.message || String(error) : error}
         </p>
       ) : helperText ? (
-        <p id={helperId} className="mt-1 text-2xs text-slate-500">
+        <p id={helperId} className="mt-1 text-caption text-[var(--ink-muted)]">
           {helperText}
         </p>
       ) : null}

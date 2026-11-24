@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import {
-  Eye,
-  Reply,
-  Trash2,
-  Mail,
-} from 'lucide-react'
-import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
+import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import { PaginatedTable } from '@/components/ui/PaginatedTable'
+import { Button } from '@/components/ui/Button'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Loader } from '@/components/ui/Loader'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { MessageComposeModal } from './MessageComposeModal'
 import { MessageDetailsModal } from './MessageDetailsModal'
@@ -28,12 +27,12 @@ export function MessageInbox() {
 
   // Pagination & items
   const [messages, setMessages] = useState([])
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(null)
 
   // Modals state
   const [isComposeOpen, setIsComposeOpen] = useState(false)
@@ -46,7 +45,6 @@ export function MessageInbox() {
     async ({ signal } = {}) => {
       if (!currentUserId) return
       setIsLoading(true)
-      setLoadError(null)
       try {
         let res
         if (activeTab === 'inbox') {
@@ -58,24 +56,27 @@ export function MessageInbox() {
         if (signal?.aborted) return
 
         if (res.success && res.data) {
-          setMessages(res.data.items || [])
+          const rawItems = res.data.items || []
+          const map = new Map()
+          rawItems.forEach((item) => {
+            if (item && item.id != null) {
+              map.set(item.id, item)
+            }
+          })
+          const uniqueItems = Array.from(map.values())
+          setMessages(uniqueItems)
           setTotalItems(res.data.totalItems || 0)
           setTotalPages(res.data.totalPages || 0)
+          if (activeTab === 'inbox') {
+            setInboxUnreadCount(uniqueItems.filter((m) => !m.read).length)
+          }
         } else {
           setMessages([])
           setTotalItems(0)
           setTotalPages(0)
-          const msg = res.error?.message || 'Erreur lors du chargement des messages.'
-          setLoadError(msg)
           if (!signal?.aborted) {
-            toastError(msg)
+            toastError(res.error?.message || 'Erreur lors du chargement des messages.')
           }
-        }
-      } catch (err) {
-        if (!signal?.aborted) {
-          const msg = err.message || 'Erreur lors du chargement des messages.'
-          setLoadError(msg)
-          toastError(msg)
         }
       } finally {
         if (!signal?.aborted) {
@@ -95,35 +96,6 @@ export function MessageInbox() {
     }
   }, [loadMessages])
 
-  const handleDeleteConfirm = async () => {
-    if (!deleteTarget || isDeleting) return
-    setIsDeleting(true)
-    try {
-      const res = await messageService.deleteMessage(deleteTarget.id)
-      if (res.success) {
-        success('Message supprimé.')
-        setDeleteTarget(null)
-        loadMessages()
-      } else {
-        toastError(res.error?.message || 'Erreur lors de la suppression.')
-      }
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const handleReply = (msg) => {
-    const isInbox = activeTab === 'inbox'
-    const targetUserId = isInbox ? msg.senderId : msg.recipientId
-    const replySubject = msg.subject?.startsWith('Re:') ? msg.subject : `Re: ${msg.subject || ''}`
-    setComposeDefaults({
-      recipientId: String(targetUserId || ''),
-      subject: replySubject,
-    })
-    setSelectedMessage(null)
-    setIsComposeOpen(true)
-  }
-
   const filteredMessages = useMemo(() => {
     if (!searchTerm.trim()) return messages
     const q = searchTerm.toLowerCase()
@@ -136,14 +108,57 @@ export function MessageInbox() {
     )
   }, [messages, searchTerm])
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget || isDeleting) return
+    setIsDeleting(true)
+    try {
+      const res = await messageService.deleteMessage(deleteTarget.id)
+      if (res.success) {
+        success('Message supprimé.')
+        setDeleteTarget(null)
+        loadMessages()
+      } else {
+        toastError(res.error?.message || 'Erreur lors de la suppression du message.')
+      }
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleMessageRead = useCallback((msgId) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, read: true } : m))
+    )
+    setInboxUnreadCount((prev) => Math.max(0, prev - 1))
+  }, [])
+
+  const handleReply = (msg) => {
+    setComposeDefaults({
+      recipientId: msg.senderId,
+      subject: msg.subject?.startsWith('Re: ') ? msg.subject : `Re: ${msg.subject || ''}`,
+    })
+    setIsComposeOpen(true)
+  }
+
   const columns = [
     {
-      key: 'contact',
+      key: 'status',
+      label: 'Statut',
+      width: '90px',
+      render: (_, row) =>
+        activeTab === 'inbox' ? (
+          <StatusBadge status={row.read ? 'Lu' : 'Non lu'} size="xs" />
+        ) : (
+          <span className="text-2xs text-slate-400">Envoyé</span>
+        ),
+    },
+    {
+      key: 'peer',
       label: activeTab === 'inbox' ? 'Expéditeur' : 'Destinataire',
-      width: '180px',
+      width: '140px',
       render: (_, row) => (
-        <span className="font-semibold text-xs text-[#0F172A]">
-          Utilisateur #{activeTab === 'inbox' ? row.senderId : row.recipientId}
+        <span className="font-medium text-slate-700">
+          User #{activeTab === 'inbox' ? row.senderId : row.recipientId}
         </span>
       ),
     },
@@ -151,29 +166,24 @@ export function MessageInbox() {
       key: 'subject',
       label: 'Objet',
       render: (val, row) => (
-        <div className="min-w-0">
-          <span
-            className={cn(
-              'text-xs truncate block max-w-md',
-              !row.read && activeTab === 'inbox'
-                ? 'font-bold text-[#0F172A]'
-                : 'font-normal text-[#475569]'
-            )}
-          >
-            {val || '(Sans objet)'}
-          </span>
-          {row.content && (
-            <span className="text-[11px] text-[#94A3B8] block truncate max-w-md">
-              {row.content}
-            </span>
+        <button
+          type="button"
+          onClick={() => setSelectedMessage(row)}
+          className={cn(
+            'text-start hover:underline truncate block max-w-md',
+            !row.read && activeTab === 'inbox'
+              ? 'font-bold text-slate-900'
+              : 'font-normal text-slate-700'
           )}
-        </div>
+        >
+          {val || '(Sans objet)'}
+        </button>
       ),
     },
     {
       key: 'sentAt',
       label: 'Date',
-      width: '160px',
+      width: '150px',
       render: (val) =>
         val
           ? new Date(val).toLocaleDateString('fr-FR', {
@@ -182,151 +192,176 @@ export function MessageInbox() {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : '—',
+          : '-',
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '80px',
+      width: '120px',
       align: 'right',
       render: (_, row) => (
-        <EntityTableActions
-          row={row}
-          actions={[
-            {
-              label: 'Lire',
-              icon: Eye,
-              onClick: () => setSelectedMessage(row),
-            },
-            {
-              label: 'Répondre',
-              icon: Reply,
-              onClick: () => handleReply(row),
-            },
-            {
-              label: 'Supprimer',
-              icon: Trash2,
-              variant: 'danger',
-              hidden: activeTab !== 'inbox',
-              onClick: () => setDeleteTarget(row),
-            },
-          ]}
-        />
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="xs" onClick={() => setSelectedMessage(row)}>
+            Lire
+          </Button>
+          {activeTab === 'inbox' && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setDeleteTarget(row)}
+            >
+              Supprimer
+            </Button>
+          )}
+        </div>
       ),
     },
   ]
 
-  const hasActiveFilters = activeTab !== 'inbox'
-
-  const filtersContent = (
-    <div>
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-        Boîte aux lettres
-      </label>
-      <select
-        value={activeTab}
-        onChange={(e) => {
-          setActiveTab(e.target.value)
-          setPage(1)
-        }}
-        className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
-      >
-        <option value="inbox">Boîte de réception</option>
-        <option value="sent">Messages envoyés</option>
-      </select>
-    </div>
-  )
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
-      <EntityListToolbar
-        onAddNew={() => {
-          setComposeDefaults({ recipientId: '', subject: '' })
-          setIsComposeOpen(true)
-        }}
-        addNewLabel="Nouveau message"
-        canAddNew={true}
-        addNewIcon={Mail}
-        searchValue={searchTerm}
-        onSearchChange={(val) => {
-          setSearchTerm(val)
-          setPage(1)
-        }}
-        searchPlaceholder="Rechercher par objet, utilisateur..."
-        filtersContent={filtersContent}
-        hasActiveFilters={hasActiveFilters}
-        activeFiltersCount={hasActiveFilters ? 1 : 0}
-        onClearFilters={() => {
-          setActiveTab('inbox')
-          setPage(1)
-        }}
-      />
-
-      <EntityDataTable
-        columns={columns}
-        data={filteredMessages}
-        isLoading={isLoading}
-        error={loadError}
-        onRetry={loadMessages}
-        emptyTitle={activeTab === 'inbox' ? 'Boîte de réception vide' : 'Aucun message envoyé'}
-        emptyDescription={
-          searchTerm
-            ? 'Aucun message ne correspond à votre recherche.'
-            : activeTab === 'inbox'
-              ? 'Vous n’avez aucun message reçu.'
-              : 'Vous n’avez encore envoyé aucun message.'
-        }
-        emptyAction={{
-          label: 'Nouveau message',
+    <div data-contract="message-inbox" className="p-6 sm:p-8 space-y-6 select-none">
+      <DocTypePageHead
+        title="Messagerie Interne"
+        count={totalItems}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Filtrer les messages par mot-clé..."
+        primaryAction={{
+          label: 'Nouveau Message',
           onClick: () => {
             setComposeDefaults({ recipientId: '', subject: '' })
             setIsComposeOpen(true)
           },
         }}
-        page={page}
-        pageSize={pageSize}
-        totalItems={totalItems}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        onPageSizeChange={(newSize) => {
-          setPageSize(newSize)
-          setPage(1)
-        }}
-        onRowClick={(row) => setSelectedMessage(row)}
       />
 
+      {/* Tabs */}
+      <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-[#F1F5F9] shadow-2xs text-xs">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('inbox')
+              setPage(1)
+            }}
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
+              activeTab === 'inbox'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#0F172A]'
+            )}
+          >
+            <span>Boîte de réception</span>
+            {inboxUnreadCount > 0 && (
+              <span className="inline-flex items-center justify-center rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white shadow-xs">
+                {inboxUnreadCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('sent')
+              setPage(1)
+            }}
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
+              activeTab === 'sent'
+                ? 'bg-[#0F172A] text-white shadow-2xs'
+                : 'text-[#64748B] hover:bg-slate-100 hover:text-[#0F172A]'
+            )}
+          >
+            <span>Messages envoyés</span>
+          </button>
+        </div>
+
+        <div className="text-xs text-[#64748B]">
+          Connecté en tant que User #{currentUserId || '-'}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center rounded border border-slate-200 bg-white">
+          <Loader size="md" />
+        </div>
+      ) : filteredMessages.length === 0 ? (
+        <EmptyState
+          title={
+            activeTab === 'inbox'
+              ? 'Boîte de réception vide'
+              : 'Aucun message envoyé'
+          }
+          description={
+            activeTab === 'inbox'
+              ? 'Vous n’avez reçu aucun message pour le moment.'
+              : 'Vous n’avez encore envoyé aucun message.'
+          }
+          action={
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setComposeDefaults({ recipientId: '', subject: '' })
+                setIsComposeOpen(true)
+              }}
+            >
+              Écrire un message
+            </Button>
+          }
+        />
+      ) : (
+        <PaginatedTable
+          columns={columns}
+          data={filteredMessages}
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setPage(1)
+          }}
+          isLoading={isLoading}
+        />
+      )}
+
+      {/* Compose Modal */}
       {isComposeOpen && (
         <MessageComposeModal
+          key={`compose-${composeDefaults.recipientId}-${composeDefaults.subject}`}
           isOpen={isComposeOpen}
           defaultRecipientId={composeDefaults.recipientId}
           defaultSubject={composeDefaults.subject}
           onClose={() => setIsComposeOpen(false)}
           onSuccess={() => {
-            if (activeTab === 'sent') loadMessages()
-          }}
-        />
-      )}
-
-      {selectedMessage && (
-        <MessageDetailsModal
-          isOpen={Boolean(selectedMessage)}
-          message={selectedMessage}
-          isSentTab={activeTab === 'sent'}
-          onClose={() => setSelectedMessage(null)}
-          onReply={handleReply}
-          onDeleted={() => {
-            setSelectedMessage(null)
+            setActiveTab('sent')
+            setPage(1)
             loadMessages()
           }}
         />
       )}
 
+      {/* Message Details Modal */}
+      {selectedMessage && (
+        <MessageDetailsModal
+          isOpen={Boolean(selectedMessage)}
+          message={selectedMessage}
+          currentUserId={currentUserId}
+          onClose={() => setSelectedMessage(null)}
+          onMessageRead={handleMessageRead}
+          onReply={handleReply}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
       {deleteTarget && (
         <ConfirmDialog
           isOpen={Boolean(deleteTarget)}
           title="Supprimer ce message ?"
-          message="Êtes-vous sûr de vouloir supprimer définitivement ce message de votre boîte ?"
-          confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
+          description={`Êtes-vous sûr de vouloir supprimer le message "${deleteTarget.subject}" ?`}
+          confirmText={isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
           variant="danger"
           isLoading={isDeleting}
           onConfirm={handleDeleteConfirm}

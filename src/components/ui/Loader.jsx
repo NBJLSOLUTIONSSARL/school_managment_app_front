@@ -8,7 +8,7 @@ const spinnerSizes = {
   lg: 'h-8 w-8 border-[3px]',
 }
 
-export function Spinner({ size = 'md', className = '', color = 'text-slate-800' }) {
+export function Spinner({ size = 'md', className = '', color = 'text-[var(--ink)]' }) {
   const { t } = useI18n()
 
   return (
@@ -31,18 +31,23 @@ export function Loader({ size = 'md', text, className = '' }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-2 p-4 text-slate-500',
+        'flex flex-col items-center justify-center gap-2 p-4 text-[var(--ink-muted)]',
         className
       )}
     >
       <Spinner size={size} />
-      {text && <span className="text-2xs font-medium text-slate-500">{text}</span>}
+      {text && <span className="text-label font-medium text-[var(--ink-muted)]">{text}</span>}
     </div>
   )
 }
 
 export function Skeleton({ className = '' }) {
-  return <div aria-hidden="true" className={cn('animate-pulse rounded bg-slate-200/80', className)} />
+  return (
+    <div
+      aria-hidden="true"
+      className={cn('animate-pulse rounded-tight bg-[var(--border-subtle)]', className)}
+    />
+  )
 }
 
 export function PageLoader({ message }) {
@@ -50,8 +55,8 @@ export function PageLoader({ message }) {
 
   return (
     <div className="flex min-h-[400px] w-full flex-col items-center justify-center p-8">
-      <Spinner size="lg" />
-      <p className="mt-3 text-xs font-medium text-slate-600">{message || t('common.loading')}</p>
+      <Spinner size="lg" color="text-[var(--blue-core)]" />
+      <p className="mt-3 text-body font-medium text-[var(--ink-muted)]">{message || t('common.loading')}</p>
     </div>
   )
 }

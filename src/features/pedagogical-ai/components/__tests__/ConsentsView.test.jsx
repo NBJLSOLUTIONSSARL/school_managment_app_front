@@ -275,3 +275,63 @@ describe('ConsentsPage keyboard shortcuts', () => {
     await waitFor(() => expect(screen.getByText(/consentement accordé/i)).toBeInTheDocument())
   })
 })
+
+describe('ConsentsPage status toggling and cross-component event sync', () => {
+  it('allows signing an ungranted consent directly from table row action', async () => {
+    const ungrantedResponse = {
+      content: [{ ...consent, id: 8, granted: false, grantedAt: null }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    }
+    const result = renderPage({ permissions: ['PERM_READ_CONSENT', 'PERM_WRITE_CONSENT'] })
+    const auth = result.auth
+    auth.request.mockResolvedValue(ungrantedResponse)
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(getLoadButton())
+
+    const signBtn = await screen.findByRole('button', { name: /signer/i })
+    expect(signBtn).toBeInTheDocument()
+
+    const eventSpy = vi.fn()
+    window.addEventListener('edutrack:consent-changed', eventSpy)
+
+    auth.request.mockResolvedValueOnce({ ...consent, id: 8, granted: true, grantedAt: '2026-11-10T12:00:00Z' })
+    fireEvent.click(signBtn)
+
+    await waitFor(() => expect(screen.getByText(/consentement accordé/i)).toBeInTheDocument())
+    expect(auth.request).toHaveBeenCalledWith(
+      '/api/ai-consents',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ studentId: 12, granted: true }),
+      })
+    )
+    expect(eventSpy).toHaveBeenCalled()
+    window.removeEventListener('edutrack:consent-changed', eventSpy)
+  })
+
+  it('dispatches edutrack:consent-changed event when consent is revoked', async () => {
+    window.confirm = vi.fn(() => true)
+    const result = renderPage({ permissions: ['PERM_READ_CONSENT', 'PERM_WRITE_CONSENT'] })
+    const auth = result.auth
+    auth.request.mockResolvedValue(pageResponse)
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(getLoadButton())
+    await waitFor(() => expect(screen.getByText(/tuteur #3/i)).toBeInTheDocument())
+
+    const eventSpy = vi.fn()
+    window.addEventListener('edutrack:consent-changed', eventSpy)
+
+    auth.request.mockResolvedValueOnce({ ...consent, granted: false, grantedAt: null })
+    const revokeBtn = screen.getAllByRole('button', { name: '🗑️' })[0]
+    fireEvent.click(revokeBtn)
+
+    await waitFor(() => expect(screen.getByText(/consentement révoqué/i)).toBeInTheDocument())
+    expect(eventSpy).toHaveBeenCalled()
+    window.removeEventListener('edutrack:consent-changed', eventSpy)
+  })
+})

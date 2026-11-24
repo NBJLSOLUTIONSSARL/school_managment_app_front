@@ -2,44 +2,136 @@
 @import "tailwindcss";
 
 @theme {
-  --color-frappe-bg: #ffffff;
-  --color-frappe-surface: #ffffff;
-  --color-frappe-border: #edf0f8;
-  --color-frappe-hover: #f8f9fd;
-  --color-frappe-muted: #64748b;
-  --color-frappe-dark: #1e1b4b;
+  /* ========================================================================
+     EDUTRACK DESIGN TOKENS — Purposeful Blue System + Semantic Accents
+     ======================================================================== */
 
-  /* Figma Community Dashboard Signature Theme Tokens */
-  --color-primary-blue: #5b5fc7;
-  --color-dark-blue: #484bb5;
-  --color-deep-blue: #3e41a1;
-  --color-medium-blue: #6b6fe0;
-  --color-light-blue: #eef0fb;
-  --color-pale-blue: #f8f9fd;
-  --color-sky-blue: #38bdf8;
-  --color-blue-gray: #64748b;
+  /* --- Core Neutral Palette (6 tokens) --- */
+  --color-ink: #0B1220;
+  --color-ink-muted: #4A5568;
+  --color-paper: #FAFBFC;
+  --color-surface: #FFFFFF;
+  --color-border-subtle: #E4E9EF;
+  --color-border-strong: #CBD5E0;
 
-  --color-brand-primary: #5b5fc7;
-  --color-brand-hover: #484bb5;
-  --color-brand-active: #3e41a1;
-  --color-brand-light: #eef0fb;
-  --color-brand-border: #edf0f8;
+  /* --- Blue Accent System (4 tokens, not 10) --- */
+  --color-blue-core: #1E40AF;
+  --color-blue-hover: #1D4ED8;
+  --color-blue-wash: #EFF6FF;
+  --color-blue-muted: #60A5FA;
 
-  /* Figma Community Palette Accents */
-  --color-figma-primary: #5b5fc7;
-  --color-figma-cyan: #38bdf8;
-  --color-figma-orange: #ff9f43;
-  --color-figma-purple: #8b5cf6;
-  --color-figma-slate-bar: #e2e8f0;
-  --color-figma-dark-tooltip: #1e1b4b;
-  --color-figma-bg: #f8f9fd;
+  /* --- Semantic Accents (3 distinct hues) --- */
+  --color-emerald: #059669;
+  --color-emerald-wash: #ECFDF5;
+  --color-amber: #D97706;
+  --color-amber-wash: #FFFBEB;
+  --color-rose: #DC2626;
+  --color-rose-wash: #FEF2F2;
 
+  /* --- shadcn/ui Design Tokens (mapped to new palette) --- */
+  --color-background: #FAFBFC;
+  --color-foreground: #0B1220;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #0B1220;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #0B1220;
+  --color-primary: #1E40AF;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F1F5F9;
+  --color-secondary-foreground: #0B1220;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #4A5568;
+  --color-accent: #EFF6FF;
+  --color-accent-foreground: #1E40AF;
+  --color-destructive: #DC2626;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E4E9EF;
+  --color-input: #E4E9EF;
+  --color-ring: #1E40AF;
+
+  /* --- Frappe/ERPNext Desk Tokens --- */
+  --color-frappe-bg: #FAFBFC;
+  --color-frappe-surface: #FFFFFF;
+  --color-frappe-border: #E4E9EF;
+  --color-frappe-hover: #EFF6FF;
+  --color-frappe-muted: #4A5568;
+  --color-frappe-dark: #0B1220;
+
+  /* --- Blue Palette (backward compat) --- */
+  --color-primary-blue: #1E40AF;
+  --color-dark-blue: #1D4ED8;
+  --color-deep-blue: #1E40AF;
+  --color-medium-blue: #3B82F6;
+  --color-light-blue: #DBEAFE;
+  --color-pale-blue: #EFF6FF;
+  --color-sky-blue: #60A5FA;
+  --color-blue-gray: #4A5568;
+
+  --color-brand-primary: #1E40AF;
+  --color-brand-hover: #1D4ED8;
+  --color-brand-active: #1E40AF;
+  --color-brand-light: #EFF6FF;
+  --color-brand-border: #DBEAFE;
+
+  /* --- Typography Scale (fluid, clamped) --- */
+  /* Display: Plus Jakarta Sans — Page titles, section headers, metric numbers */
+  --text-display-xl: clamp(1.5rem, 2vw, 1.875rem);
+  --text-display-xl--line-height: 1.2;
+  --text-display-lg: clamp(1.25rem, 1.5vw, 1.5rem);
+  --text-display-lg--line-height: 1.25;
+  --text-display-md: clamp(1.125rem, 1.2vw, 1.25rem);
+  --text-display-md--line-height: 1.3;
+
+  /* Section: Plus Jakarta Sans — Section headers */
+  --text-section: clamp(0.875rem, 1.2vw, 1rem);
+  --text-section--line-height: 1.3;
+
+  /* UI: DM Sans — Cards, tables, forms, navigation */
+  --text-card-title: 0.875rem;
+  --text-card-title--line-height: 1.3;
+  --text-body: 0.8125rem; /* 13px */
+  --text-body--line-height: 1.5;
+  --text-label: 0.6875rem; /* 11px */
+  --text-label--line-height: 1.4;
+  --text-caption: 0.625rem; /* 10px */
+  --text-caption--line-height: 1.4;
+
+  /* Mono: JetBrains Mono — IDs, codes, amounts, timestamps */
+  --text-mono-sm: 0.75rem; /* 12px */
+  --text-mono-sm--line-height: 1.5;
+  --text-mono-base: 0.8125rem; /* 13px */
+  --text-mono-base--line-height: 1.5;
+
+  /* --- Spacing Scale (base 4px) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --- Border Radius Hierarchy --- */
+  --radius-tight: 4px;
+  --radius-card: 8px;
+  --radius-panel: 12px;
+  --radius-full: 9999px;
+
+  /* --- Shadow Depth System --- */
+  --shadow-hair: 0 1px 2px rgba(11, 18, 32, 0.04);
+  --shadow-soft: 0 2px 8px -2px rgba(11, 18, 32, 0.06);
+  --shadow-elevated: 0 8px 24px -4px rgba(11, 18, 32, 0.08);
+  --shadow-focus: 0 0 0 3px rgba(30, 64, 175, 0.2);
+
+  /* --- Motion Tokens --- */
+  --motion-fast: 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-base: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-slow: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --stagger: 80ms;
+
+  /* --- Frappe Desk Compact Typography (scoped to .profile-desk) --- */
   --text-2xs: 11px;
   --text-2xs--line-height: 14px;
-}
-
-/* Keep compact Desk typography scoped to authenticated profile content. */
-.profile-desk {
   --text-xs: 12px;
   --text-xs--line-height: 16px;
   --text-sm: 13px;
@@ -49,74 +141,83 @@
 }
 
 :root {
-  --frappe-bg: #ffffff;
-  --frappe-surface: #ffffff;
-  --frappe-border: #edf0f8;
-  --frappe-hover: #f8f9fd;
-  --frappe-muted: #64748b;
-  --frappe-dark: #1e1b4b;
+  /* CSS Variable aliases for direct use in components */
+  --ink: #0B1220;
+  --ink-muted: #4A5568;
+  --paper: #FAFBFC;
+  --surface: #FFFFFF;
+  --border-subtle: #E4E9EF;
+  --border-strong: #CBD5E0;
 
-  /* Figma Community Theme Tokens */
-  --primary-blue: #5b5fc7;
-  --dark-blue: #484bb5;
-  --deep-blue: #3e41a1;
-  --medium-blue: #6b6fe0;
-  --light-blue: #eef0fb;
-  --pale-blue: #f8f9fd;
-  --sky-blue: #38bdf8;
-  --blue-gray: #64748b;
+  --blue-core: #1E40AF;
+  --blue-hover: #1D4ED8;
+  --blue-wash: #EFF6FF;
+  --blue-muted: #60A5FA;
 
-  --primary: #5b5fc7;
-  --primary-hover: #484bb5;
-  --primary-light: #eef0fb;
-  --sidebar-bg: #ffffff;
-  --sidebar-active-bg: #eef0fb;
-  --sidebar-active-text: #5b5fc7;
-  --bg-page: #f8f9fd;
-  --card-bg: #ffffff;
-  --card-border: #edf0f8;
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --emerald: #059669;
+  --emerald-wash: #ECFDF5;
+  --amber: #D97706;
+  --amber-wash: #FFFBEB;
+  --rose: #DC2626;
+  --rose-wash: #FEF2F2;
 
-  /* Figma Community Accents */
-  --figma-primary: #5b5fc7;
-  --figma-cyan: #38bdf8;
-  --figma-orange: #ff9f43;
-  --figma-purple: #8b5cf6;
-  --figma-slate-bar: #e2e8f0;
-  --figma-dark-tooltip: #1e1b4b;
+  /* Frappe aliases */
+  --frappe-bg: #FAFBFC;
+  --frappe-surface: #FFFFFF;
+  --frappe-border: #E4E9EF;
+  --frappe-hover: #EFF6FF;
+  --frappe-muted: #4A5568;
+  --frappe-dark: #0B1220;
 
-  /* Theme HSL Variables: Figma Indigo Foundation */
-  --background: 228 50% 98%;
-  --foreground: 222.2 47.4% 11.2%;
-  --primary-hsl: 238 52% 57%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 238 60% 96%;
-  --secondary-foreground: 238 52% 40%;
-  --accent: 238 60% 96%;
-  --accent-foreground: 238 52% 40%;
-  --ring: 238 52% 57%;
-  --muted: 220 20% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --border: 225 35% 94%;
-  --input: 225 35% 94%;
+  /* Blue palette aliases */
+  --primary-blue: #1E40AF;
+  --dark-blue: #1D4ED8;
+  --deep-blue: #1E40AF;
+  --medium-blue: #3B82F6;
+  --light-blue: #DBEAFE;
+  --pale-blue: #EFF6FF;
+  --sky-blue: #60A5FA;
+  --blue-gray: #4A5568;
 
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    sans-serif;
-  line-height: 1.45;
+  --primary: #1E40AF;
+  --primary-hover: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-active-bg: #EFF6FF;
+  --sidebar-active-text: #1E40AF;
+  --bg-page: #FAFBFC;
+  --card-bg: #FFFFFF;
+  --card-border: #E4E9EF;
+  --text-primary: #0B1220;
+  --text-secondary: #334155;
+  --text-muted: #4A5568;
+
+  /* shadcn/ui Theme HSL Variables */
+  --background: 250 50% 99%;
+  --foreground: 222 30% 6%;
+  --primary-hsl: 221 83% 39%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 214 20% 95%;
+  --secondary-foreground: 222 30% 6%;
+  --accent: 221 100% 97%;
+  --accent-foreground: 221 83% 39%;
+  --ring: 221 83% 39%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 20% 91%;
+  --input: 214 20% 91%;
+
+  /* Font Families */
+  --font-display: "Plus Jakarta Sans", "DM Sans", system-ui, sans-serif;
+  --font-ui: "DM Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Base font: UI font for body */
+  font-family: var(--font-ui);
+  line-height: 1.5;
   font-weight: 400;
-  color: #1e293b;
-  background-color: #f8f9fd;
+  color: var(--ink);
+  background-color: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -125,8 +226,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #f8f9fd;
-  color: #1e293b;
+  background-color: var(--paper);
+  color: var(--ink);
 }
 
 #root {
@@ -134,7 +235,6 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fd;
 }
 
 /* Custom scrollbars for data-dense tables */
@@ -144,32 +244,33 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8f9fd;
+  background: var(--muted);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border-strong);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--ink-muted);
 }
 
-/* Keyboard-first focus indicator with Figma Indigo Accent */
+/* Keyboard-first focus indicator with Blue Core Accent */
 :where(a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])):focus-visible {
-  outline: 2px solid #5b5fc7;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-tight);
 }
 
 /* Arabic / RTL typography fallback */
 [dir='rtl'] {
   font-family:
+    var(--font-ui),
     'Segoe UI',
     Tahoma,
     'Noto Naskh Arabic',
     'Arabic Typesetting',
-    system-ui,
     sans-serif;
 }
 
@@ -177,33 +278,195 @@ body {
   *,
   *::before,
   *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
 
-/* Figma Community Modern Cards & Components */
+/* ========================================================================
+   UTILITY CLASSES — Design System Primitives
+   ======================================================================== */
+
+/* Typography Helpers */
+.font-display { font-family: var(--font-display); }
+.font-ui { font-family: var(--font-ui); }
+.font-mono { font-family: var(--font-mono); }
+
+.text-display-xl { font-size: var(--text-display-xl); line-height: var(--text-display-xl--line-height); font-weight: 700; }
+.text-display-lg { font-size: var(--text-display-lg); line-height: var(--text-display-lg--line-height); font-weight: 700; }
+.text-display-md { font-size: var(--text-display-md); line-height: var(--text-display-md--line-height); font-weight: 600; }
+.text-section { font-size: var(--text-section); line-height: var(--text-section--line-height); font-weight: 600; }
+.text-card-title { font-size: var(--text-card-title); line-height: var(--text-card-title--line-height); font-weight: 600; }
+.text-body { font-size: var(--text-body); line-height: var(--text-body--line-height); font-weight: 400; }
+.text-label { font-size: var(--text-label); line-height: var(--text-label--line-height); font-weight: 500; }
+.text-caption { font-size: var(--text-caption); line-height: var(--text-caption--line-height); font-weight: 400; }
+.text-mono-sm { font-size: var(--text-mono-sm); line-height: var(--text-mono-sm--line-height); font-weight: 400; }
+.text-mono-base { font-size: var(--text-mono-base); line-height: var(--text-mono-base--line-height); font-weight: 400; }
+
+/* Color Helpers */
+.text-ink { color: var(--ink); }
+.text-ink-muted { color: var(--ink-muted); }
+.text-blue-core { color: var(--blue-core); }
+.text-emerald { color: var(--emerald); }
+.text-amber { color: var(--amber); }
+.text-rose { color: var(--rose); }
+
+.bg-paper { background-color: var(--paper); }
+.bg-surface { background-color: var(--surface); }
+.bg-blue-wash { background-color: var(--blue-wash); }
+.bg-emerald-wash { background-color: var(--emerald-wash); }
+.bg-amber-wash { background-color: var(--amber-wash); }
+.bg-rose-wash { background-color: var(--rose-wash); }
+
+.border-subtle { border-color: var(--border-subtle); }
+.border-strong { border-color: var(--border-strong); }
+
+/* Radius Helpers */
+.rounded-tight { border-radius: var(--radius-tight); }
+.rounded-card { border-radius: var(--radius-card); }
+.rounded-panel { border-radius: var(--radius-panel); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadow Helpers */
+.shadow-hair { box-shadow: var(--shadow-hair); }
+.shadow-soft { box-shadow: var(--shadow-soft); }
+.shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+/* Motion Helpers */
+.transition-fast { transition: all var(--motion-fast); }
+.transition-base { transition: all var(--motion-base); }
+.transition-slow { transition: all var(--motion-slow); }
+
+/* Entrance Animation (staggered) */
+@keyframes entrance {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-entrance {
+  animation: entrance var(--motion-base) forwards;
+  opacity: 0;
+}
+
+.animate-entrance-stagger-1 { animation-delay: calc(var(--stagger) * 0); }
+.animate-entrance-stagger-2 { animation-delay: calc(var(--stagger) * 1); }
+.animate-entrance-stagger-3 { animation-delay: calc(var(--stagger) * 2); }
+.animate-entrance-stagger-4 { animation-delay: calc(var(--stagger) * 3); }
+.animate-entrance-stagger-5 { animation-delay: calc(var(--stagger) * 4); }
+.animate-entrance-stagger-6 { animation-delay: calc(var(--stagger) * 5); }
+.animate-entrance-stagger-7 { animation-delay: calc(var(--stagger) * 6); }
+.animate-entrance-stagger-8 { animation-delay: calc(var(--stagger) * 7); }
+
+/* Micro-interaction: press */
+.active-press:active { transform: scale(0.98); }
+
+/* Clean Cards — Updated with new token system */
 .edutrack-card,
-.academy-card,
-.figma-card {
-  background-color: #ffffff;
-  border: 1px solid #edf0f8;
-  border-radius: 1rem;
-  box-shadow: 0 4px 20px -2px rgba(91, 95, 199, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease-in-out;
+.academy-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-hair);
+  transition: box-shadow var(--motion-fast), border-color var(--motion-fast);
 }
 
 .edutrack-card:hover,
-.academy-card:hover,
-.figma-card:hover {
-  box-shadow: 0 6px 24px -2px rgba(91, 95, 199, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.03);
+.academy-card:hover {
+  box-shadow: var(--shadow-soft);
+  border-color: var(--border-strong);
 }
 
 .edutrack-pill-active,
-.academy-pill-active,
-.figma-pill-active {
-  background-color: rgba(91, 95, 199, 0.1);
-  color: #5b5fc7;
-  border-color: rgba(91, 95, 199, 0.2);
+.academy-pill-active {
+  background-color: var(--blue-wash);
+  color: var(--blue-core);
+  border-color: var(--blue-muted);
   font-weight: 600;
-  border-radius: 0.75rem;
+}
+
+/* Status Badge Variants */
+.badge-success { background-color: var(--emerald-wash); color: var(--emerald); border-color: var(--emerald); }
+.badge-warning { background-color: var(--amber-wash); color: var(--amber); border-color: var(--amber); }
+.badge-danger { background-color: var(--rose-wash); color: var(--rose); border-color: var(--rose); }
+.badge-info { background-color: var(--blue-wash); color: var(--blue-core); border-color: var(--blue-muted); }
+
+/* Table Row States */
+.table-row-hover:hover { background-color: rgba(30, 64, 175, 0.04); }
+.table-row-selected { background-color: var(--blue-wash); border-left: 2px solid var(--blue-core); }
+
+/* Sidebar Active Item */
+.sidebar-item-active {
+  background-color: var(--blue-wash);
+  color: var(--blue-core);
+  border-left: 2px solid var(--blue-core);
+}
+
+.sidebar-item:hover:not(.sidebar-item-active) {
+  background-color: rgba(30, 64, 175, 0.04);
+  color: var(--blue-core);
+}
+
+/* Empty State Pattern */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--blue-muted);
+  margin-bottom: var(--space-3);
+}
+
+.empty-state-title {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--space-1);
+}
+
+.empty-state-body {
+  font-size: var(--text-label);
+  color: var(--ink-muted);
+  max-width: 280px;
+  margin-bottom: var(--space-4);
+}
+
+/* Error State Pattern */
+.error-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--rose-wash);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-card);
+}
+
+.error-state-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--rose);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-state-title {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--space-1);
+}
+
+.error-state-body {
+  font-size: var(--text-caption);
+  color: var(--ink-muted);
+  margin-bottom: var(--space-3);
 }

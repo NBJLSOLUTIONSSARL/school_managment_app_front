@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react'
 import { AuthContext } from '@/features/auth'
 import { AnalysesView as AnalysesPage } from '@/features/pedagogical-ai/components/AnalysesView'
 
@@ -399,7 +399,7 @@ describe('AnalysesPage detail view', () => {
   it('opens detail view and shows summary, strengths, difficulties, trends', async () => {
     const viewBtn = screen.getAllByRole('button', { title: /voir le détail/i }).find((b) => !b.disabled)
     fireEvent.click(viewBtn)
-    expect(screen.getByText(/détail de l’analyse #7/i)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/détail de l’analyse #7/i)).toBeInTheDocument())
     expect(screen.getByText(/résumé/i)).toBeInTheDocument()
     expect(screen.getByText(/forces/i)).toBeInTheDocument()
     expect(screen.getByText(/difficultés/i)).toBeInTheDocument()
@@ -444,5 +444,229 @@ describe('AnalysesPage keyboard shortcuts and session', () => {
     renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS'] })
     expect(screen.getByRole('heading', { name: /analyses pédagogiques/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /nouvelle observation/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('AnalysesPage parental consent enforcement', () => {
+  it('displays active consent indicator when consent is granted', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [{ id: 1, studentId: 12, guardianId: 3, granted: true, grantedAt: '2026-10-30T10:00:00Z' }],
+          page: 0,
+          size: 10,
+          totalElements: 1,
+          totalPages: 1,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getByText(/consentement parental actif pour l’analyse IA/i)).toBeInTheDocument())
+    expect(screen.getByText('Actif')).toBeInTheDocument()
+  })
+
+  it('displays revoked consent warning, disables generation, and masks protected diagnosis', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [{ id: 1, studentId: 12, guardianId: 3, granted: false, grantedAt: null }],
+          page: 0,
+          size: 10,
+          totalElements: 1,
+          totalPages: 1,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getAllByText(/consentement parental révoqué/i).length).toBeGreaterThan(0))
+
+    const termInput = screen.getByLabelText(/identifiant période/i)
+    fireEvent.change(termInput, { target: { value: '3' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).pop())
+
+    const generateBtn = screen.getByRole('button', { name: /générer l’analyse/i })
+    expect(generateBtn).toBeDisabled()
+    expect(screen.getByText(/génération bloquée : consentement parental révoqué/i)).toBeInTheDocument()
+
+    const viewBtn = screen.getAllByRole('button', { title: /voir le détail/i }).find((b) => !b.disabled)
+    fireEvent.click(viewBtn)
+
+    await waitFor(() => expect(screen.getByText(/diagnostic protégé verrouillé/i)).toBeInTheDocument())
+    expect(screen.queryByText('Participation soutenue en classe.')).not.toBeInTheDocument()
+  })
+
+  it('displays missing consent warning and blocks generation when no consent exists', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getAllByText(/consentement parental manquant/i).length).toBeGreaterThan(0))
+    const generateBtn = screen.getByRole('button', { name: /générer l’analyse/i })
+    expect(generateBtn).toBeDisabled()
+  })
+
+  it('masks analysis detail content when consent is missing (not just revoked)', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [],
+          page: 0,
+          size: 10,
+          totalElements: 0,
+          totalPages: 0,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getAllByText(/consentement parental manquant/i).length).toBeGreaterThan(0))
+
+    const viewBtn = screen.getAllByRole('button', { title: /voir le détail/i }).find((b) => !b.disabled)
+    fireEvent.click(viewBtn)
+
+    await waitFor(() => expect(screen.getByText(/diagnostic protégé verrouillé/i)).toBeInTheDocument())
+    expect(screen.queryByText('Participation soutenue en classe.')).not.toBeInTheDocument()
+  })
+
+  it('updates consent status dynamically when edutrack:consent-changed event fires', async () => {
+    const { auth } = renderPage({ permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'] })
+    let currentGranted = false
+    auth.request.mockImplementation((url) => {
+      if (url.includes('/api/ai-consents')) {
+        return Promise.resolve({
+          content: [{ id: 1, studentId: 12, guardianId: 3, granted: currentGranted, grantedAt: currentGranted ? '2026-11-10T12:00:00Z' : null }],
+          page: 0,
+          size: 10,
+          totalElements: 1,
+          totalPages: 1,
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const input = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getAllByText(/consentement parental révoqué/i).length).toBeGreaterThan(0))
+
+    currentGranted = true
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('edutrack:consent-changed', { detail: { studentId: 12, granted: true } }))
+    })
+
+    await waitFor(() => expect(screen.getByText(/consentement parental actif pour l’analyse IA/i)).toBeInTheDocument())
+  })
+})
+
+describe('AnalysesPage async generation & period comparison tab', () => {
+  it('switches between single analyses view and period comparison view tabs', () => {
+    renderPage({ permissions: ['PERM_READ_ANALYSIS'] })
+    const compareTab = screen.getByRole('button', { name: /comparaison de périodes/i })
+    expect(compareTab).toBeInTheDocument()
+
+    fireEvent.click(compareTab)
+    expect(screen.getByLabelText(/période 1/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/période 2/i)).toBeInTheDocument()
+
+    const singleTab = screen.getByRole('button', { name: /analyses par période/i })
+    fireEvent.click(singleTab)
+    expect(screen.getByLabelText(/identifiant élève/i)).toBeInTheDocument()
+  })
+
+  it('passes requested locale in generate payload and handles polling status', async () => {
+    const { auth } = renderPage({
+      permissions: ['PERM_READ_ANALYSIS', 'PERM_GENERATE_ANALYSIS', 'PERM_READ_CONSENT'],
+    })
+
+    auth.request.mockImplementation((url, opts) => {
+      if (url.includes('/ai-consents')) {
+        return Promise.resolve({
+          content: [{ id: 1, studentId: 12, guardianId: 1, granted: true, grantedAt: '2026-10-01' }],
+          page: 0,
+          size: 10,
+          totalElements: 1,
+          totalPages: 1,
+        })
+      }
+      if (url.includes('/generate') && opts?.method === 'POST') {
+        return Promise.resolve({
+          id: 42,
+          studentId: 12,
+          termId: 3,
+          status: 'PENDING',
+        })
+      }
+      if (url.includes('/42/status') || url.includes('/status/42')) {
+        return Promise.resolve({
+          id: 42,
+          status: 'COMPLETED',
+          analysisId: 42,
+        })
+      }
+      if (url === '/api/ai-analyses/42') {
+        return Promise.resolve({
+          ...analysis,
+          id: 42,
+          status: 'DRAFT',
+        })
+      }
+      return Promise.resolve(pageResponse)
+    })
+
+    const studentInput = screen.getByLabelText(/identifiant élève/i)
+    fireEvent.change(studentInput, { target: { value: '12' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).find((b) => !b.disabled))
+
+    await waitFor(() => expect(screen.getByText(/consentement parental actif/i)).toBeInTheDocument())
+
+    const termInput = screen.getByLabelText(/identifiant période/i)
+    fireEvent.change(termInput, { target: { value: '3' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /charger/i }).pop())
+
+    fireEvent.click(screen.getByRole('button', { name: /générer l’analyse/i }))
+
+    await waitFor(() =>
+      expect(auth.request).toHaveBeenCalledWith(
+        '/api/ai-analyses/generate',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"locale":"fr"'),
+        })
+      )
+    )
+
+    await waitFor(() => expect(screen.getByText(/analyse générée avec succès/i)).toBeInTheDocument())
   })
 })

@@ -28,13 +28,23 @@ function followUpActionSummary(value) {
     || typeof value.done !== 'boolean') {
     throw new ApiError(0)
   }
-  return {
+  const summary = {
     id: value.id,
     strategyId: value.strategyId,
     description: value.description,
     dueDate: typeof value.dueDate === 'string' ? value.dueDate : null,
     done: value.done,
   }
+  if (value.carriedForward !== undefined) {
+    summary.carriedForward = Boolean(value.carriedForward)
+  }
+  if (value.status !== undefined) {
+    summary.status = value.status
+  }
+  if (value.sourceTermId !== undefined) {
+    summary.sourceTermId = value.sourceTermId
+  }
+  return summary
 }
 
 export async function createLearningStrategy(request, data) {
@@ -108,6 +118,24 @@ export async function listFollowUpActions(request, strategyId, { done, from, to,
     totalElements: result.totalElements,
     totalPages: result.totalPages,
   }
+}
+
+export async function updateFollowUpAction(request, actionId, data) {
+  if (!Number.isSafeInteger(actionId) || actionId <= 0 || !data) {
+    throw new ApiError(0, "Données d'action invalides.")
+  }
+  const payload = {}
+  if (typeof data.done === 'boolean') payload.done = data.done
+  if (typeof data.status === 'string') payload.status = data.status
+  if (typeof data.description === 'string') payload.description = data.description
+  if (typeof data.dueDate === 'string' || data.dueDate === null) payload.dueDate = data.dueDate
+  if (typeof data.carriedForward === 'boolean') payload.carriedForward = data.carriedForward
+
+  const result = await request(`${endpoint}/follow-up-actions/${actionId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+  return followUpActionSummary(result)
 }
 
 export function strategyError(error) {

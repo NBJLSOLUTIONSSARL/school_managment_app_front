@@ -3,6 +3,7 @@ import { teacherService } from '@/features/teachers/api/teacherService'
 import { staffService } from '@/features/staff/api/staffService'
 import { departmentService } from '@/features/departments/api/departmentService'
 import { eventService } from '@/features/events/api/eventService'
+import { guardianService } from '@/features/guardians/api/guardianService'
 import { axiosClient } from '@/lib/axios'
 import { extractApiData } from '@/utils/apiHelpers'
 
@@ -352,24 +353,18 @@ export const statsService = {
    * @param {number|string} guardianId
    */
   async getParentStats(guardianId) {
-    const [studentsRes, eventsRes] = await Promise.allSettled([
-      axiosClient.get('/v1/students', { params: { size: 100 } }),
+    const fetchChildrenPromise = guardianId
+      ? guardianService.getStudentsByGuardianId(guardianId)
+      : guardianService.getMyChildren()
+
+    const [childrenRes, eventsRes] = await Promise.allSettled([
+      fetchChildrenPromise,
       eventService.getEvents({ page: 1, size: 5 }),
     ])
 
     let children = []
-    if (studentsRes.status === 'fulfilled') {
-      try {
-        const data = extractApiData(studentsRes.value)
-        const allStudents = Array.isArray(data) ? data : data?.content || []
-        if (guardianId) {
-          children = allStudents.filter((s) =>
-            s.guardians?.some((g) => Number(g.guardianId) === Number(guardianId))
-          )
-        }
-      } catch {
-        children = []
-      }
+    if (childrenRes.status === 'fulfilled' && childrenRes.value?.success) {
+      children = Array.isArray(childrenRes.value.data) ? childrenRes.value.data : []
     }
 
     // For each child found, load their latest report card if available

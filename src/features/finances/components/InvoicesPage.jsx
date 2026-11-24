@@ -1,17 +1,28 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
-  Eye,
   CreditCard,
-  Check,
+  DollarSign,
+  Clock,
+  Award,
+  ChevronRight,
+  Eye,
   Copy,
+  Check,
 } from 'lucide-react'
-import { EntityListToolbar, EntityDataTable, EntityTableActions } from '@/components/shared'
+import { DocTypePageHead } from '@/components/ui/DocTypePageHead'
+import { StatCard } from '@/components/ui/StatCard'
+import { TableToolbar } from '@/components/ui/TableToolbar'
+import { PaginatedTable } from '@/components/ui/PaginatedTable'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { invoiceService } from '../api/invoiceService'
 import { InvoiceDetailModal } from './InvoiceDetailModal'
 import { CreateInvoiceModal } from './CreateInvoiceModal'
 import { RecordPaymentModal } from './RecordPaymentModal'
+import { AccountingSummaryCard } from './AccountingSummaryCard'
+import { DiscountRulesManager } from './DiscountRulesManager'
+import { InstallmentsPlanModal } from './InstallmentsPlanModal'
 
 export function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
@@ -19,6 +30,7 @@ export function InvoicesPage() {
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeView, setActiveView] = useState('table')
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
@@ -29,6 +41,9 @@ export function InvoicesPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [discountRulesOpen, setDiscountRulesOpen] = useState(false)
+  const [installmentsModalOpen, setInstallmentsModalOpen] = useState(false)
+  const [installmentsInvoice, setInstallmentsInvoice] = useState(null)
 
   const fetchInvoices = useCallback(async ({ signal } = {}) => {
     setLoading(true)
@@ -81,34 +96,40 @@ export function InvoicesPage() {
     setPaymentModalOpen(true)
   }
 
-  const filteredInvoices = useMemo(() => {
-    if (!searchQuery) return invoices
+  const filteredInvoices = invoices.filter((inv) => {
+    if (!searchQuery) return true
     const q = searchQuery.toLowerCase()
-    return invoices.filter((inv) =>
+    return (
       inv.number?.toLowerCase().includes(q) ||
       inv.studentName?.toLowerCase().includes(q)
     )
-  }, [invoices, searchQuery])
+  })
+
+  // KPI calculations
+  const totalBilled = invoices.reduce((acc, inv) => acc + (inv.totalAmount || 0), 0)
+  const totalPaid = invoices.reduce((acc, inv) => acc + (inv.paidAmount || 0), 0)
+  const paidCount = invoices.filter((i) => i.status === 'PAID').length
 
   const columns = [
     {
       key: 'number',
       label: 'Facture / Numéro',
+      sortable: true,
       render: (val, inv) => (
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] flex items-center justify-center font-bold text-xs text-[#2563EB] shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111827] shrink-0">
             {inv.number ? inv.number.slice(0, 2).toUpperCase() : 'FC'}
           </div>
-          <div className="flex items-center gap-1.5 font-mono text-xs text-[#0F172A] font-semibold">
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#111827] font-semibold">
             <span>{inv.number || `#${inv.id}`}</span>
             <button
               type="button"
               onClick={(e) => handleCopy(inv.number || `#${inv.id}`, inv.id, e)}
-              className="p-1 text-[#94A3B8] hover:text-[#0F172A] rounded transition-colors cursor-pointer"
+              className="p-1 text-[#9CA3AF] hover:text-[#111827] rounded transition cursor-pointer"
               title="Copier le numéro"
             >
               {copiedId === inv.id ? (
-                <Check className="w-3 h-3 text-emerald-600" />
+                <Check className="w-3 h-3 text-[#059669]" />
               ) : (
                 <Copy className="w-3 h-3" />
               )}
@@ -121,16 +142,19 @@ export function InvoicesPage() {
       key: 'studentName',
       label: 'Élève / Bénéficiaire',
       render: (_, inv) => (
-        <span className="text-xs font-medium text-[#0F172A] truncate block max-w-xs">
-          {inv.studentName || `Élève #${inv.studentId}`}
-        </span>
+        <div className="flex items-center justify-between gap-2 max-w-xs group cursor-pointer">
+          <span className="text-xs font-medium text-[#111827] truncate">
+            {inv.studentName || `Élève #${inv.studentId}`}
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#9CA3AF] group-hover:text-[#111827] shrink-0" />
+        </div>
       ),
     },
     {
       key: 'totalAmount',
       label: 'Montant Total',
       render: (val) => (
-        <span className="font-mono text-xs font-semibold text-[#0F172A]">
+        <span className="font-mono text-xs font-semibold text-[#111827]">
           {Number(val || 0).toLocaleString()} €
         </span>
       ),
@@ -155,15 +179,15 @@ export function InvoicesPage() {
       key: 'dueDate',
       label: 'Échéance',
       render: (val) => (
-        <span className="text-xs text-[#475569]">
-          {val ? new Date(val).toLocaleDateString() : '—'}
+        <span className="text-xs text-[#4B5563]">
+          {val ? new Date(val).toLocaleDateString() : 'N/A'}
         </span>
       ),
     },
     {
       key: 'status',
       label: 'Statut',
-      width: '120px',
+      width: '130px',
       render: (val) => {
         const statusMap = {
           PAID: { badge: 'Complete', label: 'Réglée' },
@@ -171,131 +195,154 @@ export function InvoicesPage() {
           UNPAID: { badge: 'In Negotiation', label: 'En attente' },
           OVERDUE: { badge: 'To Contact', label: 'En retard' },
         }
-        const cfg = statusMap[val] || { badge: 'To Contact', label: val || 'Brouillon' }
-        return <StatusBadge status={cfg.badge} label={cfg.label} />
+        const cfg = statusMap[val] || { badge: 'To Contact', label: val || 'Draft' }
+        return <StatusBadge status={cfg.badge} label={cfg.label} showPlus />
       },
     },
     {
       key: 'actions',
       label: 'Actions',
-      width: '140px',
       align: 'right',
       render: (_, inv) => {
         const remaining = Math.max(0, (inv.totalAmount || 0) - (inv.paidAmount || 0))
         return (
           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => {
+                setInstallmentsInvoice(inv);
+                setInstallmentsModalOpen(true);
+              }}
+            >
+              Échéances
+            </Button>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => handleOpenDetail(inv)}
+              leftIcon={<Eye className="w-3.5 h-3.5" />}
+            >
+              Détails
+            </Button>
             {remaining > 0 && (
               <Button
                 size="xs"
                 variant="primary"
                 onClick={() => handleOpenPayment(inv)}
-                className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs px-2 py-1 h-7"
               >
                 Encaisser
               </Button>
             )}
-            <EntityTableActions
-              row={inv}
-              actions={[
-                {
-                  label: 'Détails',
-                  icon: Eye,
-                  onClick: () => handleOpenDetail(inv),
-                },
-                {
-                  label: 'Encaisser paiement',
-                  icon: CreditCard,
-                  hidden: remaining <= 0,
-                  onClick: () => handleOpenPayment(inv),
-                },
-              ]}
-            />
           </div>
         )
       },
     },
   ]
 
-  const hasActiveFilters = statusFilter !== 'ALL'
-
-  const filtersContent = (
-    <div>
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-        Statut de paiement
-      </label>
-      <select
-        value={statusFilter}
-        onChange={(e) => {
-          setStatusFilter(e.target.value)
-          setPage(0)
-        }}
-        className="w-full h-8 px-2.5 text-xs bg-white border border-[#E2E8F0] rounded-lg text-[#0F172A] focus:outline-hidden focus:border-[#2563EB]"
-      >
-        <option value="ALL">Tous les statuts</option>
-        <option value="UNPAID">En attente (Impayée)</option>
-        <option value="PARTIAL">Partiellement payée</option>
-        <option value="PAID">Réglée</option>
-        <option value="OVERDUE">En retard</option>
-      </select>
-    </div>
-  )
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8 select-none bg-[#F9FAFB] min-h-screen">
-      {/* Screen-reader heading preserving test suite & accessibility */}
-      <h1 className="sr-only">Gestion Financière</h1>
-
-      <EntityListToolbar
-        onAddNew={() => setCreateModalOpen(true)}
-        addNewLabel="Nouvelle facture"
-        canAddNew={true}
-        searchValue={searchQuery}
-        onSearchChange={(val) => {
-          setSearchQuery(val)
-          setPage(0)
-        }}
-        searchPlaceholder="Rechercher par numéro ou élève..."
-        filtersContent={filtersContent}
-        hasActiveFilters={hasActiveFilters}
-        activeFiltersCount={hasActiveFilters ? 1 : 0}
-        onClearFilters={() => {
-          setStatusFilter('ALL')
-          setPage(0)
-        }}
-      />
-
-      <EntityDataTable
-        columns={columns}
-        data={filteredInvoices}
-        isLoading={loading}
-        error={error}
-        onRetry={fetchInvoices}
-        emptyTitle="Aucune facture trouvée"
-        emptyDescription={
-          searchQuery || hasActiveFilters
-            ? 'Aucune facture ne correspond à vos filtres.'
-            : 'Aucune facture enregistrée pour le moment.'
-        }
-        emptyAction={{
-          label: 'Nouvelle facture',
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 select-none bg-[#F9FAFB] min-h-screen">
+      <DocTypePageHead
+        icon={CreditCard}
+        title="Gestion Financière"
+        count={totalElements}
+        countLabel="factures"
+        primaryAction={{
+          label: 'New invoice',
           onClick: () => setCreateModalOpen(true),
         }}
-        page={page + 1}
-        pageSize={15}
+        secondaryActions={[
+          {
+            label: 'Règles & Bourses',
+            onClick: () => setDiscountRulesOpen(true),
+          },
+        ]}
+      />
+
+      {error && <Alert variant="error" message={error} />}
+
+      <AccountingSummaryCard onRefreshTrigger={invoices} />
+
+      {/* 4 Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={CreditCard}
+          title="Active Opportunities"
+          value={`${totalElements} active`}
+          trendValue="↗ 3.5%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={DollarSign}
+          title="Deals Closed This Month"
+          value={`${paidCount} completed`}
+          trendValue="↘ 1.2%"
+          trendType="negative"
+        />
+        <StatCard
+          icon={Clock}
+          title="Average Response Time"
+          value="4.2 days"
+          trendValue="↗ 0.8%"
+          trendType="positive"
+        />
+        <StatCard
+          icon={Award}
+          title="Engagement Rate"
+          value={`${totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 62}%`}
+          trendValue="↗ 8.34%"
+          trendType="positive"
+        />
+      </div>
+
+      <TableToolbar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Rechercher par numéro ou élève..."
+        primaryActionLabel="New invoice"
+        onPrimaryAction={() => setCreateModalOpen(true)}
+        filters={[
+          {
+            label: 'Person to contact',
+            onClick: () => {},
+          },
+          {
+            label: statusFilter === 'ALL' ? 'Status' : statusFilter,
+            onClick: () => {
+              const options = ['ALL', 'UNPAID', 'PARTIAL', 'PAID', 'OVERDUE']
+              const idx = options.indexOf(statusFilter)
+              setStatusFilter(options[(idx + 1) % options.length])
+            },
+          },
+        ]}
+      />
+
+      <PaginatedTable
+        columns={columns}
+        data={filteredInvoices}
         totalItems={totalElements}
+        pageSize={15}
+        page={page + 1}
         totalPages={totalPages}
-        onPageChange={(newPage) => setPage(newPage - 1)}
+        onPageChange={(p) => setPage(p - 1)}
+        isLoading={loading}
+        enableSelection
         onRowClick={(inv) => handleOpenDetail(inv)}
       />
 
+      {/* Modals */}
       {detailModalOpen && (
         <InvoiceDetailModal
           isOpen={detailModalOpen}
           invoice={selectedInvoice}
-          onClose={() => setDetailModalOpen(false)}
-          onOpenPayment={(inv) => {
+          onClose={() => {
             setDetailModalOpen(false)
-            setSelectedInvoice(inv)
+            setSelectedInvoice(null)
+          }}
+          onRecordPayment={() => {
+            setDetailModalOpen(false)
             setPaymentModalOpen(true)
           }}
         />
@@ -305,7 +352,7 @@ export function InvoicesPage() {
         <CreateInvoiceModal
           isOpen={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
-          onCreated={() => {
+          onSuccess={() => {
             setCreateModalOpen(false)
             fetchInvoices()
           }}
@@ -316,10 +363,32 @@ export function InvoicesPage() {
         <RecordPaymentModal
           isOpen={paymentModalOpen}
           invoice={selectedInvoice}
-          onClose={() => setPaymentModalOpen(false)}
-          onRecorded={() => {
+          onClose={() => {
             setPaymentModalOpen(false)
+            setSelectedInvoice(null)
+          }}
+          onSuccess={() => {
+            setPaymentModalOpen(false)
+            setSelectedInvoice(null)
             fetchInvoices()
+          }}
+        />
+      )}
+
+      {discountRulesOpen && (
+        <DiscountRulesManager
+          isOpen={discountRulesOpen}
+          onClose={() => setDiscountRulesOpen(false)}
+        />
+      )}
+
+      {installmentsModalOpen && (
+        <InstallmentsPlanModal
+          isOpen={installmentsModalOpen}
+          invoice={installmentsInvoice}
+          onClose={() => {
+            setInstallmentsModalOpen(false)
+            setInstallmentsInvoice(null)
           }}
         />
       )}

@@ -2,21 +2,28 @@ import * as React from 'react'
 import { cn } from '@/utils/classNames'
 
 const badgeVariants = {
-  default: 'border-transparent bg-slate-900 text-white hover:bg-slate-800',
-  secondary: 'border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200',
-  destructive: 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100',
-  outline: 'border-slate-200 text-slate-700 bg-transparent',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-  blue: 'border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+  default: 'border-transparent bg-[var(--blue-core)] text-white hover:bg-[var(--blue-hover)]',
+  secondary: 'border-transparent bg-[var(--blue-wash)] text-[var(--blue-core)] hover:bg-[var(--light-blue)]',
+  destructive: 'border-[var(--rose)]/30 bg-[var(--rose-wash)] text-[var(--rose)] hover:bg-[var(--rose-wash)]/80',
+  outline: 'border-[var(--blue-muted)] text-[var(--blue-core)] hover:bg-[var(--blue-wash)]',
+  success: 'border-[var(--emerald)]/30 bg-[var(--emerald-wash)] text-[var(--emerald)] hover:bg-[var(--emerald-wash)]/80',
+  blue: 'border-[var(--blue-muted)] bg-[var(--blue-wash)] text-[var(--blue-core)] hover:bg-[var(--light-blue)]',
+  warning: 'border-[var(--amber)]/30 bg-[var(--amber-wash)] text-[var(--amber)] hover:bg-[var(--amber-wash)]/80',
 }
 
-function Badge({ className, variant = 'default', ...props }) {
+function Badge({ className, variant = 'default', size = 'sm', ...props }) {
+  const sizeStyles = {
+    xs: 'px-1.5 py-0.5 text-caption',
+    sm: 'px-2 py-0.5 text-label',
+    md: 'px-2.5 py-0.5 text-body',
+  }
+
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-slate-900 select-none shadow-2xs',
+        'inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--blue-core)]/20 focus:ring-offset-1 focus:ring-offset-[var(--surface)] select-none',
         badgeVariants[variant] || badgeVariants.default,
+        sizeStyles[size] || sizeStyles.sm,
         className
       )}
       {...props}
@@ -25,4 +32,3 @@ function Badge({ className, variant = 'default', ...props }) {
 }
 
 export { Badge }
-export default Badge

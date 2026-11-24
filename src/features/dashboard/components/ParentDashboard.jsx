@@ -10,12 +10,13 @@ import {
   Building2,
   Users,
 } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { HeroBanner } from '@/components/ui/HeroBanner'
-import { StatCard } from '@/components/ui/StatCard'
 import { ExamResultsWaveChart } from '@/components/ui/ExamResultsWaveChart'
 import { RadialDistributionCard } from '@/components/ui/RadialDistributionCard'
 import { StarStudentsCard } from '@/components/ui/StarStudentsCard'
 import { RecentActivityFeedCard } from '@/components/ui/RecentActivityFeedCard'
+import { TodayScheduleWidget } from '@/features/timetables'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useAuth } from '@/hooks/useAuth'
 import { statsService } from '../api/statsService'
@@ -70,36 +71,36 @@ export function ParentDashboard() {
   const parentActivities = [
     {
       id: '1',
-      title: 'Rencontre parents-professeurs',
-      subtitle: 'Entretien individuel programmé avec le professeur de lettres',
-      time: 'Vendredi 17:30',
+      title: 'Parent-Teacher Meeting',
+      subtitle: 'Individual consultation scheduled with French teacher',
+      time: 'Friday 17:30',
       icon: Calendar,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#EFF6FF]',
+      iconColor: 'text-[#2563EB]',
     },
     {
       id: '2',
-      title: 'Règlement des frais validé',
-      subtitle: 'Quittance #INV-2026-089 enregistrée par la comptabilité',
-      time: 'Hier',
+      title: 'Term 1 Tuition Paid',
+      subtitle: 'Receipt #INV-2026-089 validated by accounting',
+      time: 'Yesterday',
       icon: Coins,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#DBEAFE]',
+      iconColor: 'text-[#1D4ED8]',
     },
     {
       id: '3',
-      title: 'Autorisation de sortie scolaire',
-      subtitle: 'Visite pédagogique au musée des sciences validée',
-      time: 'Il y a 3 jours',
+      title: 'School Excursion Consent',
+      subtitle: 'Science museum field trip form signed',
+      time: '3 days ago',
       icon: Building2,
-      iconBg: 'bg-slate-100',
-      iconColor: 'text-slate-600',
+      iconBg: 'bg-[#F0F9FF]',
+      iconColor: 'text-[#0284C7]',
     },
   ]
 
   return (
     <div className="space-y-6 select-none">
-      {/* Calm Scholastic Desk Banner */}
+      {/* Figma Signature Blue Banner */}
       <HeroBanner
         title="Espace Famille · Suivi Scolaire"
         description="Accédez aux résultats d'évaluations, au suivi d'assiduité et aux communications de l'établissement en temps réel."
@@ -109,19 +110,19 @@ export function ParentDashboard() {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
-          <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight">
-            Espace Parents
-          </h2>
-          <p className="text-2xs font-medium text-slate-500 mt-0.5">
-            Suivi académique, assiduité et scolarité de vos enfants
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Parent Dashboard
+          </h1>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Espace Parents — Suivi académique, assiduité et scolarité de vos enfants
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
@@ -129,7 +130,7 @@ export function ParentDashboard() {
           <button
             type="button"
             onClick={fetchParentData}
-            className="px-2.5 py-1 bg-white border border-rose-200 rounded text-2xs font-medium text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+            className="px-2.5 py-1 bg-white border border-rose-200 rounded-lg text-2xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
           >
             Réessayer
           </button>
@@ -145,8 +146,8 @@ export function ParentDashboard() {
         <>
           {/* Child Selector Tabs (if multiple children) */}
           {children.length > 1 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              <span className="text-2xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 me-1">
+            <div className="flex items-center gap-3 overflow-x-auto pb-1">
+              <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider shrink-0">
                 Enfant suivi :
               </span>
               {children.map((child, idx) => (
@@ -154,10 +155,10 @@ export function ParentDashboard() {
                   type="button"
                   key={child.id || idx}
                   onClick={() => setSelectedChildIndex(idx)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900 ${
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                     selectedChildIndex === idx
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      ? 'bg-[#2563EB] text-white shadow-2xs'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-[#EFF6FF] hover:text-[#2563EB]'
                   }`}
                 >
                   <span>{child.firstName} {child.lastName}</span>
@@ -167,37 +168,61 @@ export function ParentDashboard() {
             </div>
           )}
 
-          {/* Top 4 Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              variant="blue"
-              title="Student Average"
-              value={loading ? '...' : (currentChild?.average ? `${currentChild.average} / 20` : '15.8 / 20')}
-              icon={Award}
-              onClick={() => navigate('/report-cards')}
-            />
-            <StatCard
-              variant="skyBlue"
-              title="Attendance"
-              value={loading ? '...' : (currentChild?.attendance ? `${currentChild.attendance}%` : '97.0%')}
-              icon={CheckCircle2}
-              onClick={() => navigate('/observations')}
-            />
-            <StatCard
-              variant="mediumBlue"
-              title="Homework"
-              value={loading ? '...' : '2 Tasks'}
-              icon={FileText}
-              onClick={() => navigate('/homework')}
-            />
-            <StatCard
-              variant="darkBlue"
-              title="School Fees"
-              value={loading ? '...' : (stats?.unpaidAmount ? `${stats.unpaidAmount} €` : '0 € Dû')}
-              icon={Coins}
-              onClick={() => navigate('/finances/invoices')}
-            />
+          {/* shadcn dashboard-01 Top 4 Metric Cards */}
+          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/report-cards')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Moyenne Générale</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (currentChild?.average ? `${currentChild.average} / 20` : '15.8 / 20')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Excellent niveau académique</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/attendance')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taux de Présence</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (currentChild?.attendance ? `${currentChild.attendance}%` : '97.0%')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Assiduité exemplaire</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/homework')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Devoirs à Faire</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">2 Devoirs</div>
+                <p className="text-xs text-muted-foreground mt-1">À vérifier pour cette semaine</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/50 transition-all shadow-xs" onClick={() => navigate('/finances/invoices')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Frais Scolaires</CardTitle>
+                <Coins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {loading ? '...' : (stats?.unpaidAmount ? `${stats.unpaidAmount} €` : '0 € Dû')}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Scolarité à jour</p>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Today's Timetable Widget */}
+          <TodayScheduleWidget title="Emploi du temps de la journée" />
 
           {/* Middle Row: Trend Wave Chart + Radial Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -205,8 +230,8 @@ export function ParentDashboard() {
               <ExamResultsWaveChart
                 title="All Exam Results"
                 series={[
-                  { name: `${currentChild?.firstName || 'Student'} Marks`, color: '#5B5FC7' },
-                  { name: 'Class Benchmark', color: '#CBD5E1' },
+                  { name: `${currentChild?.firstName || 'Student'} Marks`, color: '#2563EB' },
+                  { name: 'Class Benchmark', color: '#38BDF8' },
                 ]}
               />
             </div>
@@ -215,7 +240,7 @@ export function ParentDashboard() {
                 title="Attendance & Progress"
                 totalLabel="Average"
                 totalValue={currentChild?.average ? `${currentChild.average}/20` : '15.8/20'}
-                outerColor="#5B5FC7"
+                outerColor="#2563EB"
                 outerPercent={97}
                 outerLabel="Presence"
                 innerColor="#38BDF8"
@@ -236,7 +261,7 @@ export function ParentDashboard() {
             </div>
             <div className="lg:col-span-1">
               <RecentActivityFeedCard
-                title="Communications et vie scolaire"
+                title="All Exam Results"
                 items={parentActivities}
                 onOptionsClick={() => navigate('/events')}
                 onItemClick={() => navigate('/events')}

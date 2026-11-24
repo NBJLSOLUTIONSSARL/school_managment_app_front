@@ -50,8 +50,8 @@ describe('Language Selection & Internationalization Flow', () => {
     localStorage.clear()
     sessionStorage.clear()
     clearTokens()
-    document.cookie = `${LANGUAGE_COOKIE_KEY}=; path=/; max-age=0`
-    document.cookie = 'edutrack_session=; path=/; max-age=0'
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; max-age=0`
+    document.cookie = 'edutrack_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; max-age=0'
     document.documentElement.lang = 'fr'
     document.documentElement.dir = 'ltr'
     vi.clearAllMocks()

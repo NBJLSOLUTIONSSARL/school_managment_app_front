@@ -6,7 +6,7 @@ const Table = React.forwardRef(function Table({ className, ...props }, ref) {
     <div className="relative w-full overflow-auto">
       <table
         ref={ref}
-        className={cn('w-full caption-bottom text-xs text-left border-collapse', className)}
+        className={cn('w-full caption-bottom text-body text-left border-collapse', className)}
         {...props}
       />
     </div>
@@ -15,7 +15,13 @@ const Table = React.forwardRef(function Table({ className, ...props }, ref) {
 Table.displayName = 'Table'
 
 const TableHeader = React.forwardRef(function TableHeader({ className, ...props }, ref) {
-  return <thead ref={ref} className={cn('[&_tr]:border-b border-slate-200 bg-slate-50/70', className)} {...props} />
+  return (
+    <thead
+      ref={ref}
+      className={cn('[&_tr]:border-b border-[var(--border-subtle)] bg-[var(--paper)]', className)}
+      {...props}
+    />
+  )
 })
 TableHeader.displayName = 'TableHeader'
 
@@ -23,7 +29,7 @@ const TableBody = React.forwardRef(function TableBody({ className, ...props }, r
   return (
     <tbody
       ref={ref}
-      className={cn('[&_tr:last-child]:border-0 divide-y divide-slate-100', className)}
+      className={cn('[&_tr:last-child]:border-0 divide-y divide-[var(--border-subtle)]', className)}
       {...props}
     />
   )
@@ -34,19 +40,21 @@ const TableFooter = React.forwardRef(function TableFooter({ className, ...props 
   return (
     <tfoot
       ref={ref}
-      className={cn('border-t border-slate-200 bg-slate-50/70 font-medium [&>tr]:last:border-b-0', className)}
+      className={cn('border-t border-[var(--border-subtle)] bg-[var(--paper)] font-medium [&>tr]:last:border-b-0', className)}
       {...props}
     />
   )
 })
 TableFooter.displayName = 'TableFooter'
 
-const TableRow = React.forwardRef(function TableRow({ className, ...props }, ref) {
+const TableRow = React.forwardRef(function TableRow({ className, selectable = false, selected = false, ...props }, ref) {
   return (
     <tr
       ref={ref}
       className={cn(
-        'border-b border-slate-100 transition-colors hover:bg-slate-50/70 data-[state=selected]:bg-slate-100/70',
+        'border-b border-[var(--border-subtle)] transition-colors duration-fast',
+        selectable && 'cursor-pointer hover:bg-[var(--blue-wash)]/50',
+        selected && 'bg-[var(--blue-wash)] border-l-2 border-l-[var(--blue-core)]',
         className
       )}
       {...props}
@@ -60,7 +68,7 @@ const TableHead = React.forwardRef(function TableHead({ className, ...props }, r
     <th
       ref={ref}
       className={cn(
-        'h-8 px-3 py-1.5 text-left align-middle text-2xs font-semibold text-slate-500 [&:has([role=checkbox])]:pr-0',
+        'h-9 px-3 py-1.5 text-left align-middle text-label font-semibold uppercase tracking-wider text-[var(--ink-muted)] [&:has([role=checkbox])]:pr-0',
         className
       )}
       {...props}
@@ -73,7 +81,7 @@ const TableCell = React.forwardRef(function TableCell({ className, ...props }, r
   return (
     <td
       ref={ref}
-      className={cn('py-2.5 px-3 align-middle text-xs text-slate-900 [&:has([role=checkbox])]:pr-0', className)}
+      className={cn('px-3 py-2.5 align-middle text-body text-[var(--ink)] [&:has([role=checkbox])]:pr-0', className)}
       {...props}
     />
   )
@@ -84,7 +92,7 @@ const TableCaption = React.forwardRef(function TableCaption({ className, ...prop
   return (
     <caption
       ref={ref}
-      className={cn('mt-3 text-2xs text-slate-500', className)}
+      className={cn('mt-3 text-caption text-[var(--ink-muted)]', className)}
       {...props}
     />
   )
@@ -101,4 +109,3 @@ export {
   TableCell,
   TableCaption,
 }
-export default Table

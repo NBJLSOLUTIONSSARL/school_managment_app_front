@@ -26,6 +26,7 @@ describe('announcementService', () => {
             title: 'Rentrée scolaire',
             content: 'Détails de rentrée',
             targetRole: 'ALL',
+            status: 'PUBLISHED',
             publishedAt: '2026-09-01T08:00:00',
             publishedByUserId: 10,
           },
@@ -49,7 +50,7 @@ describe('announcementService', () => {
     expect(res.data.totalItems).toBe(1)
   })
 
-  it('filters by targetRole when specified', async () => {
+  it('filters by targetRole and status when specified', async () => {
     axiosClient.get.mockResolvedValue({
       status: 200,
       data: {
@@ -61,15 +62,20 @@ describe('announcementService', () => {
       },
     })
 
-    await announcementService.getAnnouncements({ targetRole: 'TEACHER', page: 2, size: 10 })
+    await announcementService.getAnnouncements({
+      targetRole: 'TEACHER',
+      status: 'DRAFT',
+      page: 2,
+      size: 10,
+    })
 
     expect(axiosClient.get).toHaveBeenCalledWith('/api/announcements', {
-      params: { targetRole: 'TEACHER', page: 1, size: 10 },
+      params: { targetRole: 'TEACHER', status: 'DRAFT', page: 1, size: 10 },
       signal: undefined,
     })
   })
 
-  it('creates an announcement with trimmed title and content', async () => {
+  it('creates an announcement with trimmed title, content, targetRole, and status', async () => {
     axiosClient.post.mockResolvedValue({
       status: 201,
       data: {
@@ -77,6 +83,7 @@ describe('announcementService', () => {
         title: 'Examen de mi-semestre',
         content: 'Planning affiché',
         targetRole: 'STUDENT',
+        status: 'PUBLISHED',
       },
     })
 
@@ -84,6 +91,7 @@ describe('announcementService', () => {
       title: '  Examen de mi-semestre  ',
       content: '  Planning affiché  ',
       targetRole: 'STUDENT',
+      status: 'PUBLISHED',
     }
 
     const res = await announcementService.createAnnouncement(payload)
@@ -92,9 +100,40 @@ describe('announcementService', () => {
       title: 'Examen de mi-semestre',
       content: 'Planning affiché',
       targetRole: 'STUDENT',
+      status: 'PUBLISHED',
     })
     expect(res.success).toBe(true)
     expect(res.data.id).toBe(2)
+  })
+
+  it('updates an announcement with status', async () => {
+    axiosClient.put.mockResolvedValue({
+      status: 200,
+      data: {
+        id: 2,
+        title: 'Examen reporté',
+        content: 'Nouveau planning',
+        targetRole: 'STUDENT',
+        status: 'ARCHIVED',
+      },
+    })
+
+    const payload = {
+      title: 'Examen reporté',
+      content: 'Nouveau planning',
+      targetRole: 'STUDENT',
+      status: 'ARCHIVED',
+    }
+
+    const res = await announcementService.updateAnnouncement(2, payload)
+
+    expect(axiosClient.put).toHaveBeenCalledWith('/api/announcements/2', {
+      title: 'Examen reporté',
+      content: 'Nouveau planning',
+      targetRole: 'STUDENT',
+      status: 'ARCHIVED',
+    })
+    expect(res.success).toBe(true)
   })
 
   it('deletes an announcement', async () => {

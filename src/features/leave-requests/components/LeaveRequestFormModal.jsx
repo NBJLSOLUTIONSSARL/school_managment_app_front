@@ -12,26 +12,42 @@ const LEAVE_TYPES = [
   { value: 'UNPAID', label: 'Congé sans solde' },
 ]
 
+function getLocalDateStr(d = new Date()) {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function getInitialData(item) {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const afterTomorrow = new Date(tomorrow)
   afterTomorrow.setDate(afterTomorrow.getDate() + 2)
 
-  const toDateStr = (d) => d.toISOString().slice(0, 10)
+  const defaultType = 'ANNUAL'
+  const resolveType = (t) => {
+    if (!t) return defaultType
+    if (typeof t === 'string') return t.toUpperCase()
+    if (typeof t === 'object' && t !== null) {
+      if (t.value) return String(t.value).toUpperCase()
+      if (t.target && t.target.value) return String(t.target.value).toUpperCase()
+    }
+    return String(t).toUpperCase()
+  }
 
   if (!item) {
     return {
-      startDate: toDateStr(tomorrow),
-      endDate: toDateStr(afterTomorrow),
-      type: 'ANNUAL',
+      startDate: getLocalDateStr(tomorrow),
+      endDate: getLocalDateStr(afterTomorrow),
+      type: defaultType,
       reason: '',
     }
   }
   return {
-    startDate: item.startDate || toDateStr(tomorrow),
-    endDate: item.endDate || toDateStr(afterTomorrow),
-    type: item.type || 'ANNUAL',
+    startDate: item.startDate || getLocalDateStr(tomorrow),
+    endDate: item.endDate || getLocalDateStr(afterTomorrow),
+    type: resolveType(item.type),
     reason: item.reason || '',
   }
 }
@@ -50,7 +66,16 @@ export function LeaveRequestFormModal({
   const [fieldErrors, setFieldErrors] = useState({})
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    const rawValue =
+      value && typeof value === 'object' && 'target' in value
+        ? value.target.value
+        : value && typeof value === 'object' && 'value' in value
+          ? value.value
+          : value
+
+    const cleanValue = typeof rawValue === 'string' ? rawValue : String(rawValue ?? '')
+
+    setFormData((prev) => ({ ...prev, [field]: cleanValue }))
     if (fieldErrors[field]) {
       setFieldErrors((prev) => {
         const next = { ...prev }
@@ -65,7 +90,7 @@ export function LeaveRequestFormModal({
     if (isSubmitting) return
 
     const errors = {}
-    const todayStr = new Date().toISOString().slice(0, 10)
+    const todayStr = getLocalDateStr(new Date())
 
     if (!formData.startDate) {
       errors.startDate = 'La date de début est requise.'
@@ -92,11 +117,23 @@ export function LeaveRequestFormModal({
 
     setIsSubmitting(true)
     try {
+      const resolvedType =
+        typeof formData.type === 'object' && formData.type !== null
+          ? (formData.type.value || 'ANNUAL')
+          : String(formData.type || 'ANNUAL')
+
+      const payload = {
+        startDate: String(formData.startDate || '').trim(),
+        endDate: String(formData.endDate || '').trim(),
+        type: String(resolvedType).toUpperCase(),
+        reason: String(formData.reason || '').trim(),
+      }
+
       let res
       if (isEditing) {
-        res = await leaveRequestService.updateLeaveRequest(leaveRequest.id, formData)
+        res = await leaveRequestService.updateLeaveRequest(leaveRequest.id, payload)
       } else {
-        res = await leaveRequestService.createLeaveRequest(formData)
+        res = await leaveRequestService.createLeaveRequest(payload)
       }
 
       if (res.success) {
@@ -144,7 +181,10 @@ export function LeaveRequestFormModal({
           </label>
           <Select
             value={formData.type}
-            onChange={(val) => handleChange('type', val)}
+            onChange={(e) => {
+              const val = e?.target ? e.target.value : (e?.value ?? e)
+              handleChange('type', val)
+            }}
             options={LEAVE_TYPES}
             disabled={isSubmitting}
           />
